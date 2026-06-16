@@ -922,10 +922,10 @@ function parseAllArticles(text) {
   }
   if (articlePositions.length === 0) return [];
 
-  const QTY_RE = /(?:\bx(\d{1,3})\b|\b(\d{1,3})\s*(?:st\.?|x|pcs?)\b)/gi;
+  const QTY_RE = /(?:\bx(\d{1,3})\b|\b(\d{1,3})\s*(?:st\.?|x|pcs?)\b|[Aa]ntal[:\s]+(\d{1,3}))/gi;
   const quantities = [];
   while ((m = QTY_RE.exec(text)) !== null) {
-    const qty = parseInt(m[1] ?? m[2], 10);
+    const qty = parseInt(m[1] ?? m[2] ?? m[3], 10);
     quantities.push({ qty, pos: m.index, end: m.index + m[0].length });
   }
 

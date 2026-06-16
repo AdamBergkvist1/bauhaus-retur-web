@@ -1,167 +1,153 @@
-/**
- * api/shipping.js  – Vercel Serverless Function
- * Proxar Bauhaus checkout-API för fraktberäkning.
- * Körs server-side så CORS-begränsningar kringgås.
- *
- * POST /api/shipping
- * Body: { postcode: "75234", articles: [{ sku: "1234567", quantity: 2 }] }
- */
-
 const BAUHAUS_BASE = "https://www.bauhaus.se";
 const BAUHAUS_REST = `${BAUHAUS_BASE}/rest/sv/V1`;
+const ALGOLIA_APP_ID = "TGPIEONN2S";
+const ALGOLIA_INDEX = "nordic_production_sv_products";
+const ALGOLIA_ENDPOINT = `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/queries`;
 
 export default async function handler(req, res) {
-  // CORS-headers så frontend kan anropa från vilken origin som helst
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") { res.status(200).end(); return; }
 
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
+  const action = req.query.action;
 
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
-
-  const { postcode, articles } = req.body ?? {};
-
-  if (!postcode || !/^\d{5}$/.test(postcode.replace(/\s/g, ""))) {
-    res.status(400).json({ error: "Ogiltigt postnummer. Ange 5 siffror." });
-    return;
-  }
-  if (!Array.isArray(articles) || articles.length === 0) {
-    res.status(400).json({ error: "Inga artiklar att beräkna frakt för." });
-    return;
-  }
-
-  const cleanPostcode = postcode.replace(/\s/g, "");
-
-  try {
-    // Steg 1: Skapa gäst-varukorg
-    const cartRes = await bauhausFetch("POST", "/guest-carts", null);
-    const cartToken = cartRes;
-    if (typeof cartToken !== "string" || cartToken.length < 5) {
-      throw new Error("Kunde inte skapa gäst-varukorg.");
-    }
-
-    // Steg 2: Lägg till artiklar
-    for (const article of articles) {
-      try {
-        await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
-          cartItem: {
-            quote_id: cartToken,
-            sku: String(article.sku),
-            qty: article.quantity,
-          },
-        });
-      } catch (err) {
-        console.warn(`SKU ${article.sku} misslyckades: ${err.message}`);
-      }
-    }
-
-    // Steg 3: estimate-shipping-methods med postnummer
+  if (action === "algolia-key") {
     try {
-      await bauhausFetch("POST", `/guest-carts/${cartToken}/estimate-shipping-methods`, {
-        address: {
-          region_code: "SE",
-          country_id: "SE",
-          postcode: cleanPostcode,
-        },
+      const r = await fetch(`${BAUHAUS_BASE}/catalogsearch/result/?q=hammer`, {
+        headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
       });
+      const html = await r.text();
+      const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
+      if (!m) throw new Error("Nyckel hittades inte");
+      res.status(200).json({ success: true, key: m[1] });
     } catch (err) {
-      console.warn("estimate-shipping-methods:", err.message);
+      res.status(500).json({ success: false, error: err.message });
     }
+    return;
+  }
 
-    await sleep(400);
+  if (action === "product") {
+    const { articleNumber } = req.body ?? {};
+    try {
+      const keyRes = await fetch(`${BAUHAUS_BASE}/catalogsearch/result/?q=hammer`, {
+        headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
+      });
+      const html = await keyRes.text();
+      const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
+      if (!m) throw new Error("Kunde inte hämta Algolia-nyckel");
+      const apiKey = m[1];
 
-    // Steg 4: Hämta fraktalternativ
-    const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null);
-    const shippingGroups = totals?.extension_attributes?.shipping_groups;
+      const algoliaRes = await fetch(ALGOLIA_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-algolia-application-id": ALGOLIA_APP_ID,
+          "x-algolia-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          requests: [{
+            indexName: ALGOLIA_INDEX,
+            query: articleNumber,
+            params: "hitsPerPage=5&attributesToRetrieve=url,objectID,ean,name,sku",
+          }],
+        }),
+      });
+      const json = await algoliaRes.json();
+      const hits = json?.results?.[0]?.hits;
+      if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte.");
 
-    if (!Array.isArray(shippingGroups) || shippingGroups.length === 0) {
-      throw new Error("Inga fraktalternativ returnerades.");
+      const best = hits.find(h => String(h.objectID) === articleNumber) ?? hits.find(h => h.url?.includes(articleNumber)) ?? hits[0];
+
+      const rawSku = String(best.sku ?? "");
+      const rawObjId = String(best.objectID ?? "");
+      const sku = /^\d{7,8}$/.test(rawSku) ? rawSku : /^\d{7,8}$/.test(rawObjId) ? rawObjId : null;
+      const rawEan = String(best.ean ?? "").replace(/\s/g, "");
+      const ean = /^\d{8,14}$/.test(rawEan) ? rawEan : null;
+      if (!ean) throw new Error("EAN saknas.");
+
+      const productUrl = best.url?.startsWith("http") ? best.url : `${BAUHAUS_BASE}${best.url}`;
+      const pageRes = await fetch(productUrl, { headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" } });
+      const pageHtml = await pageRes.text();
+
+      const wm = pageHtml.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
+                 pageHtml.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
+      const weight = wm ? parseFloat(wm[1].replace(",", ".")) : null;
+      if (!weight) throw new Error("Vikt saknas.");
+
+      res.status(200).json({ success: true, data: { sku, ean, weight } });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
     }
+    return;
+  }
 
-    const cleanLabel = (raw) =>
-      String(raw ?? "")
-        .replace(/\s*\d+-\d+\s*arbetsdagar?/gi, "")
-        .replace(/\s{2,}/g, " ")
-        .trim();
+  if (action === "shipping") {
+    const { postcode, articles } = req.body ?? {};
+    try {
+      const cartRes = await bauhausFetch("POST", "/guest-carts", null);
+      const cartToken = cartRes;
+      if (typeof cartToken !== "string" || cartToken.length < 5) throw new Error("Kunde inte skapa varukorg.");
 
-    const allOptions = [];
-    for (const group of shippingGroups) {
-      if (group.title && group.price != null) {
-        allOptions.push({
-          label: cleanLabel(group.title),
-          price: group.price,
-          partnerCode: group.code ?? "",
-          sortOrder: 99,
-        });
-      }
-      const rawExtra = group.additional_info?.[2];
-      if (rawExtra && typeof rawExtra === "string" && rawExtra !== "[]") {
+      for (const article of articles) {
         try {
-          const extras = JSON.parse(rawExtra);
-          for (const e of extras) {
-            const price = parseFloat(String(e.price).replace(",", "."));
-            if (!isNaN(price)) {
-              allOptions.push({
-                label: cleanLabel(e.delivery_type),
-                price,
-                partnerCode: String(e.partner_name ?? "").toLowerCase().replace(/\s+/g, "_"),
-                sortOrder: parseInt(e.sort_order ?? 99, 10) || 99,
-              });
-            }
-          }
+          await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
+            cartItem: { quote_id: cartToken, sku: String(article.sku), qty: article.quantity },
+          });
         } catch {}
       }
-    }
 
-    const seen = new Set();
-    const options = [];
-    for (const opt of allOptions) {
-      const key = `${opt.label}|${opt.price}`;
-      if (!seen.has(key) && opt.label) {
-        seen.add(key);
-        options.push(opt);
+      try {
+        await bauhausFetch("POST", `/guest-carts/${cartToken}/estimate-shipping-methods`, {
+          address: { region_code: "SE", country_id: "SE", postcode },
+        });
+      } catch {}
+
+      await new Promise(r => setTimeout(r, 400));
+
+      const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null);
+      const groups = totals?.extension_attributes?.shipping_groups;
+      if (!Array.isArray(groups) || groups.length === 0) throw new Error("Inga fraktalternativ.");
+
+      const clean = s => String(s ?? "").replace(/\s*\d+-\d+\s*arbetsdagar?/gi, "").replace(/\s{2,}/g, " ").trim();
+      const all = [];
+      for (const g of groups) {
+        if (g.title && g.price != null) all.push({ label: clean(g.title), price: g.price, sortOrder: 99 });
+        const raw = g.additional_info?.[2];
+        if (raw && typeof raw === "string" && raw !== "[]") {
+          try {
+            for (const e of JSON.parse(raw)) {
+              const price = parseFloat(String(e.price).replace(",", "."));
+              if (!isNaN(price)) all.push({ label: clean(e.delivery_type), price, sortOrder: parseInt(e.sort_order ?? 99) || 99 });
+            }
+          } catch {}
+        }
       }
+
+      const seen = new Set();
+      const options = [];
+      for (const o of all) {
+        const k = `${o.label}|${o.price}`;
+        if (!seen.has(k) && o.label) { seen.add(k); options.push(o); }
+      }
+      options.sort((a, b) => a.price - b.price || a.sortOrder - b.sortOrder);
+      res.status(200).json({ success: true, options });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
     }
-
-    if (options.length === 0) throw new Error("Inga fraktalternativ hittades.");
-
-    options.sort((a, b) => a.price - b.price || a.sortOrder - b.sortOrder);
-
-    res.status(200).json({ success: true, options });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    return;
   }
+
+  res.status(400).json({ error: "Okänd action" });
 }
 
 async function bauhausFetch(method, path, body) {
   const url = `${BAUHAUS_REST}${path}`;
-  const headers = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    "X-Requested-With": "XMLHttpRequest",
-    "User-Agent": "Mozilla/5.0 (compatible; BauhausReturWeb/1.0)",
-  };
+  const headers = { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
   const opts = { method, headers };
   if (body !== null) opts.body = JSON.stringify(body);
-
-  const response = await fetch(url, opts);
-  const text = await response.text();
-
-  if (!response.ok) {
-    let detail = text;
-    try { detail = JSON.parse(text)?.message ?? text; } catch {}
-    throw new Error(`Bauhaus ${method} ${path} → HTTP ${response.status}: ${detail}`);
-  }
-
-  try { return JSON.parse(text); }
-  catch { return text; }
+  const r = await fetch(url, opts);
+  const text = await r.text();
+  if (!r.ok) { let d = text; try { d = JSON.parse(text)?.message ?? text; } catch {} throw new Error(`HTTP ${r.status}: ${d}`); }
+  try { return JSON.parse(text); } catch { return text; }
 }
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

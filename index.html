@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bauhaus Returhantering</title>
+  <style>
+    :root {
+      --red: #E2001A;
+      --red-dark: #B8001B;
+      --red-faint: #fff5f5;
+      --grey-50: #F7F8FA;
+      --grey-100: #EAEDF1;
+      --grey-200: #D5DAE1;
+      --grey-500: #8896A5;
+      --grey-700: #4A5568;
+      --grey-900: #1A202C;
+      --green: #1B873F;
+      --green-bg: #EAF5EE;
+      --green-border: #C3E6CB;
+      --warn-bg: #FFFBEB;
+      --warn-border: #FCD34D;
+      --warn-text: #92400E;
+      --white: #FFFFFF;
+      --radius: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--grey-900);
+      background: var(--grey-50);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--red);
+      color: white;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(226,0,26,.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: 1.5px;
+    }
+    .header-sep { opacity: .35; font-size: 20px; font-weight: 100; }
+    .header-title { font-size: 14px; font-weight: 500; opacity: .92; }
+    .header-spacer { flex: 1; }
+    .header-name-wrap { display: flex; align-items: center; gap: 8px; }
+    .header-name-wrap label { font-size: 12px; opacity: .75; }
+    .header-name-wrap input {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 4px;
+      color: white;
+      padding: 4px 9px;
+      font-size: 13px;
+      font-family: var(--font);
+      width: 120px;
+    }
+    .header-name-wrap input::placeholder { color: rgba(255,255,255,.5); }
+    .header-name-wrap input:focus { outline: none; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.2); }
+
+    /* ── Layout ── */
+    .app-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .app-wrap { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+    }
+    .card + .card { margin-top: 14px; }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--grey-500);
+      margin-bottom: 12px;
+    }
+
+    /* ── Textarea ── */
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 12px;
+      font-size: 13px;
+      font-family: var(--font);
+      color: var(--grey-900);
+      resize: vertical;
+      line-height: 1.5;
+      transition: border-color .15s;
+    }
+    textarea:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(226,0,26,.08); }
+    textarea::placeholder { color: var(--grey-500); }
+
+    /* ── Knapp primär ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: none;
+      border-radius: var(--radius);
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background .15s, opacity .15s;
+    }
+    .btn-primary { background: var(--red); color: white; }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-secondary { background: var(--grey-100); color: var(--grey-700); border: 1px solid var(--grey-200); }
+    .btn-secondary:hover { background: var(--grey-200); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid var(--grey-200);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    .spinner-sm { width: 12px; height: 12px; }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--grey-500);
+      padding: 8px 0;
+    }
+
+    /* ── Resultatlista ── */
+    .result-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .result-row {
+      border: 1px solid var(--grey-200);
+      border-left: 4px solid var(--green);
+      border-radius: 4px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--white);
+    }
+    .result-row--error { border-left-color: var(--red); }
+
+    .result-line {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+      color: var(--grey-900);
+      word-break: break-all;
+      flex: 1;
+    }
+    .result-line--error { color: var(--red); font-family: var(--font); font-style: italic; }
+
+    .qty-controls { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .qty-btn {
+      width: 24px; height: 24px;
+      border: 1px solid var(--grey-200);
+      border-radius: 4px;
+      background: var(--white);
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; color: var(--grey-700);
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1; padding: 0;
+      transition: border-color .1s, color .1s;
+    }
+    .qty-btn:hover { border-color: var(--red); color: var(--red); }
+    .qty-val { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
+
+    /* ── Varning ── */
+    .warn-box {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius);
+      padding: 10px 13px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--warn-text);
+    }
+
+    /* ── Output-ruta ── */
+    .output-box {
+      background: var(--grey-50);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 13px 15px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--grey-900);
+      min-height: 80px;
+    }
+
+    .copy-feedback {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .copy-feedback.show { opacity: 1; }
+
+    /* ── Frakt ── */
+    .postcode-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .postcode-row input {
+      flex: 1;
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 8px 11px;
+      font-size: 13px;
+      font-family: var(--font);
+    }
+    .postcode-row input:focus { outline: none; border-color: var(--red); }
+
+    .shipping-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .shipping-opt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--grey-200);
+      border-radius: 4px;
+      padding: 8px 11px;
+      cursor: pointer;
+      background: var(--white);
+      font-family: var(--font);
+      font-size: 13px;
+      transition: border-color .12s;
+      width: 100%;
+      text-align: left;
+    }
+    .shipping-opt:hover { border-color: var(--red); background: var(--red-faint); }
+    .shipping-opt--cheapest { border-left: 3px solid var(--green); }
+    .shipping-opt-price { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .badge-cheapest {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      background: var(--green); color: white;
+      padding: 2px 5px; border-radius: 3px;
+    }
+    .shipping-selected {
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .error-msg {
+      color: var(--red);
+      font-size: 12px;
+      background: #fff5f5;
+      border: 1px solid #fca5a5;
+      border-radius: 4px;
+      padding: 8px 11px;
+      margin-top: 6px;
+    }
+
+    /* ── Höger kolumn: ärendeanalys ── */
+    .case-type-badge {
+      display: inline-block;
+      background: var(--grey-100);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--grey-700);
+      margin-bottom: 10px;
+    }
+    .case-warnings { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .case-warn-item {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: var(--warn-text);
+    }
+
+    .macro-list { display: flex; flex-direction: column; gap: 6px; }
+    .macro-btn {
+      background: var(--white);
+      border: 1px solid var(--grey-200);
+      border-left: 3px solid var(--red);
+      border-radius: 4px;
+      padding: 9px 12px;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      font-family: var(--font);
+      transition: background .12s;
+    }
+    .macro-btn:hover { background: var(--red-faint); }
+    .macro-btn--copied { background: var(--green-bg) !important; border-left-color: var(--green) !important; }
+    .macro-title { font-size: 12px; font-weight: 700; color: var(--grey-900); display: block; }
+    .macro-desc { font-size: 11px; color: var(--grey-500); display: block; margin-top: 2px; }
+
+    /* ── Manuell inmatning ── */
+    .manual-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--grey-500); margin-bottom: 4px; letter-spacing: .4px; }
+    .form-group input {
+      width: 100%;
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: var(--font);
+      transition: border-color .15s;
+    }
+    .form-group input:focus { outline: none; border-color: var(--red); }
+    .form-group input.invalid { border-color: var(--red); }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
+
+    /* ── Tomt tillstånd ── */
+    .empty {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--grey-500);
+    }
+    .empty p { font-size: 13px; line-height: 1.6; }
+
+    .hidden { display: none !important; }
+
+    .flex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">BAUHAUS</span>
+  <span class="header-sep">|</span>
+  <span class="header-title">Returhantering</span>
+  <div class="header-spacer"></div>
+  <div class="header-name-wrap">
+    <label for="inputName">Namn i makron:</label>
+    <input type="text" id="inputName" placeholder="Ditt namn" maxlength="40" autocomplete="off">
+  </div>
+</header>
+
+<div class="app-wrap">
+
+  <!-- ── VÄNSTER KOLUMN ── -->
+  <div>
+
+    <!-- INPUT -->
+    <div class="card">
+      <div class="card-title">📋 Klistra in kundmejl</div>
+      <textarea id="emailInput" placeholder="Klistra in hela kundmejlet här…&#10;&#10;Tillägget hittar artikelnummer, antal, postnummer och riskord automatiskt."></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="analyzeBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Analysera
+        </button>
+        <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
+        <span id="statusText" class="status-row hidden">
+          <span class="spinner"></span>
+          <span id="statusMsg">Hämtar…</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- RESULTAT -->
+    <div class="card hidden" id="resultCard">
+      <div class="card-title">📦 Returkommentar</div>
+      <div id="resultList" class="result-list"></div>
+
+      <div id="riskWarn" class="warn-box hidden" style="margin-top:10px;">
+        ⚠️ OBS: Texten indikerar öppnad/använd produkt!
+      </div>
+
+      <!-- FRAKT -->
+      <div class="divider"></div>
+      <div class="card-title">🚚 Frakt & kostnad</div>
+
+      <div class="postcode-row">
+        <input type="text" id="inputPostcode" placeholder="Postnummer (5 siffror)" maxlength="6">
+        <button class="btn btn-secondary btn-sm" id="fetchShippingBtn">Hämta frakt</button>
+      </div>
+      <span id="shippingStatus" class="status-row hidden">
+        <span class="spinner spinner-sm"></span>
+        <span>Hämtar fraktalternativ…</span>
+      </span>
+      <div id="shippingError" class="error-msg hidden"></div>
+      <div id="shippingOptions" class="shipping-options hidden"></div>
+      <div id="shippingSelected" class="shipping-selected hidden">
+        <span id="shippingSelectedText"></span>
+        <button class="btn btn-secondary btn-sm" id="shippingClearBtn">Byt</button>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="divider"></div>
+      <div class="card-title">📄 Klar kommentar</div>
+      <div id="outputBox" class="output-box"></div>
+      <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-primary" id="copyBtn">📋 Kopiera</button>
+        <span id="copyFeedback" class="copy-feedback">✓ Kopierad!</span>
+      </div>
+    </div>
+
+    <!-- MANUELL INMATNING -->
+    <div class="card hidden" id="manualCard">
+      <div class="card-title">✎ Manuell inmatning – artikel <span id="manualArticleNum"></span></div>
+      <div class="manual-grid">
+        <div class="form-group">
+          <label>EAN-kod</label>
+          <input type="text" id="inputEan" placeholder="t.ex. 4011334567890" maxlength="14">
+        </div>
+        <div class="form-group">
+          <label>Vikt (kg)</label>
+          <input type="number" id="inputWeight" placeholder="t.ex. 1.5" min="0" step="0.01">
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="saveManualBtn">Spara & uppdatera</button>
+    </div>
+
+  </div>
+
+  <!-- ── HÖGER KOLUMN ── -->
+  <div>
+
+    <!-- ÄRENDEANALYS -->
+    <div class="card" id="caseCard">
+      <div class="card-title">🔍 Ärendeanalys</div>
+      <div id="casePlaceholder" class="empty">
+        <p>Klistra in ett mejl och klicka Analysera.</p>
+      </div>
+      <div id="caseContent" class="hidden">
+        <div id="caseTypeBadge" class="case-type-badge hidden"></div>
+        <div id="caseWarnings" class="case-warnings"></div>
+        <div class="card-title" style="margin-top:4px;">💬 Makroförslag</div>
+        <div id="macroList" class="macro-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Ladda in delad logik -->
+<script src="macros.js"></script>
+<script src="analyzeCase.js"></script>
+<script>
+"use strict";
+
+// ── Konfig ──────────────────────────────────────────────────────────
+const ALGOLIA_APP_ID   = "TGPIEONN2S";
+const ALGOLIA_INDEX    = "nordic_production_sv_products";
+const ALGOLIA_ENDPOINT = `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/queries`;
+
+// Byt ut mot din faktiska Vercel-URL när du deployat:
+// t.ex. "https://bauhaus-retur.vercel.app"
+// Lämna tom sträng för att hoppa över frakt-API (kräver Vercel-deploy)
+const SHIPPING_API = "";  // Fylls i efter deploy
+
+// ── State ───────────────────────────────────────────────────────────
+let resolvedArticles = [];
+let selectedShipping = null;
+let hasRisk = false;
+let userName = "Adam";
+let manualTarget = null;
+let algoliaApiKey = null;
+
+// Simpel in-memory cache (ersätter chrome.storage.local)
+const articleCache = {};
+
+// ── Init ─────────────────────────────────────────────────────────────
+const inputName = document.getElementById("inputName");
+const savedName = localStorage.getItem("bauhaus_username");
+if (savedName) { userName = savedName; inputName.value = savedName; }
+
+inputName.addEventListener("change", () => {
+  const n = inputName.value.trim();
+  if (n) { userName = n; localStorage.setItem("bauhaus_username", n); }
+});
+
+// ── Knappar ──────────────────────────────────────────────────────────
+document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.getElementById("emailInput").value = "";
+  document.getElementById("resultCard").classList.add("hidden");
+  document.getElementById("manualCard").classList.add("hidden");
+  document.getElementById("caseContent").classList.add("hidden");
+  document.getElementById("casePlaceholder").classList.remove("hidden");
+  resolvedArticles = [];
+  selectedShipping = null;
+});
+
+document.getElementById("emailInput").addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAnalysis();
+});
+
+document.getElementById("fetchShippingBtn").addEventListener("click", doFetchShipping);
+document.getElementById("inputPostcode").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") doFetchShipping();
+});
+
+document.getElementById("shippingClearBtn").addEventListener("click", () => {
+  selectedShipping = null;
+  document.getElementById("shippingSelected").classList.add("hidden");
+  document.getElementById("shippingOptions").classList.remove("hidden");
+  updateOutput();
+});
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const text = document.getElementById("outputBox").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const fb = document.getElementById("copyFeedback");
+    fb.classList.add("show");
+    setTimeout(() => fb.classList.remove("show"), 2000);
+  });
+});
+
+document.getElementById("saveManualBtn").addEventListener("click", saveManual);
+
+// ── HUVUDFLÖDE ────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const text = document.getElementById("emailInput").value.trim();
+  if (!text) return;
+
+  hasRisk = detectRiskKeywords(text);
+  const articles = parseAllArticles(text);
+  const postcode = extractPostcode(text);
+
+  if (postcode) document.getElementById("inputPostcode").value = postcode;
+
+  if (articles.length === 0) {
+    setStatus("Inga artikelnummer hittades i texten.", false);
+    return;
+  }
+
+  document.getElementById("resultCard").classList.remove("hidden");
+  setStatus(`Slår upp ${articles.length} artikel(ar)…`, true);
+
+  resolvedArticles = articles.map(a => ({ ...a, sku: null, ean: null, weight: null, error: null }));
+
+  await Promise.all(articles.map((art, i) => lookupOne(art, i)));
+  consolidate();
+  renderResults();
+  updateOutput();
+  setStatus("", false);
+
+  // Ärendeanalys
+  const analysis = analyzeCase(text, {
+    shippingLabel: selectedShipping?.label ?? "",
+    totalWeight: resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0),
+    hasRisk,
+  });
+  renderCaseAnalysis(analysis);
+
+  // Auto-hämta frakt om postnummer hittades
+  if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
+    await doFetchShipping(true);
+  }
+}
+
+// ── Artikel-uppslag ───────────────────────────────────────────────────
+async function lookupOne(article, idx) {
+  const { articleNumber, quantity } = article;
+
+  if (articleCache[articleNumber]) {
+    resolvedArticles[idx] = { articleNumber, quantity, ...articleCache[articleNumber], error: null };
+    return;
+  }
+
+  try {
+    const data = await fetchProductFromAlgolia(articleNumber);
+    articleCache[articleNumber] = data;
+    resolvedArticles[idx] = { articleNumber, quantity, ...data, error: null };
+  } catch (err) {
+    resolvedArticles[idx] = { articleNumber, quantity, sku: null, ean: null, weight: null, error: err.message };
+  }
+}
+
+async function getAlgoliaKey() {
+  if (algoliaApiKey) return algoliaApiKey;
+  try {
+    const res = await fetch("https://www.bauhaus.se/catalogsearch/result/?q=hammer", {
+      headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
+    });
+    const html = await res.text();
+    const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
+    if (m) { algoliaApiKey = m[1]; return algoliaApiKey; }
+  } catch {}
+  throw new Error("Kunde inte hämta Algolia API-nyckel från bauhaus.se. Är du på rätt nätverk?");
+}
+
+async function fetchProductFromAlgolia(articleNumber) {
+  const apiKey = await getAlgoliaKey();
+
+  const body = {
+    requests: [{
+      indexName: ALGOLIA_INDEX,
+      query: articleNumber,
+      params: "hitsPerPage=5&attributesToRetrieve=url,objectID,ean,name,sku",
+    }],
+  };
+
+  const res = await fetch(ALGOLIA_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-algolia-application-id": ALGOLIA_APP_ID,
+      "x-algolia-api-key": apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) throw new Error(`Algolia HTTP ${res.status}`);
+
+  const json = await res.json();
+  const hits = json?.results?.[0]?.hits;
+  if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte i Bauhaus.");
+
+  const best =
+    hits.find(h => String(h.objectID) === articleNumber) ??
+    hits.find(h => h.url?.includes(articleNumber)) ??
+    hits[0];
+
+  const rawSku = String(best.sku ?? "");
+  const rawObjId = String(best.objectID ?? "");
+  const sku = /^\d{7,8}$/.test(rawSku) ? rawSku
+            : /^\d{7,8}$/.test(rawObjId) ? rawObjId
+            : null;
+
+  const rawEan = String(best.ean ?? "").replace(/\s/g, "");
+  const ean = /^\d{8,14}$/.test(rawEan) ? rawEan : null;
+
+  if (!ean) throw new Error("EAN saknas för denna artikel.");
+
+  // Hämta vikt från produktsidan
+  const productUrl = best.url?.startsWith("http") ? best.url : `https://www.bauhaus.se${best.url}`;
+  const weight = await fetchWeightFromPage(productUrl);
+
+  if (weight === null) throw new Error("Vikt saknas för denna artikel.");
+
+  return { sku, ean, weight };
+}
+
+async function fetchWeightFromPage(url) {
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
+    });
+    const html = await res.text();
+
+    const m =
+      html.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
+      html.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
+
+    if (m) {
+      const w = parseFloat(m[1].replace(",", "."));
+      return isNaN(w) ? null : w;
+    }
+  } catch {}
+  return null;
+}
+
+// ── Konsolidera dubbletter ────────────────────────────────────────────
+function consolidate() {
+  const merged = new Map();
+  const failures = [];
+  for (const art of resolvedArticles) {
+    if (art.error || !art.ean) { failures.push(art); continue; }
+    if (merged.has(art.ean)) {
+      merged.get(art.ean).quantity += art.quantity;
+    } else {
+      merged.set(art.ean, { ...art });
+    }
+  }
+  const successNums = new Set([...merged.values()].flatMap(a => [a.articleNumber, a.ean, a.sku].filter(Boolean)));
+  resolvedArticles = [...merged.values(), ...failures.filter(f => !successNums.has(f.articleNumber))];
+}
+
+// ── Rendera resultatlista ─────────────────────────────────────────────
+function renderResults() {
+  const list = document.getElementById("resultList");
+  list.innerHTML = "";
+
+  document.getElementById("riskWarn").classList.toggle("hidden", !hasRisk);
+
+  for (const art of resolvedArticles) {
+    const row = document.createElement("div");
+    row.className = "result-row" + (art.error ? " result-row--error" : "");
+
+    if (art.ean && art.weight !== null) {
+      const isSku = s => s && /^\d{7,8}$/.test(s);
+      const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
+
+      const renderLine = (qty) => `${qty}x ${displaySku} / ${art.ean} (${fmtW(qty * art.weight)} kg totalt)`;
+
+      row.innerHTML = `
+        <span class="result-line">${esc(renderLine(art.quantity))}</span>
+        <div class="qty-controls">
+          <button class="qty-btn">−</button>
+          <span class="qty-val">${art.quantity}</span>
+          <button class="qty-btn">+</button>
+        </div>
+      `;
+
+      const [minus, plus] = row.querySelectorAll(".qty-btn");
+      const qtySpan = row.querySelector(".qty-val");
+      const lineSpan = row.querySelector(".result-line");
+
+      const upd = delta => {
+        art.quantity = Math.max(1, art.quantity + delta);
+        qtySpan.textContent = art.quantity;
+        lineSpan.textContent = renderLine(art.quantity);
+        updateOutput();
+      };
+      minus.addEventListener("click", () => upd(-1));
+      plus.addEventListener("click",  () => upd(+1));
+    } else {
+      row.innerHTML = `
+        <span class="result-line result-line--error">✗ ${esc(art.articleNumber)} – hittades inte</span>
+        <button class="btn btn-secondary btn-sm" data-art="${esc(art.articleNumber)}">Ange manuellt</button>
+      `;
+      row.querySelector("button").addEventListener("click", () => openManual(art.articleNumber));
+    }
+
+    list.appendChild(row);
+  }
+}
+
+// ── Output ────────────────────────────────────────────────────────────
+function updateOutput() {
+  const lines = [];
+  let totalWeight = 0;
+
+  if (selectedShipping) {
+    lines.push(`Frakt: ${selectedShipping.label} – ${selectedShipping.price} kr`);
+    lines.push("");
+  }
+
+  const isSku = s => s && /^\d{7,8}$/.test(s);
+  for (const art of resolvedArticles.filter(a => a.ean && a.weight !== null)) {
+    const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
+    const lw = art.quantity * art.weight;
+    totalWeight += lw;
+    lines.push(`${art.quantity}x ${displaySku} / ${art.ean} (${fmtW(lw)} kg totalt)`);
+  }
+
+  if (lines.filter(l => l && !l.startsWith("Frakt")).length > 0) {
+    lines.push("");
+    lines.push(`Totalvikt: ${fmtW(totalWeight)} kg`);
+  }
+
+  if (hasRisk) {
+    lines.push("");
+    lines.push("⚠️ OBS: Texten indikerar öppnad/använd produkt.");
+  }
+
+  document.getElementById("outputBox").textContent = lines.join("\n");
+}
+
+// ── Frakt ─────────────────────────────────────────────────────────────
+async function doFetchShipping(autoSelect = false) {
+  const postcode = document.getElementById("inputPostcode").value.trim().replace(/\s/g, "");
+  if (!/^\d{5}$/.test(postcode)) {
+    showShippingError("Ange ett giltigt 5-siffrigt postnummer.");
+    return;
+  }
+
+  const articles = resolvedArticles
+    .filter(a => a.sku && a.ean && a.weight !== null)
+    .map(a => ({ sku: a.sku, quantity: a.quantity }));
+
+  if (articles.length === 0) {
+    showShippingError("Inga giltiga artiklar för fraktberäkning.");
+    return;
+  }
+
+  // Kolla om frakt-API är konfigurerat
+  if (!SHIPPING_API) {
+    // Visa fallback-prislista baserat på totalvikt
+    const totalWeight = resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0);
+    const fallback = getFallbackShipping(totalWeight);
+    renderShippingOptions(fallback, autoSelect);
+    return;
+  }
+
+  document.getElementById("shippingStatus").classList.remove("hidden");
+  document.getElementById("shippingError").classList.add("hidden");
+  document.getElementById("shippingOptions").classList.add("hidden");
+  document.getElementById("fetchShippingBtn").disabled = true;
+
+  try {
+    const res = await fetch(`${SHIPPING_API}/api/shipping`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postcode, articles }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    renderShippingOptions(data.options, autoSelect);
+  } catch (err) {
+    showShippingError(`Kunde inte hämta frakt: ${err.message}`);
+  } finally {
+    document.getElementById("shippingStatus").classList.add("hidden");
+    document.getElementById("fetchShippingBtn").disabled = false;
+  }
+}
+
+function getFallbackShipping(totalWeight) {
+  // Bauhaus standardpriser som fallback när API ej är konfigurerat
+  if (totalWeight <= 20) {
+    return [
+      { label: "PostNord Postombud", price: 99 },
+      { label: "Bring Hemleverans", price: 99 },
+      { label: "Styckegods", price: 395 },
+    ];
+  } else {
+    return [
+      { label: "Bring Hemleverans", price: 99 },
+      { label: "Styckegods", price: 395 },
+      { label: "Pall", price: 795 },
+    ];
+  }
+}
+
+function renderShippingOptions(options, autoSelect) {
+  const container = document.getElementById("shippingOptions");
+  container.innerHTML = "";
+
+  options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "shipping-opt" + (i === 0 ? " shipping-opt--cheapest" : "");
+    btn.innerHTML = `
+      <span>${esc(opt.label)}</span>
+      <span class="shipping-opt-price">${opt.price} kr${i === 0 ? ' <span class="badge-cheapest">Billigast</span>' : ""}</span>
+    `;
+    btn.addEventListener("click", () => selectShipping(opt));
+    container.appendChild(btn);
+  });
+
+  if (autoSelect && options.length > 0) {
+    selectShipping(options[0]);
+    container.classList.add("hidden");
+  } else {
+    container.classList.remove("hidden");
+  }
+}
+
+function selectShipping(opt) {
+  selectedShipping = opt;
+  document.getElementById("shippingSelectedText").textContent = `✓ ${opt.label} – ${opt.price} kr`;
+  document.getElementById("shippingSelected").classList.remove("hidden");
+  document.getElementById("shippingOptions").classList.add("hidden");
+  updateOutput();
+}
+
+function showShippingError(msg) {
+  const el = document.getElementById("shippingError");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+// ── Manuell inmatning ─────────────────────────────────────────────────
+function openManual(articleNumber) {
+  manualTarget = articleNumber;
+  document.getElementById("manualArticleNum").textContent = articleNumber;
+  document.getElementById("inputEan").value = "";
+  document.getElementById("inputWeight").value = "";
+  document.getElementById("manualCard").classList.remove("hidden");
+  document.getElementById("manualCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function saveManual() {
+  const ean = document.getElementById("inputEan").value.trim();
+  const weight = parseFloat(document.getElementById("inputWeight").value.replace(",", "."));
+  const eanEl = document.getElementById("inputEan");
+  const weightEl = document.getElementById("inputWeight");
+
+  const eanOk = /^\d{8,14}$/.test(ean);
+  const weightOk = !isNaN(weight) && weight > 0;
+  eanEl.classList.toggle("invalid", !eanOk);
+  weightEl.classList.toggle("invalid", !weightOk);
+  if (!eanOk || !weightOk) return;
+
+  const idx = resolvedArticles.findIndex(a => a.articleNumber === manualTarget);
+  if (idx !== -1) {
+    const sku = /^\d{7,8}$/.test(manualTarget) ? manualTarget : (resolvedArticles[idx].sku || "");
+    resolvedArticles[idx] = { ...resolvedArticles[idx], sku, ean, weight, error: null };
+    articleCache[manualTarget] = { sku, ean, weight };
+  }
+
+  document.getElementById("manualCard").classList.add("hidden");
+  consolidate();
+  renderResults();
+  updateOutput();
+}
+
+// ── Ärendeanalys ──────────────────────────────────────────────────────
+function renderCaseAnalysis(analysis) {
+  document.getElementById("casePlaceholder").classList.add("hidden");
+  document.getElementById("caseContent").classList.remove("hidden");
+
+  const badge = document.getElementById("caseTypeBadge");
+  if (analysis.caseType) {
+    badge.textContent = `Ärendetyp: ${analysis.caseType}`;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+
+  const warningsEl = document.getElementById("caseWarnings");
+  warningsEl.innerHTML = analysis.warnings.map(w => `<div class="case-warn-item">${esc(w)}</div>`).join("");
+
+  const macroListEl = document.getElementById("macroList");
+  macroListEl.innerHTML = "";
+
+  if (analysis.macroSuggestions.length === 0) {
+    macroListEl.innerHTML = `<p style="font-size:12px;color:var(--grey-500);">Inga makroförslag för denna text.</p>`;
+    return;
+  }
+
+  analysis.macroSuggestions.forEach(({ macro }) => {
+    const btn = document.createElement("button");
+    btn.className = "macro-btn";
+    btn.innerHTML = `
+      <span class="macro-title">${esc(macro.title)}</span>
+      <span class="macro-desc">${esc(macro.description)}</span>
+    `;
+    btn.addEventListener("click", () => {
+      const text = macro.text
+        .replace(/XXX kr/g, selectedShipping ? `${selectedShipping.price} kr` : "XXX kr")
+        .replace(/\bAdam\b/g, userName);
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add("macro-btn--copied");
+        btn.querySelector(".macro-title").textContent = "✓ Kopierad!";
+        setTimeout(() => {
+          btn.classList.remove("macro-btn--copied");
+          btn.querySelector(".macro-title").textContent = macro.title;
+        }, 2000);
+      });
+    });
+    macroListEl.appendChild(btn);
+  });
+}
+
+// ── Parsning (portad från parse.js) ───────────────────────────────────
+function parseAllArticles(text) {
+  const articlePositions = [];
+  const NUMBER_RE = /(?<![\d])(\d{13}|\d{7})(?![\d])/g;
+  let m;
+  while ((m = NUMBER_RE.exec(text)) !== null) {
+    articlePositions.push({ number: m[1], pos: m.index, end: m.index + m[1].length });
+  }
+  if (articlePositions.length === 0) return [];
+
+  const QTY_RE = /(?:\bx(\d{1,3})\b|\b(\d{1,3})\s*(?:st\.?|x|pcs?)\b)/gi;
+  const quantities = [];
+  while ((m = QTY_RE.exec(text)) !== null) {
+    const qty = parseInt(m[1] ?? m[2], 10);
+    quantities.push({ qty, pos: m.index, end: m.index + m[0].length });
+  }
+
+  const assigned = new Map();
+  for (const art of articlePositions) assigned.set(art.number + ":" + art.pos, []);
+
+  for (const q of quantities) {
+    let bestScore = Infinity, bestKey = null;
+    for (const art of articlePositions) {
+      const gapAfterQty = art.pos - q.end;
+      const gapAfterArt = q.pos - art.end;
+      let dist;
+      if (gapAfterQty >= 0 && gapAfterQty <= 80) dist = gapAfterQty * 0.9;
+      else if (gapAfterArt >= 0 && gapAfterArt <= 80) dist = gapAfterArt * 1.1;
+      else continue;
+      if (dist < bestScore) { bestScore = dist; bestKey = art.number + ":" + art.pos; }
+    }
+    if (bestKey) assigned.get(bestKey).push(q.qty);
+  }
+
+  const seen = new Map();
+  for (const art of articlePositions) {
+    const qtys = assigned.get(art.number + ":" + art.pos);
+    const qty = qtys.length > 0 ? qtys.reduce((a, b) => a + b, 0) : 1;
+    if (seen.has(art.number)) seen.set(art.number, seen.get(art.number) + qty);
+    else seen.set(art.number, qty);
+  }
+
+  return [...seen.entries()].map(([articleNumber, quantity]) => ({ articleNumber, quantity }));
+}
+
+function detectRiskKeywords(text) {
+  const RISK_KEYWORDS = ["öppnat","öppnad","använd","använts","trasig","trasigt","monterad","monterat","skadad","defekt","brutet","bruten","sönder"];
+  const NEGATION_PATTERNS = [
+    /o[öo]ppna[dt]/g, /oo?ppna[dt]/g, /oanvänd[ts]?/g, /oanvänt/g,
+    /omonterad[t]?/g, /otrasig[t]?/g, /oskadad[t]?/g, /odefekt/g,
+    /obruten/g, /obrutet/g,
+    /(?:ej|inte|aldrig|utan att|ej heller)\s+(?:\w+\s+){0,2}(?:öppna[dt]|använd[ts]?|monterad[t]?|trasig[t]?|skadad[t]?|defekt|bruten|brutet|sönder)/g,
+    /har\s+(?:inte|aldrig|ej)\s+(?:öppna[dt]|använd[ts]?|monterat?)/g,
+    /i\s+original(?:förpackning|emballage|skick|förpack)/g,
+    /fortfarande\s+(?:förseglad|plomberad|oöppnad|oanvänd)/g,
+    /i\s+o(?:brutet|skadat|öppnat)\s+skick/g,
+  ];
+  let cleaned = text.toLowerCase();
+  for (const p of NEGATION_PATTERNS) cleaned = cleaned.replace(p, " ");
+  return RISK_KEYWORDS.some(kw => cleaned.includes(kw));
+}
+
+function extractPostcode(text) {
+  const re = /(?<![\d])(?:(\d{3})\s(\d{2})|(\d{5}))(?![\d])/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const raw = m[0].replace(/\s/g, "");
+    if (raw >= "10000" && raw <= "99999") return raw;
+  }
+  return null;
+}
+
+// ── Hjälpfunktioner ───────────────────────────────────────────────────
+function fmtW(n) { return parseFloat(n.toFixed(3)).toString().replace(".", ","); }
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function setStatus(msg, loading) {
+  const el = document.getElementById("statusText");
+  const msgEl = document.getElementById("statusMsg");
+  if (msg) {
+    msgEl.textContent = msg;
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+}
+</script>
+
+</body>
+</html>

@@ -37,7 +37,6 @@ export default async function handler(req, res) {
       const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
       if (!m) throw new Error("Kunde inte hämta Algolia-nyckel");
       const apiKey = m[1];
-
       const algoliaRes = await fetch(ALGOLIA_ENDPOINT, {
         method: "POST",
         headers: {
@@ -56,25 +55,20 @@ export default async function handler(req, res) {
       const json = await algoliaRes.json();
       const hits = json?.results?.[0]?.hits;
       if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte.");
-
       const best = hits.find(h => String(h.objectID) === articleNumber) ?? hits.find(h => h.url?.includes(articleNumber)) ?? hits[0];
-
       const rawSku = String(best.sku ?? "");
       const rawObjId = String(best.objectID ?? "");
       const sku = /^\d{7,8}$/.test(rawSku) ? rawSku : /^\d{7,8}$/.test(rawObjId) ? rawObjId : null;
       const rawEan = String(best.ean ?? "").replace(/\s/g, "");
       const ean = /^\d{8,14}$/.test(rawEan) ? rawEan : null;
       if (!ean) throw new Error("EAN saknas.");
-
       const productUrl = best.url?.startsWith("http") ? best.url : `${BAUHAUS_BASE}${best.url}`;
       const pageRes = await fetch(productUrl, { headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" } });
       const pageHtml = await pageRes.text();
-
       const wm = pageHtml.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
                  pageHtml.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
       const weight = wm ? parseFloat(wm[1].replace(",", ".")) : null;
       if (!weight) throw new Error("Vikt saknas.");
-
       res.status(200).json({ success: true, data: { sku, ean, weight } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -83,9 +77,9 @@ export default async function handler(req, res) {
   }
 
   if (action === "shipping") {
-    const { postcode, articles } = req.body ?? {};
+    const { postcode, articles, cookies } = req.body ?? {};
     try {
-      const cartRes = await bauhausFetch("POST", "/guest-carts", null);
+      const cartRes = await bauhausFetch("POST", "/guest-carts", null, cookies);
       const cartToken = cartRes;
       if (typeof cartToken !== "string" || cartToken.length < 5) throw new Error("Kunde inte skapa varukorg.");
 
@@ -93,19 +87,19 @@ export default async function handler(req, res) {
         try {
           await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
             cartItem: { quote_id: cartToken, sku: String(article.sku), qty: article.quantity },
-          });
+          }, cookies);
         } catch {}
       }
 
       try {
         await bauhausFetch("POST", `/guest-carts/${cartToken}/estimate-shipping-methods`, {
           address: { region_code: "SE", country_id: "SE", postcode },
-        });
+        }, cookies);
       } catch {}
 
       await new Promise(r => setTimeout(r, 400));
 
-      const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null);
+      const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null, cookies);
       const groups = totals?.extension_attributes?.shipping_groups;
       if (!Array.isArray(groups) || groups.length === 0) throw new Error("Inga fraktalternativ.");
 
@@ -141,9 +135,14 @@ export default async function handler(req, res) {
   res.status(400).json({ error: "Okänd action" });
 }
 
-async function bauhausFetch(method, path, body) {
+async function bauhausFetch(method, path, body, cookies = "") {
   const url = `${BAUHAUS_REST}${path}`;
-  const headers = { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest",
+  };
+  if (cookies) headers["Cookie"] = cookies;
   const opts = { method, headers };
   if (body !== null) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);

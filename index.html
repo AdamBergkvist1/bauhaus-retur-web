@@ -794,20 +794,12 @@ async function doFetchShipping(autoSelect = false) {
 }
 
 function getFallbackShipping(totalWeight) {
-  // Bauhaus standardpriser som fallback när API ej är konfigurerat
-  if (totalWeight <= 20) {
-    return [
-      { label: "PostNord Postombud", price: 99 },
-      { label: "Bring Hemleverans", price: 99 },
-      { label: "Styckegods", price: 395 },
-    ];
-  } else {
-    return [
-      { label: "Bring Hemleverans", price: 99 },
-      { label: "Styckegods", price: 395 },
-      { label: "Pall", price: 795 },
-    ];
-  }
+  return [
+    { label: "PostNord Postombud", price: 69 },
+    { label: "DHL Servicepoint", price: 69 },
+    { label: "Airmee Servicepoint", price: 69 },
+    { label: "DHL Hemleverans", price: 0 },
+  ];
 }
 
 function renderShippingOptions(options, autoSelect) {
@@ -819,7 +811,7 @@ function renderShippingOptions(options, autoSelect) {
     btn.className = "shipping-opt" + (i === 0 ? " shipping-opt--cheapest" : "");
     btn.innerHTML = `
       <span>${esc(opt.label)}</span>
-      <span class="shipping-opt-price">${opt.price} kr${i === 0 ? ' <span class="badge-cheapest">Billigast</span>' : ""}</span>
+      <span class="shipping-opt-price">${opt.price === 0 ? "Varierar" : opt.price + " kr"}</span>
     `;
     btn.addEventListener("click", () => selectShipping(opt));
     container.appendChild(btn);

@@ -506,20 +506,29 @@ let selectedShipping = null;
 let hasRisk = false;
 let userName = "Adam";
 let manualTarget = null;
+let bauhausCookies = "";
 let algoliaApiKey = null;
 
 // Simpel in-memory cache (ersätter chrome.storage.local)
 const articleCache = {};
-// ── Lyssna efter fraktdata från bokmärket ────────────────────────────
+// ── Lyssna efter meddelanden från bokmärket ──────────────────────────
 window.addEventListener("message", (event) => {
   if (event.origin !== "https://www.bauhaus.se") return;
-  if (event.data?.type !== "BAUHAUS_SHIPPING") return;
-  const options = event.data.options;
-  if (!Array.isArray(options) || options.length === 0) return;
-  renderShippingOptions(options, true);
-  document.getElementById("shippingError").classList.add("hidden");
+
+  if (event.data?.type === "BAUHAUS_COOKIES") {
+    bauhausCookies = event.data.cookies;
+    alert("✓ Cookies mottagna! Klicka nu Hämta frakt.");
+    return;
+  }
+
+  if (event.data?.type === "BAUHAUS_SHIPPING") {
+    const options = event.data.options;
+    if (!Array.isArray(options) || options.length === 0) return;
+    renderShippingOptions(options, true);
+    document.getElementById("shippingError").classList.add("hidden");
+  }
 });
-  
+
 // ── Init ─────────────────────────────────────────────────────────────
 const inputName = document.getElementById("inputName");
 const savedName = localStorage.getItem("bauhaus_username");
@@ -771,7 +780,7 @@ async function doFetchShipping(autoSelect = false) {
     const res = await fetch(`${SHIPPING_API}/api/shipping?action=shipping`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postcode, articles }),
+      body: JSON.stringify({ postcode, articles, cookies: bauhausCookies }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);

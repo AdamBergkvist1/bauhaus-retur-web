@@ -510,7 +510,16 @@ let algoliaApiKey = null;
 
 // Simpel in-memory cache (ersätter chrome.storage.local)
 const articleCache = {};
-
+// ── Lyssna efter fraktdata från bokmärket ────────────────────────────
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://www.bauhaus.se") return;
+  if (event.data?.type !== "BAUHAUS_SHIPPING") return;
+  const options = event.data.options;
+  if (!Array.isArray(options) || options.length === 0) return;
+  renderShippingOptions(options, true);
+  document.getElementById("shippingError").classList.add("hidden");
+});
+  
 // ── Init ─────────────────────────────────────────────────────────────
 const inputName = document.getElementById("inputName");
 const savedName = localStorage.getItem("bauhaus_username");

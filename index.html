@@ -763,7 +763,7 @@ async function doFetchShipping(autoSelect = false) {
   }
 
   // Kolla om frakt-API är konfigurerat
-  if (!SHIPPING_API) {
+  if (true) {
     // Visa fallback-prislista baserat på totalvikt
     const totalWeight = resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0);
     const fallback = getFallbackShipping(totalWeight);

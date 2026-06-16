@@ -1,37 +1,16 @@
-/**
- * macros.js
- * Databas över Bauhaus-makron med tillhörande triggers och regler.
- *
- * STRUKTUR PER MAKRO:
- *   id          – unikt ID
- *   title       – makronamnet (som det heter i Puzzel)
- *   description – kort förklaring när det används
- *   triggers    – nyckelord/fraser som indikerar detta makro
- *   conditions  – extra logiska villkor (funktioner som tar analysResult)
- *   warnings    – varningar att visa tillsammans med förslaget
- *   text        – makrotexten (XXX = platshållare att fylla i)
- *
- * LÄGG TILL NYA MAKRON:
- *   Kopiera ett befintligt block, ändra id/title/triggers/text.
- *   Lägg till i MACROS-arrayen.
- */
-
 "use strict";
 
 const MACROS = [
-
-  // ── RETURER ────────────────────────────────────────────────────────
-
   {
     id: "bring_hd_retur",
     title: "Bring HD - Retur",
-    description: "Hemleverans med Bring, retursedel bifogas. Kunden bokar upphämtning.",
+    description: "Hemleverans med Bring, retursedel bifogas.",
     triggers: [
-      "hemleverans", "bring hd", "bring home", "bring hemleverans",
-      "upphämtning", "hämta hem", "hämtning",
+      "hemleverans", "bring hd", "bring home", "upphämtning",
+      "hämta hem", "hämtning", "retur", "returnera", "returnering",
+      "skicka tillbaka", "ångrar", "ångerrätt", "öppet köp",
     ],
     conditions: [
-      // Föreslås om fraktsättet är hemleverans (inte postombud)
       (a) => a.shippingLabel && (
         a.shippingLabel.toLowerCase().includes("hemleverans") ||
         a.shippingLabel.toLowerCase().includes("hd")
@@ -61,16 +40,19 @@ BAUHAUS Webshop - När det måste bli bra.`,
   {
     id: "bring_sp_retur",
     title: "Bring SP - Retur",
-    description: "Servicepoint/ombud med Bring. Kunden lämnar paketet på ombud.",
+    description: "Servicepoint/ombud, kunden lämnar paketet på ombud.",
     triggers: [
       "servicepoint", "postombud", "ombud", "bring sp",
       "postnord", "dhl servicepoint", "lämna in", "inlämning",
+      "retur", "returnera", "returnering", "skicka tillbaka",
+      "ångrar", "ångerrätt", "öppet köp", "airmee",
     ],
     conditions: [
       (a) => a.shippingLabel && (
         a.shippingLabel.toLowerCase().includes("ombud") ||
         a.shippingLabel.toLowerCase().includes("servicepoint") ||
-        a.shippingLabel.toLowerCase().includes("postnord")
+        a.shippingLabel.toLowerCase().includes("postnord") ||
+        a.shippingLabel.toLowerCase().includes("airmee")
       ),
     ],
     warnings: [],
@@ -79,9 +61,9 @@ BAUHAUS Webshop - När det måste bli bra.`,
 Självklart kan vi hjälpa dig att returnera din beställning till oss!
 
 Bifogat i detta mejl finner du retursedeln.
-Du fäster retursedeln på kartongen och sedan lämnar du returen på ditt närmaste Bring ombud. En bekräftelse av returen kommer att skickas till din mejl.
+Du fäster retursedeln på kartongen och sedan lämnar du returen på ditt närmaste ombud. En bekräftelse av returen kommer att skickas till din mejl.
 
-Vi vill också informera om att du kommer att stå för kostnaden för returfrakten på 49 kr. Väljer du däremot att genomföra returen i ett av våra varuhus debiteras ingen returfrakt.
+Vi vill också informera om att du kommer att stå för kostnaden för returfrakten på XXX kr. Väljer du däremot att genomföra returen i ett av våra varuhus debiteras ingen returfrakt.
 
 Önskar dig en fin dag!
 Med vänliga hälsningar,
@@ -92,7 +74,7 @@ BAUHAUS Webshop - När det måste bli bra.`,
 
   {
     id: "bauhaus_tidsbestamd_retur",
-    title: "Bomkörd returupphämtning - kolla med kund",
+    title: "Bomkörd returupphämtning",
     description: "När Bauhaus tidsbestämd upphämtning misslyckats.",
     triggers: [
       "bomkörning", "missad upphämtning", "inte hemma", "ej hemma",
@@ -119,8 +101,6 @@ Vi vill även informera om att de endast kör ut vardagar.
 Med vänliga hälsningar,
 Adam`,
   },
-
-  // ── VARUHUSRETUR ───────────────────────────────────────────────────
 
   {
     id: "kund_ska_returnera_vh",
@@ -173,15 +153,13 @@ Med vänliga hälsningar,
 Adam`,
   },
 
-  // ── LEVERANSPROBLEM ────────────────────────────────────────────────
-
   {
     id: "kund_nekat_leverans",
     title: "Kund nekat leverans",
-    description: "Kunden vägrade ta emot leveransen, retur pågår.",
+    description: "Kunden vägrade ta emot leveransen.",
     triggers: [
       "nekat", "nekade", "vägrade", "tog inte emot", "ville inte ha",
-      "avvisade", "not delivered", "refused",
+      "avvisade",
     ],
     conditions: [],
     warnings: ["Kunden debiteras både fraktkostnad och returfrakt."],
@@ -202,11 +180,11 @@ Adam`,
 
   {
     id: "kund_glomt_hamta",
-    title: "Kund glömt hämta order från ombud",
+    title: "Kund glömt hämta order",
     description: "Kunden vill ha ordern skickad på nytt.",
     triggers: [
       "glömt hämta", "glömde hämta", "hann inte hämta", "låg kvar",
-      "skicka igen", "skicka på nytt", "ny leverans", "ombudets öppettider",
+      "skicka igen", "skicka på nytt", "ny leverans",
     ],
     conditions: [],
     warnings: ["Kunden debiteras fraktkostnad + returkostnad för ej uthämtat paket."],
@@ -222,8 +200,6 @@ Jag ber om att få återkomma när jag har ett nytt sändningsnummer samt en lä
 Med vänliga hälsningar,
 Adam`,
   },
-
-  // ── INTERNT ────────────────────────────────────────────────────────
 
   {
     id: "giab",
@@ -255,8 +231,6 @@ Vänligen lagerlägg mot RMA XXX
 Mvh,
 Adam`,
   },
-
 ];
 
-// Exportera för Node.js/Jest-testning
 if (typeof module !== "undefined") module.exports = { MACROS };

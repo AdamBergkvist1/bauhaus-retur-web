@@ -619,88 +619,15 @@ async function lookupOne(article, idx) {
   }
 }
 
-async function getAlgoliaKey() {
-  if (algoliaApiKey) return algoliaApiKey;
-  try {
-    const res = await fetch("https://www.bauhaus.se/catalogsearch/result/?q=hammer", {
-      headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
-    });
-    const html = await res.text();
-    const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
-    if (m) { algoliaApiKey = m[1]; return algoliaApiKey; }
-  } catch {}
-  throw new Error("Kunde inte hämta Algolia API-nyckel från bauhaus.se. Är du på rätt nätverk?");
-}
-
 async function fetchProductFromAlgolia(articleNumber) {
-  const apiKey = await getAlgoliaKey();
-
-  const body = {
-    requests: [{
-      indexName: ALGOLIA_INDEX,
-      query: articleNumber,
-      params: "hitsPerPage=5&attributesToRetrieve=url,objectID,ean,name,sku",
-    }],
-  };
-
-  const res = await fetch(ALGOLIA_ENDPOINT, {
+  const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-algolia-application-id": ALGOLIA_APP_ID,
-      "x-algolia-api-key": apiKey,
-    },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ articleNumber }),
   });
-
-  if (!res.ok) throw new Error(`Algolia HTTP ${res.status}`);
-
-  const json = await res.json();
-  const hits = json?.results?.[0]?.hits;
-  if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte i Bauhaus.");
-
-  const best =
-    hits.find(h => String(h.objectID) === articleNumber) ??
-    hits.find(h => h.url?.includes(articleNumber)) ??
-    hits[0];
-
-  const rawSku = String(best.sku ?? "");
-  const rawObjId = String(best.objectID ?? "");
-  const sku = /^\d{7,8}$/.test(rawSku) ? rawSku
-            : /^\d{7,8}$/.test(rawObjId) ? rawObjId
-            : null;
-
-  const rawEan = String(best.ean ?? "").replace(/\s/g, "");
-  const ean = /^\d{8,14}$/.test(rawEan) ? rawEan : null;
-
-  if (!ean) throw new Error("EAN saknas för denna artikel.");
-
-  // Hämta vikt från produktsidan
-  const productUrl = best.url?.startsWith("http") ? best.url : `https://www.bauhaus.se${best.url}`;
-  const weight = await fetchWeightFromPage(productUrl);
-
-  if (weight === null) throw new Error("Vikt saknas för denna artikel.");
-
-  return { sku, ean, weight };
-}
-
-async function fetchWeightFromPage(url) {
-  try {
-    const res = await fetch(url, {
-      headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" },
-    });
-    const html = await res.text();
-
-    const m =
-      html.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
-      html.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
-
-    if (m) {
-      const w = parseFloat(m[1].replace(",", "."));
-      return isNaN(w) ? null : w;
-    }
-  } catch {}
-  return null;
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
 }
 
 // ── Konsolidera dubbletter ────────────────────────────────────────────
@@ -832,7 +759,7 @@ async function doFetchShipping(autoSelect = false) {
   document.getElementById("fetchShippingBtn").disabled = true;
 
   try {
-    const res = await fetch(`${SHIPPING_API}/api/shipping`, {
+    const res = await fetch(`${SHIPPING_API}/api/shipping?action=shipping`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ postcode, articles }),

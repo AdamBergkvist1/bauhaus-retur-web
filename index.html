@@ -604,9 +604,6 @@ document.getElementById("saveManualBtn").addEventListener("click", saveManual);
 async function runAnalysis() {
   const text = document.getElementById("emailInput").value.trim();
   if (!text) return;
-  async function runAnalysis() {
-  const text = document.getElementById("emailInput").value.trim();
-  if (!text) return;
   localStorage.setItem("bauhaus_last_email", text);
 
   hasRisk = detectRiskKeywords(text);

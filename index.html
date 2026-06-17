@@ -719,20 +719,15 @@ function updateOutput() {
   const lines = [];
   let totalWeight = 0;
 
-  if (selectedShipping) {
-    lines.push(`Frakt: ${selectedShipping.label} – ${selectedShipping.price} kr`);
-    lines.push("");
-  }
-
   const isSku = s => s && /^\d{7,8}$/.test(s);
   for (const art of resolvedArticles.filter(a => a.ean && a.weight !== null)) {
     const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
     const lw = art.quantity * art.weight;
     totalWeight += lw;
-    lines.push(`${art.quantity}x ${displaySku} / ${art.ean} (${fmtW(lw)} kg totalt)`);
+    lines.push(`${art.quantity}x ${displaySku} / ${art.ean}`);
   }
 
-  if (lines.filter(l => l && !l.startsWith("Frakt")).length > 0) {
+  if (lines.length > 0) {
     lines.push("");
     lines.push(`Totalvikt: ${fmtW(totalWeight)} kg`);
   }
@@ -985,9 +980,11 @@ function detectRiskKeywords(text) {
 }
 
 function extractPostcode(text) {
+  // Exkludera telefonnummer (innehåller bindestreck eller börjar med 0)
+  const cleaned = text.replace(/\d[\d\s-]{6,}\d/g, " ");
   const re = /(?<![\d])(?:(\d{3})\s(\d{2})|(\d{5}))(?![\d])/g;
   let m;
-  while ((m = re.exec(text)) !== null) {
+  while ((m = re.exec(cleaned)) !== null) {
     const raw = m[0].replace(/\s/g, "");
     if (raw >= "10000" && raw <= "99999") return raw;
   }

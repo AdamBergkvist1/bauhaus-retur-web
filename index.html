@@ -559,8 +559,8 @@ if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
 const savedEmail = localStorage.getItem("bauhaus_last_email");
 if (savedEmail) document.getElementById("emailInput").value = savedEmail;
 
-if (urlPostcode && savedEmail) runAnalysis();
-
+if (urlPostcode && savedEmail) setTimeout(runAnalysis, 100);
+  
 // ── Knappar ──────────────────────────────────────────────────────────
 document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
 document.getElementById("clearBtn").addEventListener("click", () => {

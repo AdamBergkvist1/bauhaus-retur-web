@@ -548,11 +548,13 @@ window.addEventListener("message", (event) => {
 const inputName = document.getElementById("inputName");
 const savedName = localStorage.getItem("bauhaus_username");
 if (savedName) { userName = savedName; inputName.value = savedName; }
-
 inputName.addEventListener("change", () => {
   const n = inputName.value.trim();
   if (n) { userName = n; localStorage.setItem("bauhaus_username", n); }
 });
+
+const urlPostcode = new URLSearchParams(window.location.search).get("postcode");
+if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
 
 // ── Knappar ──────────────────────────────────────────────────────────
 document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);

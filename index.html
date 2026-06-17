@@ -507,13 +507,14 @@ let hasRisk = false;
 let userName = "Adam";
 let manualTarget = null;
 let bauhausCookies = "";
+let magentoOrderNumber = null;
 let algoliaApiKey = null;
 
 // Simpel in-memory cache (ersätter chrome.storage.local)
 const articleCache = {};
 // ── Lyssna efter meddelanden från bokmärket ──────────────────────────
 window.addEventListener("message", (event) => {
-  if (event.origin !== "https://www.bauhaus.se") return;
+  if (event.origin !== "https://www.bauhaus.se" && event.origin !== "https://www-admin.bauhaus.se") return;
 
   if (event.data?.type === "BAUHAUS_COOKIES") {
     bauhausCookies = event.data.cookies;
@@ -526,6 +527,19 @@ window.addEventListener("message", (event) => {
     if (!Array.isArray(options) || options.length === 0) return;
     renderShippingOptions(options, true);
     document.getElementById("shippingError").classList.add("hidden");
+    return;
+  }
+
+  if (event.data?.type === "MAGENTO_DATA") {
+    const { postcode, shippingOptions } = event.data;
+    if (postcode) {
+      document.getElementById("inputPostcode").value = postcode;
+    }
+    if (Array.isArray(shippingOptions) && shippingOptions.length > 0) {
+      renderShippingOptions(shippingOptions, true);
+      document.getElementById("shippingError").classList.add("hidden");
+    }
+    return;
   }
 });
 

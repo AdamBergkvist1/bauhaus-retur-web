@@ -68,7 +68,6 @@ export default async function handler(req, res) {
       const wm = pageHtml.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
                  pageHtml.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
       const weight = wm ? parseFloat(wm[1].replace(",", ".")) : null;
-      if (!weight) throw new Error("Vikt saknas.");
       res.status(200).json({ success: true, data: { sku, ean, weight } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });

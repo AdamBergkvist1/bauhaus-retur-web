@@ -749,28 +749,28 @@ function renderResults() {
 function updateOutput() {
   const lines = [];
   let totalWeight = 0;
-
   const isSku = s => s && /^\d{7,8}$/.test(s);
-  for (const art of resolvedArticles.filter(a => a.ean && a.weight !== null)) {
+  for (const art of resolvedArticles.filter(a => a.ean)) {
     const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
-    const lw = art.quantity * art.weight;
-    totalWeight += lw;
-    lines.push(`${art.quantity}x ${displaySku} / ${art.ean}`);
+    if (art.weight !== null) {
+      const lw = art.quantity * art.weight;
+      totalWeight += lw;
+      lines.push(`${art.quantity}x ${displaySku} / ${art.ean}`);
+    } else {
+      lines.push(`${art.quantity}x ${displaySku} / ${art.ean} (vikt saknas – ange manuellt)`);
+    }
   }
-
   if (lines.length > 0) {
     lines.push("");
     lines.push(`Totalvikt: ${fmtW(totalWeight)} kg`);
   }
-
   if (hasRisk) {
     lines.push("");
     lines.push("⚠️ OBS: Texten indikerar öppnad/använd produkt.");
   }
-
   document.getElementById("outputBox").textContent = lines.join("\n");
 }
-
+  
 // ── Frakt ─────────────────────────────────────────────────────────────
 async function doFetchShipping(autoSelect = false) {
   const postcode = document.getElementById("inputPostcode").value.trim().replace(/\s/g, "");

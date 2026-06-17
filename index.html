@@ -400,6 +400,7 @@
           Analysera
         </button>
         <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
+        <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🔍 Öppna i Magento</a>
         <span id="statusText" class="status-row hidden">
           <span class="spinner"></span>
           <span id="statusMsg">Hämtar…</span>
@@ -602,6 +603,14 @@ async function runAnalysis() {
   const postcode = extractPostcode(text);
 
   if (postcode) document.getElementById("inputPostcode").value = postcode;
+
+  const orderMatch = text.match(/\b1\d{8}\b/);
+  if (orderMatch) {
+    magentoOrderNumber = orderMatch[0];
+    document.getElementById("magentoBtn").classList.remove("hidden");
+    document.getElementById("magentoBtn").href = 
+      `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?order_increment_id=${magentoOrderNumber}`;
+  }
 
   if (articles.length === 0) {
     setStatus("Inga artikelnummer hittades i texten.", false);

@@ -706,11 +706,11 @@ function renderResults() {
     const row = document.createElement("div");
     row.className = "result-row" + (art.error ? " result-row--error" : "");
 
-    if (art.ean && art.weight !== null) {
+    if (art.ean) {
       const isSku = s => s && /^\d{7,8}$/.test(s);
       const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
 
-      const renderLine = (qty) => `${qty}x ${displaySku} / ${art.ean} (${fmtW(qty * art.weight)} kg totalt)`;
+      const renderLine = (qty) => art.weight !== null ? `${qty}x ${displaySku} / ${art.ean}` : `${qty}x ${displaySku} / ${art.ean} ⚠️ vikt saknas`;
 
       row.innerHTML = `
         <span class="result-line">${esc(renderLine(art.quantity))}</span>

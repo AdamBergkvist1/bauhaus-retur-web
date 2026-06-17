@@ -556,6 +556,11 @@ inputName.addEventListener("change", () => {
 const urlPostcode = new URLSearchParams(window.location.search).get("postcode");
 if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
 
+const savedEmail = localStorage.getItem("bauhaus_last_email");
+if (savedEmail) document.getElementById("emailInput").value = savedEmail;
+
+if (urlPostcode && savedEmail) runAnalysis();
+
 // ── Knappar ──────────────────────────────────────────────────────────
 document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
 document.getElementById("clearBtn").addEventListener("click", () => {
@@ -599,6 +604,10 @@ document.getElementById("saveManualBtn").addEventListener("click", saveManual);
 async function runAnalysis() {
   const text = document.getElementById("emailInput").value.trim();
   if (!text) return;
+  async function runAnalysis() {
+  const text = document.getElementById("emailInput").value.trim();
+  if (!text) return;
+  localStorage.setItem("bauhaus_last_email", text);
 
   hasRisk = detectRiskKeywords(text);
   const articles = parseAllArticles(text);

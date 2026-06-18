@@ -70,7 +70,40 @@ export default async function handler(req, res) {
       const weight = wm ? parseFloat(wm[1].replace(",", ".")) : null;
       const productName = String(best.name ?? "").toUpperCase();
       const shortName = productName.split(" ").slice(0, 2).join(" ");
-      res.status(200).json({ success: true, data: { sku, ean, weight, shortName } });
+      
+      // Hämta mått från produktsidan
+      let dimensions = null;
+      const dimPatterns = [
+        /[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm)/,
+        /[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm)/,
+        /[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/,
+        /[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/,
+      ];
+      const toMm = (val, unit) => unit.toLowerCase() === "cm" ? val * 10 : val;
+      const p = s => parseFloat(s.replace(",", "."));
+      
+      const lbhMatch = pageHtml.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/i);
+      if (lbhMatch) {
+        const unit = lbhMatch[4] || "mm";
+        dimensions = {
+          length: toMm(p(lbhMatch[1]), unit),
+          width: toMm(p(lbhMatch[2]), unit),
+          height: toMm(p(lbhMatch[3]), unit),
+        };
+      } else {
+        const lM = pageHtml.match(/[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm)/);
+        const bM = pageHtml.match(/[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm)/);
+        const hM = pageHtml.match(/[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/) || pageHtml.match(/[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/);
+        if (lM && bM && hM) {
+          dimensions = {
+            length: toMm(p(lM[1]), lM[2]),
+            width: toMm(p(bM[1]), bM[2]),
+            height: toMm(p(hM[1]), hM[2]),
+          };
+        }
+      }
+
+res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

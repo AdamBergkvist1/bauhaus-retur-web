@@ -859,6 +859,17 @@ function updateShippingContents() {
   }
 }
 
+async function fetchProductFromAlgolia(articleNumber) {
+  const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ articleNumber }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
+}
+
 // ── Konsolidera dubbletter ────────────────────────────────────────────
 function consolidate() {
   const merged = new Map();

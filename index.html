@@ -729,7 +729,7 @@ function updateShippingContents() {
   .join(", ");
 
 const missingEl = document.getElementById("shippingMissingDims");
-if (missingDims) {
+if (missingDims.length > 0) {
   missingEl.textContent = `⚠️ Mått saknas för: ${missingDims}`;
   missingEl.classList.remove("hidden");
 } else {

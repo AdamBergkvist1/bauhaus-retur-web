@@ -37,6 +37,7 @@ export default async function handler(req, res) {
       const m = html.match(/"apiKey"\s*:\s*"([A-Za-z0-9+/=]{40,})"/);
       if (!m) throw new Error("Kunde inte hämta Algolia-nyckel");
       const apiKey = m[1];
+
       const algoliaRes = await fetch(ALGOLIA_ENDPOINT, {
         method: "POST",
         headers: {
@@ -52,36 +53,41 @@ export default async function handler(req, res) {
           }],
         }),
       });
+
       const json = await algoliaRes.json();
       const hits = json?.results?.[0]?.hits;
       if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte.");
-      const best = hits.find(h => String(h.objectID) === articleNumber) ?? hits.find(h => h.url?.includes(articleNumber)) ?? hits[0];
+
+      const best = hits.find(h => String(h.objectID) === articleNumber)
+        ?? hits.find(h => h.url?.includes(articleNumber))
+        ?? hits[0];
+
       const rawSku = String(best.sku ?? "");
       const rawObjId = String(best.objectID ?? "");
       const sku = /^\d{7,8}$/.test(rawSku) ? rawSku : /^\d{7,8}$/.test(rawObjId) ? rawObjId : null;
       const rawEan = String(best.ean ?? "").replace(/\s/g, "");
       const ean = /^\d{8,14}$/.test(rawEan) ? rawEan : null;
       if (!ean) throw new Error("EAN saknas.");
+
       const productUrl = best.url?.startsWith("http") ? best.url : `${BAUHAUS_BASE}${best.url}`;
       const pageRes = await fetch(productUrl, { headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" } });
       const pageHtml = await pageRes.text();
-      const wm = pageHtml.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i) ||
-                 pageHtml.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
+
+      // Vikt
+      const wm = pageHtml.match(/<td[^>]*class=["'][^"']*(?:\bweight\b|\bnet_weight\b)[^"']*["'][^>]*>([\d.,]+)<\/td>/i)
+        || pageHtml.match(/"(?:weight|net_weight)"\s*:\s*"?([\d.,]+)"?/i);
       const weight = wm ? parseFloat(wm[1].replace(",", ".")) : null;
+
+      // Produktnamn
       const productName = String(best.name ?? "").toUpperCase();
       const shortName = productName.split(" ").slice(0, 2).join(" ");
-      
-      // Hämta mått från produktsidan
-      let dimensions = null;
-      const dimPatterns = [
-        /[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm)/,
-        /[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm)/,
-        /[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/,
-        /[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/,
-      ];
+
+      // Mått
       const toMm = (val, unit) => unit.toLowerCase() === "cm" ? val * 10 : val;
       const p = s => parseFloat(s.replace(",", "."));
-      
+      let dimensions = null;
+
+      // Försök 1: L×B×H format
       const lbhMatch = pageHtml.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/i);
       if (lbhMatch) {
         const unit = lbhMatch[4] || "mm";
@@ -90,10 +96,14 @@ export default async function handler(req, res) {
           width: toMm(p(lbhMatch[2]), unit),
           height: toMm(p(lbhMatch[3]), unit),
         };
-      } else {
+      }
+
+      // Försök 2: Längd/Bredd/Höjd/Djup fritext
+      if (!dimensions) {
         const lM = pageHtml.match(/[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm)/);
         const bM = pageHtml.match(/[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm)/);
-        const hM = pageHtml.match(/[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/) || pageHtml.match(/[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/);
+        const hM = pageHtml.match(/[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/)
+          || pageHtml.match(/[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/);
         if (lM && bM && hM) {
           dimensions = {
             length: toMm(p(lM[1]), lM[2]),
@@ -103,7 +113,30 @@ export default async function handler(req, res) {
         }
       }
 
-res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
+      // Försök 3: A/B/E-mått (t.ex. stolpfot)
+      if (!dimensions) {
+        const aM = pageHtml.match(/\bA:\s*([\d.,]+)\s*(mm|cm)/);
+        const bM = pageHtml.match(/\bB:\s*([\d.,]+)\s*(mm|cm)/);
+        const eM = pageHtml.match(/\bE:\s*([\d.,]+)\s*(mm|cm)/);
+        if (aM && bM) {
+          dimensions = {
+            length: toMm(p(aM[1]), aM[2]),
+            width: toMm(p(bM[1]), bM[2]),
+            height: eM ? toMm(p(eM[1]), eM[2]) : toMm(p(bM[1]), bM[2]),
+          };
+        }
+      }
+
+      // Försök 4: Diameter som fallback
+      if (!dimensions) {
+        const diam = pageHtml.match(/[Dd]iameter[:\s]*([\d.,]+)\s*(mm|cm)/);
+        if (diam) {
+          const d = toMm(p(diam[1]), diam[2]);
+          dimensions = { length: d, width: d, height: d };
+        }
+      }
+
+      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

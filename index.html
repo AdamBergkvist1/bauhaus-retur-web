@@ -812,28 +812,17 @@ function updateShippingContents() {
   // 3. UPPDATERA UI
   const kollislagElement = document.getElementById("shippingKollislag");
   kollislagElement.innerHTML = `
-    Kollislag: <button class="btn btn-secondary btn-sm" id="copyKollislagBtn" style="padding: 3px 8px; font-size: 11px; font-weight: 700; margin-left: 4px; border-color: var(--grey-200);" title="Klicka för att kopiera kollislag">📋 ${kollislag}</button>${extraInfo}
-    <span style="margin-left: 12px; font-weight: normal; color: var(--grey-500);">| Totalvikt: <b>${totalWeight.toFixed(2)} kg</b></span>
+    <label style="font-size:12px;font-weight:600;color:var(--grey-700);">Kollislag:</label>
+    <select id="kollislagSelect" style="margin-left:6px;padding:4px 8px;font-size:12px;border:1px solid var(--grey-200);border-radius:4px;font-family:var(--font);">
+      <option value="Paket" ${kollislag === "Paket" ? "selected" : ""}>Paket</option>
+      <option value="EUR halvpall (60x80)" ${kollislag === "EUR halvpall (60x80)" ? "selected" : ""}>EUR halvpall (60x80)</option>
+      <option value="EUR helpall (120x80)" ${kollislag === "EUR helpall (120x80)" ? "selected" : ""}>EUR helpall (120x80)</option>
+      <option value="Pall (övriga mått)" ${kollislag === "Pall (övriga mått)" ? "selected" : ""}>Pall (övriga mått)</option>
+      <option value="Ospecificerat" ${kollislag === "Ospecificerat" ? "selected" : ""}>Ospecificerat</option>
+    </select>
+    ${extraInfo}
+    <span style="margin-left:12px;font-weight:normal;color:var(--grey-500);">| Totalvikt: <b>${totalWeight.toFixed(2)} kg</b></span>
   `;
-
-  // Lyssna på klick för att kopiera exakt speditörstext
-  document.getElementById("copyKollislagBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    navigator.clipboard.writeText(kollislag); // Kopierar bara "Paket" eller "EUR helpall (120x80)"
-    
-    const btn = document.getElementById("copyKollislagBtn");
-    btn.innerHTML = "<b>✓ Kopierat!</b>";
-    btn.style.backgroundColor = "var(--green-bg)";
-    btn.style.borderColor = "var(--green-border)";
-    btn.style.color = "var(--green)";
-    
-    setTimeout(() => {
-      btn.innerHTML = `📋 ${kollislag}`;
-      btn.style.backgroundColor = "";
-      btn.style.borderColor = "";
-      btn.style.color = "";
-    }, 1200);
-  });
 
   const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
   

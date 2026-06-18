@@ -448,6 +448,8 @@
       <!-- FRAKTSEDEL -->
       <div class="divider"></div>
       <div class="card-title">📝 Fraktsedel-innehåll</div>
+      <div id="shippingKollislag" style="font-size:12px;font-weight:700;color:var(--grey-700);margin-bottom:6px;"></div>
+      <div id="shippingDimensions" style="font-size:12px;color:var(--grey-500);margin-bottom:8px;"></div>
       <div id="shippingContentsBox" class="output-box" contenteditable="true" style="min-height:60px;"></div>
       <div style="margin-top:8px;">
         <button class="btn btn-secondary btn-sm" id="copyShippingContentsBtn">📋 Kopiera fraktsedel</button>
@@ -689,6 +691,37 @@ function updateShippingContents() {
     .map(a => `${a.quantity}x ${a.shortName || a.articleNumber}`)
     .join("\n");
   document.getElementById("shippingContentsBox").textContent = lines;
+
+  // Beräkna totalmått och föreslå kollislag
+  let totalWeight = 0;
+  let maxL = 0, maxB = 0, totalH = 0;
+  let hasDimensions = false;
+
+  for (const art of resolvedArticles.filter(a => a.ean)) {
+    const w = (art.weight ?? 0) * art.quantity;
+    totalWeight += w;
+    if (art.dimensions) {
+      hasDimensions = true;
+      const l = (art.dimensions.length ?? 0) / 10; // mm → cm
+      const b = (art.dimensions.width ?? 0) / 10;
+      const h = (art.dimensions.height ?? 0) / 10;
+      maxL = Math.max(maxL, l);
+      maxB = Math.max(maxB, b);
+      totalH += h * art.quantity;
+    }
+  }
+
+  // Kollislag-förslag
+  let kollislag = "Paket";
+  if (totalWeight > 500) kollislag = "Pall (övriga mått)";
+  else if (totalWeight > 20) kollislag = "EUR helpall (120x80)";
+
+  const dimText = hasDimensions
+    ? `L: ${Math.round(maxL)} cm × B: ${Math.round(maxB)} cm × H: ${Math.round(totalH)} cm`
+    : "Mått ej tillgängliga";
+
+  document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag}`;
+  document.getElementById("shippingDimensions").textContent = `Vikt: ${totalWeight.toFixed(2)} kg | ${dimText}`;
 }
 
 async function fetchProductFromAlgolia(articleNumber) {

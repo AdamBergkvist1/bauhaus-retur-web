@@ -695,7 +695,7 @@ function updateShippingContents() {
 
   // Beräkna totalmått och föreslå kollislag
   let totalWeight = 0;
-  let maxL = 0, maxB = 0, totalH = 0;
+  let maxL = 0, maxB = 0, maxH = 0;
   let hasDimensions = false;
 
   for (const art of resolvedArticles.filter(a => a.ean)) {
@@ -708,7 +708,7 @@ function updateShippingContents() {
       const h = (art.dimensions.height ?? 0) / 10;
       maxL = Math.max(maxL, l);
       maxB = Math.max(maxB, b);
-      totalH += h * art.quantity;
+      maxH = Math.max(maxH ?? 0, h);
     }
   }
 
@@ -718,7 +718,7 @@ function updateShippingContents() {
   else if (totalWeight > 20) kollislag = "EUR helpall (120x80)";
 
   const dimText = hasDimensions
-    ? `L: ${Math.round(maxL)} cm × B: ${Math.round(maxB)} cm × H: ${Math.round(totalH)} cm`
+    ? `L: ${Math.round(maxL)} cm × B: ${Math.round(maxB)} cm × H: ${Math.round(maxH)} cm`
     : "Mått ej tillgängliga";
 
   document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag}`;

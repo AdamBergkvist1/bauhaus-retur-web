@@ -127,7 +127,7 @@ export default async function handler(req, res) {
         }
       }
 
-      // Försök 4: Diameter som fallback
+     // Försök 4: Diameter som fallback
       if (!dimensions) {
         const diam = pageHtml.match(/[Dd]iameter[:\s]*([\d.,]+)\s*(mm|cm)/);
         if (diam) {
@@ -136,6 +136,21 @@ export default async function handler(req, res) {
         }
       }
 
+      // Försök 5: Bredd/Djup/Höjd utan kolon
+      if (!dimensions) {
+        const bM = pageHtml.match(/Bredd[:\s]+([\d.,]+)\s*(mm|cm)/);
+        const dM = pageHtml.match(/Djup[:\s]+([\d.,]+)\s*(mm|cm)/);
+        const hM = pageHtml.match(/Höjd[:\s]+([\d.,]+)\s*(mm|cm)/);
+        if (bM && hM) {
+          dimensions = {
+            length: dM ? toMm(p(dM[1]), dM[2]) : toMm(p(bM[1]), bM[2]),
+            width: toMm(p(bM[1]), bM[2]),
+            height: toMm(p(hM[1]), hM[2]),
+          };
+        }
+      }
+
+      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
       res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });

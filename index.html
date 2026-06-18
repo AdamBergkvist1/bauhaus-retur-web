@@ -770,10 +770,9 @@ function updateShippingContents() {
     const palletDims = `${finalPalletL}x${finalPalletB}x${palletH}`;
 
     buttonsHtml = `
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${palletDims}" style="border-color: var(--green); background: var(--green-bg);" title="Standard EUR-pallmått justerat för eventuellt utstick">
-        品 Pall-mått: ${finalPalletL}×${finalPalletB}×${palletH} cm ⭐<br>
-        <small style="font-weight:400;font-size:10px;">EUR-pall (120x80) + 15cm pallbädd + maxhöjd. Justerad för utstick.</small>
-      </button>
+      <div style="font-size:12px;color:var(--grey-700);margin-top:4px;">
+        <div>🏗️ <b>Pall-mått:</b> ${finalPalletL}×${finalPalletB}×${palletH} cm <span style="color:var(--grey-500);font-size:11px;">– EUR-pall + 15cm pallbädd + maxhöjd</span></div>
+      </div>
     `;
   } else {
     // Beräkningar för paket (Marginal 20%) - gäller både Ombud och HD
@@ -798,14 +797,10 @@ function updateShippingContents() {
     const recommendVol = totalItems > 2;
 
     buttonsHtml = `
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" style="${!recommendVol ? 'border-color: var(--green); background: var(--green-bg);' : ''}" title="Passar när varorna ryms i en och samma kartong">
-        📦 Max-mått: ${maxDims.replace(/x/g, "×")} cm ${!recommendVol ? '⭐' : ''}<br>
-        <small style="font-weight:400;font-size:10px;">Tar max från största artikeln +20% marginal</small>
-      </button>
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" style="${recommendVol ? 'border-color: var(--green); background: var(--green-bg);' : ''}" title="Passar när många små produkter packas tillsammans">
-        📊 Volymbaserat: ${volDims.replace(/x/g, "×")} cm ${recommendVol ? '⭐' : ''}<br>
-        <small style="font-weight:400;font-size:10px;">Total volym → kubikrot +20% marginal</small>
-      </button>
+      <div style="font-size:12px;color:var(--grey-700);margin-top:4px;">
+        <div style="margin-bottom:4px;">📦 <b>Max-mått:</b> ${maxDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Tar max från största artikeln +20%</span></div>
+        <div>📊 <b>Volymbaserat:</b> ${volDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Total volym → kubikrot +20%</span></div>
+      </div>
     `;
   }
 
@@ -834,6 +829,29 @@ function updateShippingContents() {
     ${warningHtml}
   `;
 
+  // Dropdown-ändring uppdaterar mått-visning
+  const select = document.getElementById("kollislagSelect");
+  if (select) {
+    select.addEventListener("change", () => {
+      const val = select.value;
+      const isPall = val.toLowerCase().includes("pall");
+      const dimsDiv = document.getElementById("shippingDimensions").querySelector("div:last-child");
+      if (isPall) {
+        const palletH = Math.round(15 + maxH);
+        const finalPalletL = Math.max(120, Math.round(maxL));
+        const finalPalletB = Math.max(80, Math.round(maxB));
+        dimsDiv.innerHTML = `<div style="font-size:12px;color:var(--grey-700);margin-top:4px;"><div>🏗️ <b>Pall-mått:</b> ${finalPalletL}×${finalPalletB}×${palletH} cm <span style="color:var(--grey-500);font-size:11px;">– EUR-pall + 15cm pallbädd + maxhöjd</span></div></div>`;
+      } else {
+        const margin = 1.20;
+        const fL = Math.round(maxL * margin);
+        const fB = Math.round(maxB * margin);
+        const fH = Math.round(maxH * margin);
+        const cbrt = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
+        dimsDiv.innerHTML = `<div style="font-size:12px;color:var(--grey-700);margin-top:4px;"><div style="margin-bottom:4px;">📦 <b>Max-mått:</b> ${fL}×${fB}×${fH} cm</div><div>📊 <b>Volymbaserat:</b> ${cbrt ? `${cbrt}×${cbrt}×${cbrt}` : "–"} cm</div></div>`;
+      }
+    });
+  }
+  
   // Hantera saknade mått
   const missingDims = resolvedArticles
     .filter(a => a.ean && !a.dimensions)

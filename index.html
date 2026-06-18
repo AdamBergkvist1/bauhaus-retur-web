@@ -735,7 +735,7 @@ function updateShippingContents() {
     }
   }
 
-  // 1. TRESTAGESLOGIK: Ombud, Hemleverans (HD) eller Pall
+// 1. TRESTAGESLOGIK: Ombud, Hemleverans (HD) eller Pall
   let isPallet = false;
   let isHeavyPackage = false;
 
@@ -745,11 +745,16 @@ function updateShippingContents() {
     isHeavyPackage = true;
   }
 
-  let kollislag = "Standardpaket (Ombud)";
+  // Exakta termer enligt DHL-portalen (det som ska kopieras)
+  let kollislag = "Paket";
+  let extraInfo = ""; // För att ändå ge dig en visuell varning om HD-leverans
+
   if (isPallet) {
     kollislag = totalWeight > 500 ? "Pall (övriga mått)" : "EUR helpall (120x80)";
   } else if (isHeavyPackage) {
-    kollislag = "Stort paket (Hemleverans/HD)";
+    kollislag = "Paket";
+    // Ger dig en diskret notis bredvid knappen att det är HD
+    extraInfo = " <span style='color: var(--warn-text); font-size: 11px; font-weight: 500; margin-left: 6px;'>(Kräver Hemleverans/HD)</span>";
   }
 
   // 2. BERÄKNA DIMENSIONER & GENERERA UI-KNAPPAR
@@ -805,7 +810,30 @@ function updateShippingContents() {
   }
 
   // 3. UPPDATERA UI
-  document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag} | Vikt: ${totalWeight.toFixed(2)} kg`;
+  const kollislagElement = document.getElementById("shippingKollislag");
+  kollislagElement.innerHTML = `
+    Kollislag: <button class="btn btn-secondary btn-sm" id="copyKollislagBtn" style="padding: 3px 8px; font-size: 11px; font-weight: 700; margin-left: 4px; border-color: var(--grey-200);" title="Klicka för att kopiera kollislag">📋 ${kollislag}</button>${extraInfo}
+    <span style="margin-left: 12px; font-weight: normal; color: var(--grey-500);">| Totalvikt: <b>${totalWeight.toFixed(2)} kg</b></span>
+  `;
+
+  // Lyssna på klick för att kopiera exakt speditörstext
+  document.getElementById("copyKollislagBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(kollislag); // Kopierar bara "Paket" eller "EUR helpall (120x80)"
+    
+    const btn = document.getElementById("copyKollislagBtn");
+    btn.innerHTML = "<b>✓ Kopierat!</b>";
+    btn.style.backgroundColor = "var(--green-bg)";
+    btn.style.borderColor = "var(--green-border)";
+    btn.style.color = "var(--green)";
+    
+    setTimeout(() => {
+      btn.innerHTML = `📋 ${kollislag}`;
+      btn.style.backgroundColor = "";
+      btn.style.borderColor = "";
+      btn.style.color = "";
+    }, 1200);
+  });
 
   const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
   
@@ -816,41 +844,6 @@ function updateShippingContents() {
     </div>
     ${warningHtml}
   `;
-
-  // Evig klick-lyssnare för kopiering (rensar bort "cm" och använder standard-x för smidig klistring)
-  document.querySelectorAll(".dim-choice").forEach(btn => {
-    btn.addEventListener("click", () => {
-      navigator.clipboard.writeText(btn.dataset.dims);
-      const originalHtml = btn.innerHTML;
-      btn.innerHTML = "<b>✓ Kopierad!</b>";
-      setTimeout(() => btn.innerHTML = originalHtml, 1500);
-    });
-  });
-
-  // Hantera saknade mått i gränssnittet
-  const missingDims = resolvedArticles
-    .filter(a => a.ean && !a.dimensions)
-    .map(a => a.articleNumber)
-    .join(", ");
-  const missingEl = document.getElementById("shippingMissingDims");
-  if (missingDims.length > 0) {
-    missingEl.textContent = `⚠️ Mått saknas för artiklar: ${missingDims}`;
-    missingEl.classList.remove("hidden");
-  } else {
-    missingEl.classList.add("hidden");
-  }
-}
-
-async function fetchProductFromAlgolia(articleNumber) {
-  const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ articleNumber }),
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error);
-  return data.data;
-}
 
 // ── Konsolidera dubbletter ────────────────────────────────────────────
 function consolidate() {

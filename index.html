@@ -845,6 +845,20 @@ function updateShippingContents() {
     ${warningHtml}
   `;
 
+  // Hantera saknade mått
+  const missingDims = resolvedArticles
+    .filter(a => a.ean && !a.dimensions)
+    .map(a => a.articleNumber)
+    .join(", ");
+  const missingEl = document.getElementById("shippingMissingDims");
+  if (missingDims.length > 0) {
+    missingEl.textContent = `⚠️ Mått saknas för artiklar: ${missingDims}`;
+    missingEl.classList.remove("hidden");
+  } else {
+    missingEl.classList.add("hidden");
+  }
+}
+
 // ── Konsolidera dubbletter ────────────────────────────────────────────
 function consolidate() {
   const merged = new Map();

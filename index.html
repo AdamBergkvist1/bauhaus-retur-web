@@ -725,7 +725,7 @@ function updateShippingContents() {
   document.getElementById("shippingDimensions").textContent = `Vikt: ${totalWeight.toFixed(2)} kg | ${dimText}`;
   const missingDims = resolvedArticles
   .filter(a => a.ean && !a.dimensions)
-  .map(a => `${a.shortName || a.articleNumber}`)
+  .map(a => a.articleNumber)
   .join(", ");
 
 const missingEl = document.getElementById("shippingMissingDims");

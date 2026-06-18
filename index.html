@@ -444,6 +444,14 @@
         <button class="btn btn-primary" id="copyBtn">📋 Kopiera</button>
         <span id="copyFeedback" class="copy-feedback">✓ Kopierad!</span>
       </div>
+
+      <!-- FRAKTSEDEL -->
+      <div class="divider"></div>
+      <div class="card-title">📝 Fraktsedel-innehåll</div>
+      <div id="shippingContentsBox" class="output-box" contenteditable="true" style="min-height:60px;"></div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-secondary btn-sm" id="copyShippingContentsBtn">📋 Kopiera fraktsedel</button>
+      </div>
     </div>
 
     <!-- MANUELL INMATNING -->
@@ -509,6 +517,8 @@ let userName = "Adam";
 let manualTarget = null;
 let bauhausCookies = "";
 let magentoOrderNumber = null;
+let magentoOrderNumber = null;
+let shippingContents = [];
 let algoliaApiKey = null;
 
 // Simpel in-memory cache (ersätter chrome.storage.local)
@@ -600,6 +610,11 @@ document.getElementById("copyBtn").addEventListener("click", () => {
 
 document.getElementById("saveManualBtn").addEventListener("click", saveManual);
 
+document.getElementById("copyShippingContentsBtn").addEventListener("click", () => {
+  const text = document.getElementById("shippingContentsBox").textContent;
+  navigator.clipboard.writeText(text).then(() => alert("✓ Kopierad!"));
+});
+
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────
 async function runAnalysis() {
   const text = document.getElementById("emailInput").value.trim();
@@ -643,6 +658,7 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
+  updateShippingContents();
 
   // Auto-hämta frakt om postnummer hittades
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
@@ -666,6 +682,14 @@ async function lookupOne(article, idx) {
   } catch (err) {
     resolvedArticles[idx] = { articleNumber, quantity, sku: null, ean: null, weight: null, error: err.message };
   }
+}
+
+function updateShippingContents() {
+  const lines = resolvedArticles
+    .filter(a => a.ean)
+    .map(a => `${a.quantity}x ${a.shortName || a.articleNumber}`)
+    .join("\n");
+  document.getElementById("shippingContentsBox").textContent = lines;
 }
 
 async function fetchProductFromAlgolia(articleNumber) {

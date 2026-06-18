@@ -798,8 +798,8 @@ function updateShippingContents() {
 
     buttonsHtml = `
       <div style="font-size:12px;color:var(--grey-700);margin-top:4px;">
-        <div style="margin-bottom:4px;">📦 <b>Max-mått:</b> ${maxDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Tar max från största artikeln +20%</span></div>
-        <div>📊 <b>Volymbaserat:</b> ${volDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Total volym → kubikrot +20%</span></div>
+        <div style="margin-bottom:4px;" title="Passar när allt ryms i en kartong. Tar den största artikelns mått + 20% marginal för emballage.">📦 <b>Max-mått:</b> ${maxDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Tar max från största artikeln +20%</span></div>
+        <div title="Passar när många små produkter packas ihop. Räknar total volym och ger kubiskt estimat + 20% marginal.">📊 <b>Volymbaserat:</b> ${volDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Total volym → kubikrot +20%</span></div>
       </div>
     `;
   }

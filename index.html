@@ -660,7 +660,7 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
-  updateShippingContents();
+  ups();
 
   // Auto-hämta frakt om postnummer hittades
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
@@ -741,8 +741,8 @@ function updateShippingContents() {
   document.getElementById("shippingDimensions").innerHTML = `
     <div style="margin-bottom:8px;font-family:monospace;font-size:11px;color:var(--grey-700);">${artText.replace(/\n/g, "<br>")}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" title="Tar max-måttet från den största artikeln + 15% marginal. Passar när allt ryms i en kartong.">📦 Max-mått: ${maxDims}</button>
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" title="Räknar total volym av alla artiklar och tar kubikroten + 15% marginal. Passar för många små produkter.">📊 Volymbaserat: ${volDims}</button>
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" title="Passar när allt ryms i en kartong">📦 Max-mått: ${maxDims}<br><small style="font-weight:400;font-size:10px;">Tar max från största artikeln +15%</small></button>
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" title="Passar för många små produkter">📊 Volymbaserat: ${volDims}<br><small style="font-weight:400;font-size:10px;">Total volym → kubikrot +15%</small></button>
     </div>
   `;
 

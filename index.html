@@ -660,7 +660,7 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
-  ups();
+  updateShippingContents();
 
   // Auto-hämta frakt om postnummer hittades
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {

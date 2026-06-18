@@ -83,12 +83,17 @@ export default async function handler(req, res) {
       const shortName = productName.split(" ").slice(0, 2).join(" ");
 
       // Mått
-      const toMm = (val, unit) => unit.toLowerCase() === "cm" ? val * 10 : val;
+      const toMm = (val, unit) => {
+        const u = unit.toLowerCase();
+        if (u === "cm") return val * 10;
+        if (u === "m") return val * 1000;
+        return val; // mm är default
+      };
       const p = s => parseFloat(s.replace(",", "."));
       let dimensions = null;
 
       // Försök 1: L×B×H format
-      const lbhMatch = pageHtml.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(mm|cm)/i);
+      const lbhMatch = pageHtml.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(mm|cm|m)/i);
       if (lbhMatch) {
         const unit = lbhMatch[4] || "mm";
         dimensions = {
@@ -100,10 +105,10 @@ export default async function handler(req, res) {
 
       // Försök 2: Längd/Bredd/Höjd/Djup fritext
       if (!dimensions) {
-        const lM = pageHtml.match(/[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm)/);
-        const bM = pageHtml.match(/[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm)/);
-        const hM = pageHtml.match(/[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm)/)
-          || pageHtml.match(/[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm)/);
+        const lM = pageHtml.match(/[Ll]ängd[:\s]*([\d.,]+)\s*(mm|cm|m)/);
+        const bM = pageHtml.match(/[Bb]redd[:\s]*([\d.,]+)\s*(mm|cm|m)/);
+        const hM = pageHtml.match(/[Hh]öjd[:\s]*([\d.,]+)\s*(mm|cm|m)/)
+          || pageHtml.match(/[Dd]jup[:\s]*([\d.,]+)\s*(mm|cm|m)/);
         if (lM && bM && hM) {
           dimensions = {
             length: toMm(p(lM[1]), lM[2]),
@@ -115,9 +120,9 @@ export default async function handler(req, res) {
 
       // Försök 3: A/B/E-mått (t.ex. stolpfot)
       if (!dimensions) {
-        const aM = pageHtml.match(/\bA:\s*([\d.,]+)\s*(mm|cm)/);
-        const bM = pageHtml.match(/\bB:\s*([\d.,]+)\s*(mm|cm)/);
-        const eM = pageHtml.match(/\bE:\s*([\d.,]+)\s*(mm|cm)/);
+        const aM = pageHtml.match(/\bA:\s*([\d.,]+)\s*(mm|cm|m)/);
+        const bM = pageHtml.match(/\bB:\s*([\d.,]+)\s*(mm|cm|m)/);
+        const eM = pageHtml.match(/\bE:\s*([\d.,]+)\s*(mm|cm|m)/);
         if (aM && bM) {
           dimensions = {
             length: toMm(p(aM[1]), aM[2]),
@@ -127,9 +132,9 @@ export default async function handler(req, res) {
         }
       }
 
-     // Försök 4: Diameter som fallback
+      // Försök 4: Diameter som fallback
       if (!dimensions) {
-        const diam = pageHtml.match(/[Dd]iameter[:\s]*([\d.,]+)\s*(mm|cm)/);
+        const diam = pageHtml.match(/[Dd]iameter[:\s]*([\d.,]+)\s*(mm|cm|m)/);
         if (diam) {
           const d = toMm(p(diam[1]), diam[2]);
           dimensions = { length: d, width: d, height: d };

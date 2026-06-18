@@ -687,6 +687,12 @@ async function lookupOne(article, idx) {
 }
 
 function updateShippingContents() {
+  // -- GRÄNSVÄRDEN (Lätta att justera på måndag!) --
+  const LIMIT_HD_WEIGHT = 20;   // Över 20 kg -> Hemleverans (HD)
+  const LIMIT_HD_LENGTH = 120;  // Över 120 cm -> Hemleverans (HD)
+  const LIMIT_PALL_WEIGHT = 30; // Över 30 kg -> Pall
+  const LIMIT_PALL_LENGTH = 150;// Över 150 cm -> Pall
+
   const lines = resolvedArticles
     .filter(a => a.ean)
     .map(a => `${a.quantity}x ${a.shortName || a.articleNumber}`)
@@ -697,19 +703,28 @@ function updateShippingContents() {
   let totalVolume = 0;
   let maxL = 0, maxB = 0, maxH = 0;
   let hasDimensions = false;
+  let totalItems = 0;
   const artLines = [];
 
   for (const art of resolvedArticles.filter(a => a.ean)) {
     totalWeight += (art.weight ?? 0) * art.quantity;
+    totalItems += art.quantity;
+    
     if (art.dimensions) {
       hasDimensions = true;
+      // Konvertera från mm till cm
       const l = (art.dimensions.length ?? 0) / 10;
       const b = (art.dimensions.width ?? 0) / 10;
       const h = (art.dimensions.height ?? 0) / 10;
-      maxL = Math.max(maxL, l);
-      maxB = Math.max(maxB, b);
-      maxH = Math.max(maxH, h);
-      totalVolume += l * b * h * art.quantity;
+      
+      // Sortera måtten för att säkerställa korrekt orientering (längst sida först)
+      const sorted = [l, b, h].sort((x, y) => y - x);
+      
+      maxL = Math.max(maxL, sorted[0]);
+      maxB = Math.max(maxB, sorted[1]);
+      maxH = Math.max(maxH, sorted[2]);
+      totalVolume += (l * b * h) * art.quantity;
+      
       if (l > 0 && b > 0 && h > 0) {
         artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm`);
       } else {
@@ -720,42 +735,99 @@ function updateShippingContents() {
     }
   }
 
-  // Kollislag
-  let kollislag = "Paket";
-  if (totalWeight > 500) kollislag = "Pall (övriga mått)";
-  else if (totalWeight > 20) kollislag = "EUR helpall (120x80)";
+  // 1. TRESTAGESLOGIK: Ombud, Hemleverans (HD) eller Pall
+  let isPallet = false;
+  let isHeavyPackage = false;
 
-  // Beräkningsalternativ
-  const margin = 1.15;
-  const maxDims = hasDimensions
-    ? `${Math.round(maxL * margin)}×${Math.round(maxB * margin)}×${Math.round(maxH * margin)} cm`
-    : "–";
+  if (totalWeight >= LIMIT_PALL_WEIGHT || maxL >= LIMIT_PALL_LENGTH) {
+    isPallet = true;
+  } else if (totalWeight >= LIMIT_HD_WEIGHT || maxL >= LIMIT_HD_LENGTH) {
+    isHeavyPackage = true;
+  }
 
-  const cbrtSide = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
-  const volDims = cbrtSide ? `${cbrtSide}×${cbrtSide}×${cbrtSide} cm` : "–";
+  let kollislag = "Standardpaket (Ombud)";
+  if (isPallet) {
+    kollislag = totalWeight > 500 ? "Pall (övriga mått)" : "EUR helpall (120x80)";
+  } else if (isHeavyPackage) {
+    kollislag = "Stort paket (Hemleverans/HD)";
+  }
 
-  // Uppdatera UI
+  // 2. BERÄKNA DIMENSIONER & GENERERA UI-KNAPPAR
+  let buttonsHtml = "";
+  let warningHtml = "";
+
+  if (isPallet) {
+    // Standard EUR-pall är 120x80 cm. Pallens egen konstruktion bygger ca 15 cm på höjden.
+    const palletH = Math.round(15 + maxH);
+    // Om en vara sticker ut, expandera pallmåttet dynamiskt efter varans faktiska storlek
+    const finalPalletL = Math.max(120, Math.round(maxL));
+    const finalPalletB = Math.max(80, Math.round(maxB));
+    const palletDims = `${finalPalletL}x${finalPalletB}x${palletH}`;
+
+    buttonsHtml = `
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${palletDims}" style="border-color: var(--green); background: var(--green-bg);" title="Standard EUR-pallmått justerat för eventuellt utstick">
+        品 Pall-mått: ${finalPalletL}×${finalPalletB}×${palletH} cm ⭐<br>
+        <small style="font-weight:400;font-size:10px;">EUR-pall (120x80) + 15cm pallbädd + maxhöjd. Justerad för utstick.</small>
+      </button>
+    `;
+  } else {
+    // Beräkningar för paket (Marginal 20%) - gäller både Ombud och HD
+    const margin = 1.20;
+    const finalMaxL = Math.round(maxL * margin);
+    const finalMaxB = Math.round(maxB * margin);
+    const finalMaxH = Math.round(maxH * margin);
+    const maxDims = hasDimensions ? `${finalMaxL}x${finalMaxB}x${finalMaxH}` : "–";
+
+    const cbrtSide = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
+    const volDims = cbrtSide ? `${cbrtSide}x${cbrtSide}x${cbrtSide}` : "–";
+
+    // DHL Maxmåttskontroll (Längd + Omkrets > 300 cm)
+    const girthMaxMethod = finalMaxL + 2 * (finalMaxB + finalMaxH);
+    const girthVolMethod = cbrtSide ? cbrtSide + 2 * (cbrtSide + cbrtSide) : 0;
+    
+    if (girthMaxMethod > 300 || girthVolMethod > 300) {
+      warningHtml = `<div class="warn-box" style="margin-top:6px; font-size:11px;">⚠️ <b>DHL Maxmått:</b> Uträknad paketvolym överstiger maxgränsen (Längd + Omkrets > 300 cm). Överväg att ändra till pall eller granska manuellt.</div>`;
+    }
+
+    // Rekommendation: Volymbaserat (kubikrot) om det är fler än 2 artiklar, annars Max-mått
+    const recommendVol = totalItems > 2;
+
+    buttonsHtml = `
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" style="${!recommendVol ? 'border-color: var(--green); background: var(--green-bg);' : ''}" title="Passar när varorna ryms i en och samma kartong">
+        📦 Max-mått: ${maxDims.replace(/x/g, "×")} cm ${!recommendVol ? '⭐' : ''}<br>
+        <small style="font-weight:400;font-size:10px;">Tar max från största artikeln +20% marginal</small>
+      </button>
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" style="${recommendVol ? 'border-color: var(--green); background: var(--green-bg);' : ''}" title="Passar när många små produkter packas tillsammans">
+        📊 Volymbaserat: ${volDims.replace(/x/g, "×")} cm ${recommendVol ? '⭐' : ''}<br>
+        <small style="font-weight:400;font-size:10px;">Total volym → kubikrot +20% marginal</small>
+      </button>
+    `;
+  }
+
+  // 3. UPPDATERA UI
   document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag} | Vikt: ${totalWeight.toFixed(2)} kg`;
 
   const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
+  
   document.getElementById("shippingDimensions").innerHTML = `
     <div style="margin-bottom:8px;font-family:monospace;font-size:11px;color:var(--grey-700);">${artText.replace(/\n/g, "<br>")}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" title="Passar när allt ryms i en kartong">📦 Max-mått: ${maxDims}<br><small style="font-weight:400;font-size:10px;">Tar max från största artikeln +15%</small></button>
-      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" title="Passar för många små produkter">📊 Volymbaserat: ${volDims}<br><small style="font-weight:400;font-size:10px;">Total volym → kubikrot +15%</small></button>
+      ${buttonsHtml}
     </div>
+    ${warningHtml}
   `;
 
-  // Klick på mått-knapp kopierar till clipboard
+  // Evig klick-lyssnare för kopiering (rensar bort "cm" och använder standard-x för smidig klistring)
   document.querySelectorAll(".dim-choice").forEach(btn => {
     btn.addEventListener("click", () => {
       navigator.clipboard.writeText(btn.dataset.dims);
-      btn.textContent = "✓ Kopierad!";
-      setTimeout(() => btn.textContent = btn.title.split(".")[0].replace("📦 ", "📦 ").replace("📊 ", "📊 "), 1500);
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = "<b>✓ Kopierad!</b>";
+      setTimeout(() => btn.innerHTML = originalHtml, 1500);
     });
   });
 
-  // Saknade mått
+  // Hantera saknade mått i gränssnittet
   const missingDims = resolvedArticles
     .filter(a => a.ean && !a.dimensions)
     .map(a => a.articleNumber)

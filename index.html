@@ -735,7 +735,7 @@ if (missingDims.length > 0) {
 } else {
   missingEl.classList.add("hidden");
 }
-
+}
 
 async function fetchProductFromAlgolia(articleNumber) {
   const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {

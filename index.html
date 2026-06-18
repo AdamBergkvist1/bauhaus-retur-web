@@ -450,6 +450,7 @@
       <div class="card-title">📝 Fraktsedel-innehåll</div>
       <div id="shippingKollislag" style="font-size:12px;font-weight:700;color:var(--grey-700);margin-bottom:6px;"></div>
       <div id="shippingDimensions" style="font-size:12px;color:var(--grey-500);margin-bottom:8px;"></div>
+      <div id="shippingMissingDims" class="warn-box hidden" style="font-size:12px;margin-bottom:8px;"></div>
       <div id="shippingContentsBox" class="output-box" contenteditable="true" style="min-height:60px;"></div>
       <div style="margin-top:8px;">
         <button class="btn btn-secondary btn-sm" id="copyShippingContentsBtn">📋 Kopiera fraktsedel</button>
@@ -722,7 +723,19 @@ function updateShippingContents() {
 
   document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag}`;
   document.getElementById("shippingDimensions").textContent = `Vikt: ${totalWeight.toFixed(2)} kg | ${dimText}`;
+  const missingDims = resolvedArticles
+  .filter(a => a.ean && !a.dimensions)
+  .map(a => `${a.shortName || a.articleNumber}`)
+  .join(", ");
+
+const missingEl = document.getElementById("shippingMissingDims");
+if (missingDims) {
+  missingEl.textContent = `⚠️ Mått saknas för: ${missingDims}`;
+  missingEl.classList.remove("hidden");
+} else {
+  missingEl.classList.add("hidden");
 }
+
 
 async function fetchProductFromAlgolia(articleNumber) {
   const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {

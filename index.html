@@ -693,48 +693,80 @@ function updateShippingContents() {
     .join("\n");
   document.getElementById("shippingContentsBox").textContent = lines;
 
-  // Beräkna totalmått och föreslå kollislag
   let totalWeight = 0;
+  let totalVolume = 0;
   let maxL = 0, maxB = 0, maxH = 0;
   let hasDimensions = false;
+  const artLines = [];
 
   for (const art of resolvedArticles.filter(a => a.ean)) {
-    const w = (art.weight ?? 0) * art.quantity;
-    totalWeight += w;
+    totalWeight += (art.weight ?? 0) * art.quantity;
     if (art.dimensions) {
       hasDimensions = true;
-      const l = (art.dimensions.length ?? 0) / 10; // mm → cm
+      const l = (art.dimensions.length ?? 0) / 10;
       const b = (art.dimensions.width ?? 0) / 10;
       const h = (art.dimensions.height ?? 0) / 10;
       maxL = Math.max(maxL, l);
       maxB = Math.max(maxB, b);
-      maxH = Math.max(maxH ?? 0, h);
+      maxH = Math.max(maxH, h);
+      totalVolume += l * b * h * art.quantity;
+      if (l > 0 && b > 0 && h > 0) {
+        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm`);
+      } else {
+        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
+      }
+    } else {
+      artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
     }
   }
 
-  // Kollislag-förslag
+  // Kollislag
   let kollislag = "Paket";
   if (totalWeight > 500) kollislag = "Pall (övriga mått)";
   else if (totalWeight > 20) kollislag = "EUR helpall (120x80)";
 
-  const dimText = hasDimensions
-    ? `L: ${Math.round(maxL)} cm × B: ${Math.round(maxB)} cm × H: ${Math.round(maxH)} cm`
-    : "Mått ej tillgängliga";
+  // Beräkningsalternativ
+  const margin = 1.15;
+  const maxDims = hasDimensions
+    ? `${Math.round(maxL * margin)}×${Math.round(maxB * margin)}×${Math.round(maxH * margin)} cm`
+    : "–";
 
-  document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag}`;
-  document.getElementById("shippingDimensions").textContent = `Vikt: ${totalWeight.toFixed(2)} kg | ${dimText}`;
+  const cbrtSide = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
+  const volDims = cbrtSide ? `${cbrtSide}×${cbrtSide}×${cbrtSide} cm` : "–";
+
+  // Uppdatera UI
+  document.getElementById("shippingKollislag").textContent = `Förslag: ${kollislag} | Vikt: ${totalWeight.toFixed(2)} kg`;
+
+  const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
+  document.getElementById("shippingDimensions").innerHTML = `
+    <div style="margin-bottom:8px;font-family:monospace;font-size:11px;color:var(--grey-700);">${artText.replace(/\n/g, "<br>")}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${maxDims}" title="Tar max-måttet från den största artikeln + 15% marginal. Passar när allt ryms i en kartong.">📦 Max-mått: ${maxDims}</button>
+      <button class="btn btn-secondary btn-sm dim-choice" data-dims="${volDims}" title="Räknar total volym av alla artiklar och tar kubikroten + 15% marginal. Passar för många små produkter.">📊 Volymbaserat: ${volDims}</button>
+    </div>
+  `;
+
+  // Klick på mått-knapp kopierar till clipboard
+  document.querySelectorAll(".dim-choice").forEach(btn => {
+    btn.addEventListener("click", () => {
+      navigator.clipboard.writeText(btn.dataset.dims);
+      btn.textContent = "✓ Kopierad!";
+      setTimeout(() => btn.textContent = btn.title.split(".")[0].replace("📦 ", "📦 ").replace("📊 ", "📊 "), 1500);
+    });
+  });
+
+  // Saknade mått
   const missingDims = resolvedArticles
-  .filter(a => a.ean && !a.dimensions)
-  .map(a => a.articleNumber)
-  .join(", ");
-
-const missingEl = document.getElementById("shippingMissingDims");
-if (missingDims.length > 0) {
-  missingEl.textContent = `⚠️ Mått saknas för: ${missingDims}`;
-  missingEl.classList.remove("hidden");
-} else {
-  missingEl.classList.add("hidden");
-}
+    .filter(a => a.ean && !a.dimensions)
+    .map(a => a.articleNumber)
+    .join(", ");
+  const missingEl = document.getElementById("shippingMissingDims");
+  if (missingDims.length > 0) {
+    missingEl.textContent = `⚠️ Mått saknas för artiklar: ${missingDims}`;
+    missingEl.classList.remove("hidden");
+  } else {
+    missingEl.classList.add("hidden");
+  }
 }
 
 async function fetchProductFromAlgolia(articleNumber) {

@@ -141,7 +141,7 @@ export default async function handler(req, res) {
         }
       }
 
-      // Försök 5: Bredd/Djup/Höjd utan kolon
+// Försök 5: Bredd/Djup/Höjd utan kolon
       if (!dimensions) {
         const bM = pageHtml.match(/Bredd[:\s]+([\d.,]+)\s*(mm|cm)/);
         const dM = pageHtml.match(/Djup[:\s]+([\d.,]+)\s*(mm|cm)/);
@@ -155,7 +155,47 @@ export default async function handler(req, res) {
         }
       }
 
-      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
+      // Försök 6: Bredd (mm)/Höjd (mm) format
+      if (!dimensions) {
+        const bM = pageHtml.match(/Bredd\s*\(mm\)[:\s]+([\d.,]+)/);
+        const hM = pageHtml.match(/Höjd\s*\(mm\)[:\s]+([\d.,]+)/);
+        const dM = pageHtml.match(/Djup\s*\(mm\)[:\s]+([\d.,]+)/);
+        if (bM && hM) {
+          dimensions = {
+            length: dM ? p(dM[1]) : p(bM[1]),
+            width: p(bM[1]),
+            height: p(hM[1]),
+          };
+        }
+      }
+
+      // Försök 7: Bredd/Längd i cm
+      if (!dimensions) {
+        const bM = pageHtml.match(/Bredd[:\s]+([\d.,]+)\s*cm/);
+        const lM = pageHtml.match(/Längd[:\s]+([\d.,]+)\s*cm/);
+        const hM = pageHtml.match(/Höjd[:\s]+([\d.,]+)\s*cm/);
+        if (bM && lM) {
+          dimensions = {
+            length: toMm(p(lM[1]), "cm"),
+            width: toMm(p(bM[1]), "cm"),
+            height: hM ? toMm(p(hM[1]), "cm") : toMm(p(bM[1]), "cm"),
+          };
+        }
+      }
+
+      // Försök 8: Mått i produktrubrik h1
+      if (!dimensions) {
+        const titleM = pageHtml.match(/<h1[^>]*>.*?(\d+(?:[.,]\d+)?)\s*[xX×]\s*(\d+(?:[.,]\d+)?)\s*(cm|mm).*?<\/h1>/i);
+        if (titleM) {
+          const unit = titleM[3] || "cm";
+          dimensions = {
+            length: toMm(p(titleM[1]), unit),
+            width: toMm(p(titleM[2]), unit),
+            height: toMm(p(titleM[2]), unit),
+          };
+        }
+      }
+
       res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -169,7 +209,6 @@ export default async function handler(req, res) {
       const cartRes = await bauhausFetch("POST", "/guest-carts", null, cookies);
       const cartToken = cartRes;
       if (typeof cartToken !== "string" || cartToken.length < 5) throw new Error("Kunde inte skapa varukorg.");
-
       for (const article of articles) {
         try {
           await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
@@ -177,19 +216,15 @@ export default async function handler(req, res) {
           }, cookies);
         } catch {}
       }
-
       try {
         await bauhausFetch("POST", `/guest-carts/${cartToken}/estimate-shipping-methods`, {
           address: { region_code: "SE", country_id: "SE", postcode },
         }, cookies);
       } catch {}
-
       await new Promise(r => setTimeout(r, 400));
-
       const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null, cookies);
       const groups = totals?.extension_attributes?.shipping_groups;
       if (!Array.isArray(groups) || groups.length === 0) throw new Error("Inga fraktalternativ.");
-
       const clean = s => String(s ?? "").replace(/\s*\d+-\d+\s*arbetsdagar?/gi, "").replace(/\s{2,}/g, " ").trim();
       const all = [];
       for (const g of groups) {
@@ -204,7 +239,6 @@ export default async function handler(req, res) {
           } catch {}
         }
       }
-
       const seen = new Set();
       const options = [];
       for (const o of all) {

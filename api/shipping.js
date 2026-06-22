@@ -196,13 +196,17 @@ export default async function handler(req, res) {
         }
       }
 
-      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions } });
+      const dimensionsConfidence = 
+        !dimensions ? "none" :
+        (dimensions.length && dimensions.width && dimensions.height) ? "full" : "partial";
+
+      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions, dimensionsConfidence } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
     return;
   }
-
+  
   if (action === "shipping") {
     const { postcode, articles, cookies } = req.body ?? {};
     try {

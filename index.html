@@ -728,7 +728,7 @@ function updateShippingContents() {
       if (l > 0 && b > 0 && h > 0) {
         const uncertain = art.dimensionsConfidence === "partial" || 
         (art.dimensions && art.dimensions.width === art.dimensions.height) ||
-        (art.dimensions && art.dimensions.height < 20) ? " ⚠️" : "";
+        (art.dimensions && art.dimensions.height < 200) ? " ⚠️" : "";
         artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm${uncertain}`);
       } else {
         artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);

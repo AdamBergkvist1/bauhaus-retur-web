@@ -614,7 +614,7 @@ document.getElementById("saveManualBtn").addEventListener("click", saveManual);
 
 document.getElementById("copyShippingContentsBtn").addEventListener("click", () => {
   const text = document.getElementById("shippingContentsBox").textContent;
-  navigator.clipboard.writeText(text).then(() => alert("✓ Kopierad!"));
+  navigator.clipboard.writeText(text);
 });
 
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────

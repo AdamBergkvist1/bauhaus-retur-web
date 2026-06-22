@@ -726,7 +726,8 @@ function updateShippingContents() {
       totalVolume += (l * b * h) * art.quantity;
       
       if (l > 0 && b > 0 && h > 0) {
-        const uncertain = art.dimensionsConfidence === "partial" ? " ⚠️" : "";
+        const uncertain = art.dimensionsConfidence === "partial" || 
+        (art.dimensions && art.dimensions.width === art.dimensions.height) ? " ⚠️" : "";
         artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm${uncertain}`);
       } else {
         artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);

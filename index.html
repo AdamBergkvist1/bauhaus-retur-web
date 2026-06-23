@@ -647,7 +647,13 @@ async function runAnalysis() {
       `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?order_increment_id=${magentoOrderNumber}`;
     const dhlBtn = document.getElementById("dhlBtn");
     dhlBtn.classList.remove("hidden");
+    const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
+    const isHD = kollislag.toLowerCase().includes("pall") || 
+      document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");
+    const dhlTemplate = isHD ? "DHL HD Retursedel" : "DHL SP Retursedel";
+    
     dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` + 
+      `template=${encodeURIComponent(dhlTemplate)}&` +
       `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
       `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
       `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +

@@ -647,7 +647,7 @@ async function runAnalysis() {
       `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?order_increment_id=${magentoOrderNumber}`;
     const dhlBtn = document.getElementById("dhlBtn");
     dhlBtn.classList.remove("hidden");
-    dhlBtn.href = `https://www.dhlfreight.se/skapa-sandning/?` + 
+    dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` + 
       `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
       `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
       `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +

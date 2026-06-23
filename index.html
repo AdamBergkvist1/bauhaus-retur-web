@@ -401,6 +401,7 @@
         </button>
         <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
         <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🔍 Öppna i Magento</a>
+        <a id="dhlBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🚚 Öppna i DHL</a>
         <span id="statusText" class="status-row hidden">
           <span class="spinner"></span>
           <span id="statusMsg">Hämtar…</span>
@@ -644,6 +645,14 @@ async function runAnalysis() {
     document.getElementById("magentoBtn").classList.remove("hidden");
     document.getElementById("magentoBtn").href = 
       `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?order_increment_id=${magentoOrderNumber}`;
+    const dhlBtn = document.getElementById("dhlBtn");
+    dhlBtn.classList.remove("hidden");
+    dhlBtn.href = `https://www.dhlfreight.se/skapa-sandning/?` + 
+      `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
+      `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
+      `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +
+      `&city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")}` +
+      `&weight=${encodeURIComponent(document.getElementById("outputBox").textContent.match(/Totalvikt: ([\d,]+)/)?.[1]||"")}`;
   }
 
   if (articles.length === 0) {

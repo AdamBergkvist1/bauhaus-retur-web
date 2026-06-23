@@ -565,8 +565,17 @@ inputName.addEventListener("change", () => {
   if (n) { userName = n; localStorage.setItem("bauhaus_username", n); }
 });
 
-const urlPostcode = new URLSearchParams(window.location.search).get("postcode");
+const urlParams = new URLSearchParams(window.location.search);
+const urlPostcode = urlParams.get("postcode");
+const urlName = urlParams.get("name");
+const urlAddress = urlParams.get("address");
+const urlCity = urlParams.get("city");
+
 if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
+if (urlName) localStorage.setItem("bauhaus_customer_name", urlName);
+if (urlAddress) localStorage.setItem("bauhaus_customer_address", urlAddress);
+if (urlCity) localStorage.setItem("bauhaus_customer_city", urlCity);
+if (urlPostcode) localStorage.setItem("bauhaus_customer_postcode", urlPostcode);
 
 const savedEmail = localStorage.getItem("bauhaus_last_email");
 if (savedEmail) document.getElementById("emailInput").value = savedEmail;

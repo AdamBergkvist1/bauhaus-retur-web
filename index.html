@@ -577,6 +577,12 @@ if (urlName) localStorage.setItem("bauhaus_customer_name", urlName);
 if (urlAddress) localStorage.setItem("bauhaus_customer_address", urlAddress);
 if (urlCity) localStorage.setItem("bauhaus_customer_city", urlCity);
 if (urlPostcode) localStorage.setItem("bauhaus_customer_postcode", urlPostcode);
+const urlPhone = urlParams.get("phone");
+const urlOrder = urlParams.get("order");
+const urlEmail = urlParams.get("email");
+if (urlPhone) localStorage.setItem("bauhaus_customer_phone", urlPhone);
+if (urlOrder) localStorage.setItem("bauhaus_customer_order", urlOrder);
+if (urlEmail) localStorage.setItem("bauhaus_customer_email", urlEmail);
 
 const savedEmail = localStorage.getItem("bauhaus_last_email");
 if (savedEmail) document.getElementById("emailInput").value = savedEmail;
@@ -658,6 +664,9 @@ async function runAnalysis() {
       `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
       `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +
       `&city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")}` +
+      `&phone=${encodeURIComponent(localStorage.getItem("bauhaus_customer_phone")||"")}` +
+      `&email=${encodeURIComponent(localStorage.getItem("bauhaus_customer_email")||"")}` +
+      `&order=${encodeURIComponent(localStorage.getItem("bauhaus_customer_order")||"")}` +
       `&weight=${encodeURIComponent(document.getElementById("outputBox").textContent.match(/Totalvikt: ([\d,]+)/)?.[1]||"")}`;
   }
 

@@ -400,6 +400,7 @@
           Analysera
         </button>
         <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
+        <input type="text" id="manualOrderInput" placeholder="Ordernummer (manuellt)" style="padding:6px 10px;font-size:12px;border:1px solid var(--grey-200);border-radius:4px;width:180px;" maxlength="9">
         <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🔍 Öppna i Magento</a>
         <a id="dhlBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🚚 Öppna i DHL</a>
         <a id="logisticsBtn" href="https://www-admin.bauhaus.se/bauhausadmin/amasty_deliverydate/delivery/create/" target="_blank" class="btn btn-secondary btn-sm hidden">🏭 Öppna i Logistics</a>
@@ -646,7 +647,8 @@ async function runAnalysis() {
 
   if (postcode) document.getElementById("inputPostcode").value = postcode;
 
-  const orderMatch = text.match(/\b1\d{8}\b/);
+  const manualOrder = document.getElementById("manualOrderInput").value.trim();
+  const orderMatch = text.match(/\b1\d{8}\b/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
   if (orderMatch) {
     magentoOrderNumber = orderMatch[0];
     document.getElementById("magentoBtn").classList.remove("hidden");

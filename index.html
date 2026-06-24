@@ -1228,6 +1228,8 @@ function renderCaseAnalysis(analysis) {
 
 // ── Parsning (portad från parse.js) ───────────────────────────────────
 function parseAllArticles(text) {
+  // Ta bort EAN som redan är kopplad till artikelnummer (format: "2x 1474110 / 4024506352209")
+  text = text.replace(/(\d+)\s*x\s*\d{7}\s*\/\s*(\d{13})/gi, (match, qty, ean) => match.replace(ean, ''));
   const articlePositions = [];
   const NUMBER_RE = /(?<![\d])(\d{13}|\d{7})(?![\d])/g;
   let m;

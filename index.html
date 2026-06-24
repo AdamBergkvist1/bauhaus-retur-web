@@ -659,20 +659,19 @@ async function runAnalysis() {
     document.getElementById("logisticsBtn").classList.remove("hidden");
     const logisticsBtn = document.getElementById("logisticsBtn");
     
-    const blParams = new URLSearchParams({
-      bl_order:    magentoOrderNumber || "",
-      bl_name:     localStorage.getItem("bauhaus_customer_name") || "",
-      bl_phone:    localStorage.getItem("bauhaus_customer_phone") || "",
-      bl_postcode: localStorage.getItem("bauhaus_customer_postcode") || "",
-      bl_address:  localStorage.getItem("bauhaus_customer_address") || "",
-      bl_city:     localStorage.getItem("bauhaus_customer_city") || "",
-      bl_date:     localStorage.getItem("bauhaus_delivery_date") || "",
-      bl_timefrom: localStorage.getItem("bauhaus_time_from") || "",
-      bl_timeto:   localStorage.getItem("bauhaus_time_to") || "",
-    });
     const viktMatch2 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
-    if (viktMatch2) blParams.set("bl_weight", viktMatch2[1].replace(",", "."));
-    logisticsBtn.href = "https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/?" + blParams.toString();
+    localStorage.setItem("bl_order",    magentoOrderNumber || "");
+    localStorage.setItem("bl_name",     localStorage.getItem("bauhaus_customer_name") || "");
+    localStorage.setItem("bl_phone",    localStorage.getItem("bauhaus_customer_phone") || "");
+    localStorage.setItem("bl_postcode", localStorage.getItem("bauhaus_customer_postcode") || "");
+    localStorage.setItem("bl_address",  localStorage.getItem("bauhaus_customer_address") || "");
+    localStorage.setItem("bl_city",     localStorage.getItem("bauhaus_customer_city") || "");
+    localStorage.setItem("bl_date",     localStorage.getItem("bauhaus_delivery_date") || "");
+    localStorage.setItem("bl_timefrom", localStorage.getItem("bauhaus_time_from") || "");
+    localStorage.setItem("bl_timeto",   localStorage.getItem("bauhaus_time_to") || "");
+    localStorage.setItem("bl_weight",   viktMatch2 ? viktMatch2[1].replace(",", ".") : "");
+    logisticsBtn.href = "https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/";
+    
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 
       document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");

@@ -672,7 +672,8 @@ async function runAnalysis() {
       localStorage.getItem("bauhaus_time_from")||"",
       localStorage.getItem("bauhaus_time_to")||"",
       viktMatch2 ? viktMatch2[1].replace(",",".") : "",
-      localStorage.getItem("bauhaus_customer_partner")||""
+      localStorage.getItem("bauhaus_customer_partner")||"",
+      resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||""
     ].join("|");
     logisticsBtn.onclick = (e) => {
       e.preventDefault();

@@ -693,6 +693,21 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
+  // Datum och tidsfönster
+  const dateMatch = text.match(/den\s+(\d{1,2})\/(\d{1,2})/);
+  const timeMatch = text.match(/kl\.?\s*(\d{1,2})[:\-.](\d{0,2})\s*[-–]\s*(\d{1,2})[:\-.]?(\d{0,2})/);
+  if (dateMatch) {
+    const day = dateMatch[1].padStart(2,"0");
+    const month = dateMatch[2].padStart(2,"0");
+    const year = new Date().getFullYear();
+    localStorage.setItem("bauhaus_delivery_date", `${year}-${month}-${day}`);
+  }
+  if (timeMatch) {
+    const fromH = timeMatch[1].padStart(2,"0");
+    const toH = timeMatch[3].padStart(2,"0");
+    localStorage.setItem("bauhaus_time_from", `${fromH}:00`);
+    localStorage.setItem("bauhaus_time_to", `${toH}:00`);
+  }
   updateShippingContents();
 
   // Auto-hämta frakt om postnummer hittades

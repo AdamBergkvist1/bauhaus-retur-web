@@ -670,7 +670,7 @@ async function runAnalysis() {
     localStorage.setItem("bl_timefrom", localStorage.getItem("bauhaus_time_from") || "");
     localStorage.setItem("bl_timeto",   localStorage.getItem("bauhaus_time_to") || "");
     localStorage.setItem("bl_weight",   viktMatch2 ? viktMatch2[1].replace(",", ".") : "");
-    logisticsBtn.href = "https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/";
+    logisticsBtn.href = "https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/#bl_order="+encodeURIComponent(magentoOrderNumber||"")+"&bl_name="+encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")+"&bl_phone="+encodeURIComponent(localStorage.getItem("bauhaus_customer_phone")||"")+"&bl_postcode="+encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")+"&bl_address="+encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")+"&bl_city="+encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")+"&bl_date="+encodeURIComponent(localStorage.getItem("bauhaus_delivery_date")||"")+"&bl_timefrom="+encodeURIComponent(localStorage.getItem("bauhaus_time_from")||"")+"&bl_timeto="+encodeURIComponent(localStorage.getItem("bauhaus_time_to")||"")+"&bl_weight="+encodeURIComponent(viktMatch2?viktMatch2[1].replace(",","."):"");
     
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 

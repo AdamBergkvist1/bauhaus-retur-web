@@ -402,6 +402,7 @@
         <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
         <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🔍 Öppna i Magento</a>
         <a id="dhlBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🚚 Öppna i DHL</a>
+        <a id="logisticsBtn" href="https://www-admin.bauhaus.se/bauhausadmin/amasty_deliverydate/delivery/create/" target="_blank" class="btn btn-secondary btn-sm hidden">🏭 Öppna i Logistics</a>
         <span id="statusText" class="status-row hidden">
           <span class="spinner"></span>
           <span id="statusMsg">Hämtar…</span>
@@ -653,6 +654,7 @@ async function runAnalysis() {
       `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`;
     const dhlBtn = document.getElementById("dhlBtn");
     dhlBtn.classList.remove("hidden");
+    document.getElementById("logisticsBtn").classList.remove("hidden");
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 
       document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");

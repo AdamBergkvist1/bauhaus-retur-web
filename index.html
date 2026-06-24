@@ -658,19 +658,26 @@ async function runAnalysis() {
     dhlBtn.classList.remove("hidden");
     document.getElementById("logisticsBtn").classList.remove("hidden");
     const logisticsBtn = document.getElementById("logisticsBtn");
-    
     const viktMatch2 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
-    localStorage.setItem("bl_order",    magentoOrderNumber || "");
-    localStorage.setItem("bl_name",     localStorage.getItem("bauhaus_customer_name") || "");
-    localStorage.setItem("bl_phone",    localStorage.getItem("bauhaus_customer_phone") || "");
-    localStorage.setItem("bl_postcode", localStorage.getItem("bauhaus_customer_postcode") || "");
-    localStorage.setItem("bl_address",  localStorage.getItem("bauhaus_customer_address") || "");
-    localStorage.setItem("bl_city",     localStorage.getItem("bauhaus_customer_city") || "");
-    localStorage.setItem("bl_date",     localStorage.getItem("bauhaus_delivery_date") || "");
-    localStorage.setItem("bl_timefrom", localStorage.getItem("bauhaus_time_from") || "");
-    localStorage.setItem("bl_timeto",   localStorage.getItem("bauhaus_time_to") || "");
-    localStorage.setItem("bl_weight",   viktMatch2 ? viktMatch2[1].replace(",", ".") : "");
-    logisticsBtn.href = "https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/#bl_order="+encodeURIComponent(magentoOrderNumber||"")+"&bl_name="+encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")+"&bl_phone="+encodeURIComponent(localStorage.getItem("bauhaus_customer_phone")||"")+"&bl_postcode="+encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")+"&bl_address="+encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")+"&bl_city="+encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")+"&bl_date="+encodeURIComponent(localStorage.getItem("bauhaus_delivery_date")||"")+"&bl_timefrom="+encodeURIComponent(localStorage.getItem("bauhaus_time_from")||"")+"&bl_timeto="+encodeURIComponent(localStorage.getItem("bauhaus_time_to")||"")+"&bl_weight="+encodeURIComponent(viktMatch2?viktMatch2[1].replace(",","."):"");
+    const blData = [
+      magentoOrderNumber||"",
+      localStorage.getItem("bauhaus_customer_name")||"",
+      localStorage.getItem("bauhaus_customer_phone")||"",
+      localStorage.getItem("bauhaus_customer_postcode")||"",
+      localStorage.getItem("bauhaus_customer_address")||"",
+      localStorage.getItem("bauhaus_customer_city")||"",
+      localStorage.getItem("bauhaus_delivery_date")||"",
+      localStorage.getItem("bauhaus_time_from")||"",
+      localStorage.getItem("bauhaus_time_to")||"",
+      viktMatch2 ? viktMatch2[1].replace(",",".") : ""
+    ].join("|");
+    logisticsBtn.onclick = (e) => {
+      e.preventDefault();
+      navigator.clipboard.writeText(blData);
+      logisticsBtn.textContent = "✅ Kopierat!";
+      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open("https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/"); }, 1000);
+    };
+    logisticsBtn.href = "#";
     
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 

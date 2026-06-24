@@ -658,18 +658,7 @@ async function runAnalysis() {
     dhlBtn.classList.remove("hidden");
     document.getElementById("logisticsBtn").classList.remove("hidden");
     const logisticsBtn = document.getElementById("logisticsBtn");
-    logisticsBtn.href = `https://www-admin.bauhaus.se/bauhausadmin/?` +
-      `bl_name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
-      `&bl_phone=${encodeURIComponent(localStorage.getItem("bauhaus_customer_phone")||"")}` +
-      `&bl_postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +
-      `&bl_address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
-      `&bl_city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")}` +
-      `&bl_order=${encodeURIComponent(localStorage.getItem("bauhaus_customer_order")||"")}` +
-      `&bl_date=${encodeURIComponent(localStorage.getItem("bauhaus_delivery_date")||"")}` +
-      `&bl_timefrom=${encodeURIComponent(localStorage.getItem("bauhaus_time_from")||"")}` +
-      `&bl_timeto=${encodeURIComponent(localStorage.getItem("bauhaus_time_to")||"")}` +
-      `&bl_weight=${encodeURIComponent(resolvedArticles.reduce((s,a)=>s+(a.weight??0)*a.quantity,0).toFixed(2))}` +
-      `&bl_contents=${encodeURIComponent(document.getElementById("shippingContentsBox")?.textContent?.trim()||"")}`;
+    logisticsBtn.href = `https://www-admin.bauhaus.se/bauhausadmin/`;
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 
       document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");

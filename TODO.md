@@ -70,6 +70,14 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
 - [ ] **Migrera till TypeScript**
 - [ ] **Fraktberäkning v3 – helautomatisk cart-session**
 
+### 💡 Idéer att utvärdera
+- [ ] **Gemini API (gratis tier: 1500 req/dag)**
+      Kan ersätta/komplettera regex-parsern för att förstå fri svenska text:
+      - Extrahera artikelnummer + antal oavsett format ("två stycken", "2x", "Antal: 2")
+      - Extrahera datum/tid ("förmiddagen på måndag" → 2026-06-29, 09:00-12:00)
+      - Klassificera ärendetyp (retur, reklamation, leveransproblem)
+      Utvärdera om kantfall i parsern är ett tillräckligt stort problem i praktiken innan implementation.
+
 ---
 
 ## 📝 Anteckningar

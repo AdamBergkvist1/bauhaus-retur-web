@@ -1,5 +1,5 @@
 # Projektlogg: Bauhaus Retur-tillägg
-# Senast uppdaterad: 2026-06-24
+# Senast uppdaterad: 2026-06-25
 
 ## 🎯 Målsättning
 Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera data
@@ -22,49 +22,47 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
 - Måttextraktion sparas i cache (redo att användas)
 - Jest-testsvit med 63 testfall (npm test)
 - Magento-bokmärke: söker order, klickar Visa, öppnar webbappen med kunddata
-- Magento-bokmärke: fixat postnummer-fel vid flerlinjiga adresser (letar efter rad med 5 siffror)
-- Magento-bokmärke: läser leveranspartner från "Information om frakt" och skickar med till webbappen
+- Magento-bokmärke: fixat postnummer-fel vid flerlinjiga adresser
+- Magento-bokmärke: läser leveranspartner från "Information om frakt"
 - DHL-bokmärke: väljer mall och fyller i kunduppgifter automatiskt
-- Bauhaus Logistics-bokmärke: navigerar till Deliveries/Returns → Skapa Manuellt Uppdrag → fyller i formulär
-  - Orderid, kundnamn, telefon, postnummer, adress
-  - Leveranspartner mappas automatiskt från partnernamn → partner_id (BAUHAUS Skåne Ost → 39 osv)
-  - Leveranstyp sätts till Retur/Internare
-  - Status sätts till Finns på DE
-  - Notis till förare fylls i med EAN-koder och antal (format: 2x 4024506352209)
+- Bauhaus Logistics-bokmärke: navigerar och fyller i formulär automatiskt
+  - Orderid, kundnamn, telefon, postnummer, adress (Gata, Stad, Postnummer, Sverige)
+  - Leveranspartner mappas automatiskt (BAUHAUS Skåne Ost → partner_id 39 osv)
+  - Leveranstyp = Retur/Internare, Status = Finns på DE
+  - Notis till förare = EAN-koder med antal
   - Leveransvikt fylls i automatiskt
-- Parser: EAN-koder på samma rad som artikelnummer (format "2x 1474110 / EAN") räknas inte dubbelt längre
+- Parser: EAN på samma rad som artikelnummer räknas inte dubbelt
+- **Puzzel-bokmärke**: läser artikelnummer + ordernummer direkt från Puzzel
+  - Fungerar för returformulär-ärenden (Artikelnummer X, Antal: Y)
+  - Fungerar för konversationsärenden (ordernr: XXXXXXXXX i fritext)
+  - Webbappen öppnas automatiskt med artiklar analyserade + ordernummer ifyllt
+  - För ärenden utan artiklar (t.ex. annullering) visas bara Magento-knappen
 
 ---
 
 ## 📋 Backlog (Prioriteringsordning)
 
 ### Fas 1: Logistics-bokning (pågående)
-- [ ] **Leveransdatum-parser:**
-      Kunder skriver datum på många sätt: "måndag", "29/6", "måndag 30 juni", "nästa vecka".
-      Behöver robust parser som hanterar alla varianter och omvandlar till YYYY-MM-DD.
-- [ ] **Tidsfönster-parser:**
-      Kunder skriver t.ex. "förmiddagen", "09-12", "kl. 9-15".
-      Omvandla till HH:MM-format som formuläret kräver.
-- [ ] **Kundadress-format:**
-      Formuläret kräver "Gata, Stad, Postnummer, Land" – idag fylls bara gata + stad i.
-      Lägg till postnummer och "Sverige" automatiskt.
-- [ ] **Reducera antal klick:**
-      Idag krävs 3 bokmärkesklick + prompt för Logistics-flödet.
-      Utforska om det går att kombinera steg.
+- [ ] **Leveransdatum/tid-parser**
+      Kunder skriver datum på många sätt – svårt utan AI.
+      Alternativ: enkla datum/tid-inputfält i webbappen för manuell inmatning.
+- [ ] **Reducera klick i Logistics-flödet**
+      Just nu: Puzzel-bokmärke → Magento-bokmärke → 3x Logistics-bokmärke + prompt.
+      Mål: färre steg.
 
 ### Fas 2: Puzzel-integration
-- [ ] **Kartlägg Puzzel-gränssnittet:**
-      Notera URL, CSS-selektor för mejlcontainer och svarstextfält.
-- [ ] **Content Script för Puzzel:**
-      Läs kundmejl automatiskt, skriv svar direkt i Puzzel.
-- [ ] **Makro-integration:**
-      Uppdatera macros.js med aktuella makron och fyll i fraktkostnad automatiskt.
+- [ ] **Puzzel-bokmärke: hantera kollapsade meddelanden**
+      Kollapsade iframes laddas redan i DOM men innehåller rätt data.
+      Bokmärket söker redan igenom alla iframes – fungerar för de flesta fall.
+- [ ] **Puzzel mallval**
+      Tekniskt möjligt men kräver cross-domain data eller extra prompt-steg.
+      Inte värt komplexiteten just nu – återkom senare.
 
 ### Fas 3: Kvalitetssäkring
-- [ ] **Utöka testbanken:**
+- [ ] **Utöka testbanken**
       Lägg till fler mejl i testEmails.js – särskilt Logistics-ärenden.
-- [ ] **Synka parse.js med index.html:**
-      parseAllArticles i index.html och parse.js har divergerat – synka dem.
+- [ ] **Synka parse.js med index.html**
+      parseAllArticles i index.html och parse.js har divergerat.
 
 ### Fas 4: Framtida förbättringar
 - [ ] **Migrera till TypeScript**
@@ -72,39 +70,42 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
 
 ### 💡 Idéer att utvärdera
 - [ ] **Gemini API (gratis tier: 1500 req/dag)**
-      Kan ersätta/komplettera regex-parsern för att förstå fri svenska text:
-      - Extrahera artikelnummer + antal oavsett format ("två stycken", "2x", "Antal: 2")
-      - Extrahera datum/tid ("förmiddagen på måndag" → 2026-06-29, 09:00-12:00)
-      - Klassificera ärendetyp (retur, reklamation, leveransproblem)
-      Utvärdera om kantfall i parsern är ett tillräckligt stort problem i praktiken innan implementation.
+      Kan ersätta/komplettera regex-parsern för fri svenska text:
+      datum/tid-extraktion, artikelnummer i ovanliga format, ärendeklassificering.
+      Utvärdera när parser-kantfall blir ett verkligt problem.
 
 ---
 
 ## 📝 Anteckningar
 
-**Logistics-flöde (dagens lösning):**
-1. Klistra in intern kommentar (DE SKÅNE OST, 169 kr / 2x artikelnr / EAN / Totalvikt) + kundens svar → Analysera
-2. Öppna i Magento → bokmärke hämtar kunddata → webbappen fylls i
-3. Öppna i Logistics → data kopieras automatiskt till clipboard
-4. Bokmärke klick 1 → Deliveries/Returns
-5. Bokmärke klick 2 → Skapa Manuellt Uppdrag
-6. Bokmärke klick 3 → prompt → klistra in → formulär fylls i
+**Dagens flöden:**
 
-**Logistics-formulärfält (delivery[name]):**
-- delivery[order_ref] – orderid
-- delivery[partner_id] – leveranspartner (SELECT, värden: 2=BAUHAUS Sthlm, 39=BAUHAUS Skåne Ost osv)
-- delivery[type] – 1=Leverans, 2=Retur/Internare
-- delivery[status] – 7=Skickas från weblager, 8=Finns på DE
-- delivery[customer_name], delivery[customer_phone], delivery[customer_postcode], delivery[customer_address]
-- delivery[weight], delivery[notice], delivery[delivery_date]
-- delivery[delivery_time_from], delivery[delivery_time_to] – format HH:MM
+Returformulär-ärende (snabbaste):
+1. Puzzel-bokmärket → webbappen med artiklar + ordernummer klart
+2. Öppna i Magento → kunddata hämtas
+3. Hämta frakt → Öppna i DHL
 
-**Kända begränsningar i parsern:**
-- Datum/tid från kund parsas inte tillförlitligt (för fri text)
-- Kvantitet kan "smitta" mellan artiklar om de sitter nära med specialtecken
+Logistics/DE-ärende:
+1. Puzzel-bokmärket → webbappen
+2. Öppna i Logistics → Magento orderlista
+3. 3x Logistics-bokmärke → formulär fyllt i + prompt för vikt/EAN
 
-**API-struktur (Bauhaus):**
-- Algolia: nordic_production_sv_products (SKU = sku-fältet, ej objectID)
-- REST: /rest/sv/V1/guest-carts/{token}/totals → shipping_groups
-- Frakt: /shipmentpartners/service/get → options med priser
-- Tidsbestämd leverans: title innehåller "Tidsbestämd", code = "default_95"
+**Puzzel-mallar (86 st, Array[3] i modal select):**
+Relevanta: DHL HD, DHL SP, DE Skåne Ost, DE STHLM, DE GBG, DE Knivsta, DE NKPG, DE Växjö osv.
+Mallval kräver cross-domain data – inte implementerat.
+
+**Partnermappning (leverans → Logistics partner_id):**
+BAUHAUS Skåne Ost=39, Sthlm=2, GBG=3, Knivsta=12, Norrköping=14, Växjö=33 osv.
+PostNord hemleverans → DHL HD retur.
+Alla PostNord/gamla PN-returer → DHL SP.
+
+**Logistics-formulärfält:**
+delivery[order_ref], delivery[partner_id], delivery[type] (2=Retur),
+delivery[status] (8=Finns på DE), delivery[customer_name/phone/postcode/address],
+delivery[weight], delivery[notice], delivery[delivery_date],
+delivery[delivery_time_from/to] HH:MM
+
+**Kända begränsningar:**
+- Datum/tid från kund parsas inte (fri text)
+- Postnummer ej tillgängligt i Puzzel – kräver Magento-besök
+- Cross-domain blockerar direkt data-transfer mellan Vercel och Magento/Puzzel

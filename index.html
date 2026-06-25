@@ -585,6 +585,15 @@ const urlEmail = urlParams.get("email");
 if (urlPhone) localStorage.setItem("bauhaus_customer_phone", urlPhone);
 if (urlOrder) localStorage.setItem("bauhaus_customer_order", urlOrder);
 if (urlEmail) localStorage.setItem("bauhaus_customer_email", urlEmail);
+const urlPuzzel = urlParams.get("puzzel");
+if (urlPuzzel) {
+  const parts = urlPuzzel.split(' ').map(p => {
+    const m = p.match(/(\d{7})x(\d+)/);
+    return m ? `${m[2]}x ${m[1]}` : p;
+  });
+  document.getElementById("emailInput").value = parts.join('\n');
+  setTimeout(runAnalysis, 100);
+}
 const urlPartner = urlParams.get("partner");
 if (urlPartner) localStorage.setItem("bauhaus_customer_partner", urlPartner);
 

@@ -600,6 +600,9 @@ if (urlPuzzel) {
   localStorage.removeItem("bauhaus_last_email");
   document.getElementById("emailInput").value = "";
   document.getElementById("manualOrderInput").value = urlOrder;
+  magentoOrderNumber = urlOrder;
+  document.getElementById("magentoBtn").classList.remove("hidden");
+  document.getElementById("magentoBtn").href = `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${urlOrder}`;
 }
 const urlPartner = urlParams.get("partner");
 if (urlPartner) localStorage.setItem("bauhaus_customer_partner", urlPartner);

@@ -591,9 +591,10 @@ if (urlPuzzel) {
     const m = p.match(/(\d{7})x(\d+)/);
     return m ? `${m[2]}x ${m[1]}` : p;
   });
-  const puzzelText = (urlOrder ? urlOrder + '\n' : '') + parts.join('\n');
+  const puzzelText = parts.join('\n');
   localStorage.setItem("bauhaus_last_email", puzzelText);
   document.getElementById("emailInput").value = puzzelText;
+  if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
   setTimeout(runAnalysis, 100);
 }
 const urlPartner = urlParams.get("partner");

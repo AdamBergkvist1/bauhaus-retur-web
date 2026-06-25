@@ -677,9 +677,14 @@ async function runAnalysis() {
     ].join("|");
     logisticsBtn.onclick = (e) => {
       e.preventDefault();
-      navigator.clipboard.writeText(blData);
-      logisticsBtn.textContent = "✅ Kopierat!";
-      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open("https://www-admin.bauhaus.se/bauhausadmin/logistics/delivery/new/"); }, 1000);
+      sessionStorage.setItem('bl_weight_from_app', viktMatch2 ? viktMatch2[1].replace(",",".") : "");
+      sessionStorage.setItem('bl_notice_from_app', resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"");
+      sessionStorage.setItem('bl_date_from_app', localStorage.getItem("bauhaus_delivery_date")||"");
+      sessionStorage.setItem('bl_timefrom_from_app', localStorage.getItem("bauhaus_time_from")||"");
+      sessionStorage.setItem('bl_timeto_from_app', localStorage.getItem("bauhaus_time_to")||"");
+      window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`);
+      logisticsBtn.textContent = "✅ Öppnat!";
+      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; }, 1500);
     };
     logisticsBtn.href = "#";
     

@@ -642,13 +642,10 @@ async function runAnalysis() {
   const text = document.getElementById("emailInput").value.trim();
   if (!text) return;
   localStorage.setItem("bauhaus_last_email", text);
-
   hasRisk = detectRiskKeywords(text);
   const articles = parseAllArticles(text);
   const postcode = extractPostcode(text);
-
   if (postcode) document.getElementById("inputPostcode").value = postcode;
-
   const manualOrder = document.getElementById("manualOrderInput").value.trim();
   const orderMatch = text.match(/\b1\d{8}\b/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
   if (orderMatch) {
@@ -660,39 +657,25 @@ async function runAnalysis() {
     dhlBtn.classList.remove("hidden");
     document.getElementById("logisticsBtn").classList.remove("hidden");
     const logisticsBtn = document.getElementById("logisticsBtn");
-    const viktMatch2 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
-    const blData = [
-      magentoOrderNumber||"",
-      localStorage.getItem("bauhaus_customer_name")||"",
-      localStorage.getItem("bauhaus_customer_phone")||"",
-      localStorage.getItem("bauhaus_customer_postcode")||"",
-      localStorage.getItem("bauhaus_customer_address")||"",
-      localStorage.getItem("bauhaus_customer_city")||"",
-      localStorage.getItem("bauhaus_delivery_date")||"",
-      localStorage.getItem("bauhaus_time_from")||"",
-      localStorage.getItem("bauhaus_time_to")||"",
-      viktMatch2 ? viktMatch2[1].replace(",",".") : "",
-      localStorage.getItem("bauhaus_customer_partner")||"",
-      resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||""
-    ].join("|");
     logisticsBtn.onclick = (e) => {
       e.preventDefault();
-      sessionStorage.setItem('bl_weight_from_app', viktMatch2 ? viktMatch2[1].replace(",",".") : "");
-      sessionStorage.setItem('bl_notice_from_app', resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"");
-      sessionStorage.setItem('bl_date_from_app', localStorage.getItem("bauhaus_delivery_date")||"");
-      sessionStorage.setItem('bl_timefrom_from_app', localStorage.getItem("bauhaus_time_from")||"");
-      sessionStorage.setItem('bl_timeto_from_app', localStorage.getItem("bauhaus_time_to")||"");
-      window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`);
-      logisticsBtn.textContent = "✅ Öppnat!";
-      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; }, 1500);
+      const viktMatch3 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
+      const blData = [
+        viktMatch3 ? viktMatch3[1].replace(",",".") : "",
+        resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
+        localStorage.getItem("bauhaus_delivery_date")||"",
+        localStorage.getItem("bauhaus_time_from")||"",
+        localStorage.getItem("bauhaus_time_to")||""
+      ].join("|");
+      navigator.clipboard.writeText(blData);
+      logisticsBtn.textContent = "✅ Kopierat!";
+      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`); }, 800);
     };
     logisticsBtn.href = "#";
-    
     const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
     const isHD = kollislag.toLowerCase().includes("pall") || 
       document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");
     const dhlTemplate = isHD ? "DHL HD Retursedel" : "DHL SP Retursedel";
-    
     dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` + 
       `template=${encodeURIComponent(dhlTemplate)}&` +
       `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
@@ -704,31 +687,24 @@ async function runAnalysis() {
       `&order=${encodeURIComponent(localStorage.getItem("bauhaus_customer_order")||"")}` +
       `&weight=${encodeURIComponent(document.getElementById("outputBox").textContent.match(/Totalvikt: ([\d,]+)/)?.[1]||"")}`;
   }
-
   if (articles.length === 0) {
     setStatus("Inga artikelnummer hittades i texten.", false);
     return;
   }
-
   document.getElementById("resultCard").classList.remove("hidden");
   setStatus(`Slår upp ${articles.length} artikel(ar)…`, true);
-
   resolvedArticles = articles.map(a => ({ ...a, sku: null, ean: null, weight: null, error: null }));
-
   await Promise.all(articles.map((art, i) => lookupOne(art, i)));
   consolidate();
   renderResults();
   updateOutput();
   setStatus("", false);
-
-  // Ärendeanalys
   const analysis = analyzeCase(text, {
     shippingLabel: selectedShipping?.label ?? "",
     totalWeight: resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0),
     hasRisk,
   });
   renderCaseAnalysis(analysis);
-  // Datum och tidsfönster
   const dateMatch = text.match(/den\s+(\d{1,2})\/(\d{1,2})/);
   const timeMatch = text.match(/kl\.?\s*(\d{1,2})[:\-.](\d{0,2})\s*[-–]\s*(\d{1,2})[:\-.]?(\d{0,2})/);
   if (dateMatch) {
@@ -744,13 +720,11 @@ async function runAnalysis() {
     localStorage.setItem("bauhaus_time_to", `${toH}:00`);
   }
   updateShippingContents();
-
-  // Auto-hämta frakt om postnummer hittades
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
     await doFetchShipping(true);
   }
 }
-
+  
 // ── Artikel-uppslag ───────────────────────────────────────────────────
 async function lookupOne(article, idx) {
   const { articleNumber, quantity } = article;

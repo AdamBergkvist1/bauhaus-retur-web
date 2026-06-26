@@ -1,0 +1,202 @@
+[
+  {
+    "id": "33405",
+    "name": "1 SE Webshop OF - DHL HD - Retur",
+    "body": "Hej,\n\nSjälvklart kan vi hjälpa dig att returnera din beställning till\noss!\n\nBifogat i detta mejl finner du retursedeln.\n\nMed hjälp av den kan du boka en upphämtning så att fraktbolaget\nkommer när det passar bra för dig. Instruktioner för att boka en\nretur står på sista sidan av retursedeln som även fungerar som\ndin kvittens.\nVi vill förtydliga att ni som kund själva behöver kontakta DHL\nvia tel 0771 345 345 för att boka in returen.\n\nVi vill dessutom informera dig om att varorna skall sändas\ntillbaka i oförändrat skick samt i originalförpackning.\n\nVi vill också informera om att du kommer att få stå för kostnaden\nför returfrakten på XXX kr."
+  },
+  {
+    "id": "33406",
+    "name": "1 SE Webshop OF - DHL SP - Retur",
+    "body": "Hej,\n\nSjälvklart kan vi hjälpa dig att returnera din beställning till\noss! Bifogat i detta mejl finner du retursedeln.\n\nDu fäster retursedeln på kartongen och sedan lämnar du returen på\ndin närmaste DHL servicepoint.\n\nVi vill också informera om att du kommer att få stå för kostnaden\nför returfrakten på 69 kr."
+  },
+  {
+    "id": "33407",
+    "name": "2 SE Webshop OF - PSC - Retur",
+    "body": "PostNord servicepoint-retur. Returfraktkostnad 69 kr."
+  },
+  {
+    "id": "33408",
+    "name": "2 SE Webshop OF - PSH - Retur",
+    "body": "PostNord hemleverans-retur. Bokas via https://returns.postnord.com/se/ Returfraktkostnad 99 kr."
+  },
+  {
+    "id": "33409",
+    "name": "3 DE Bokad retur",
+    "body": "Bekräftelse till kund att upphämtning är bokad med eget transportbolag. Fylls i med dag, datum, tidslott och telefonnummer. Godset ska vara färdigpackat vid tomtgränsen."
+  },
+  {
+    "id": "31373",
+    "name": "Bomkörning BAUHAUS Distribution",
+    "body": "När eget transportbolag inte kunde leverera. Innehåller ALLA tidslottar per region: STHLM (07-10:30/10-13:30/13-16:30/16-21), STHLM SYDVÄST (07:30-14/14-20:30), KNIVSTA (07-12/11-16:30/15:30-21), NORRKÖPING (07-12:30/09-13:30/13-17:30/16-20:30), GBG (07-11:30/10-14:30/13-17:30/16-21), SKÅNE (07-12/11-16/16-21), VÄXJÖ (07-12/11-16)."
+  },
+  {
+    "id": "34992",
+    "name": "Airmee efter bokning",
+    "body": "Bekräftelse efter Airmee-bokning. Upphämtning vardagar 17-22."
+  },
+  {
+    "id": "34991",
+    "name": "Airmee Inför bokning",
+    "body": "Inför Airmee-bokning. Upphämtning vardagar 17-22. Returfraktkostnad 69 kr. Kunden anger önskat datum."
+  },
+  {
+    "id": "33079",
+    "name": "DE Knivsta Norr",
+    "body": "Eget transportbolag norr om Stockholm. Kör Måndag, Torsdag, Fredag. Tidslott: 09:00-18:00. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31407",
+    "name": "SE Webshop OF - DE STHLM - Retur",
+    "body": "Eget transportbolag Stockholmsområdet. Tidslottar: 10:00-15:00 och 16:00-21:00. Vardagar. Returfraktkostnad XXXX kr."
+  },
+  {
+    "id": "31409",
+    "name": "SE Webshop OF - DE STHLM Sydost / Sydväst - Retur",
+    "body": "Eget transportbolag Stockholm Sydost/Sydväst. Kör Mån, Tis, Tor. Tidslottar: 09:00-12:00 och 16:00-20:00. Returfraktkostnad 99 kr."
+  },
+  {
+    "id": "31410",
+    "name": "SE Webshop OF - DE GBG - Retur",
+    "body": "Eget transportbolag Göteborgsområdet. Tidslottar: 10:00-14:30 och 16:00-21:00. Vardagar. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31412",
+    "name": "SE Webshop OF - DE GBG Syd / Norr - Retur",
+    "body": "Eget transportbolag Göteborg Syd/Norr. Tidslottar: 07:00-12:00 och 13:00-19:00. Vardagar. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31413",
+    "name": "SE Webshop OF - DE Knivsta - Retur",
+    "body": "Eget transportbolag norr om Stockholm. Tidslottar: 09:00-12:00 och 16:00-21:00. Vardagar. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31415",
+    "name": "SE Webshop OF - DE NKPG - Retur",
+    "body": "Eget transportbolag Norrköping. Tidslottar mån-fre: 07:00-12:30, 09:00-13:30, 13:00-17:30, 16:00-20:30. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31416",
+    "name": "SE Webshop OF - DE Skåne - Retur",
+    "body": "Eget transportbolag Skåne. Tidslottar: 11:00-16:00 och 16:00-21:00. Vardagar. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31418",
+    "name": "SE Webshop OF - DE Skåne Ost - Retur",
+    "body": "Eget transportbolag Skåne Ost. Kör Mån, Tis, Tors. Tidslott: 09:00-18:00. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31901",
+    "name": "SE Webshop OF - DE Växjö - Retur",
+    "body": "Eget transportbolag Växjöområdet. Tidslott: 10:00-16:00. Vardagar. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31895",
+    "name": "SE Webshop OF - Bring HD",
+    "body": "Bring hemleverans-retur. Ring Bring 0770 113 300 mån-fre 08-17. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31896",
+    "name": "SE Webshop OF - Bring SP - Retur",
+    "body": "Bring servicepoint-retur. Lämna på närmsta Bring ombud. Returfraktkostnad 59 kr."
+  },
+  {
+    "id": "31897",
+    "name": "SE Webshop OF - DE Bokad Retur",
+    "body": "Bekräftelse till kund att upphämtning är bokad med eget transportbolag. Dag, datum, tidslott och telefonnummer fylls i."
+  },
+  {
+    "id": "31395",
+    "name": "SE Webshop OF - DHL HD - Retur",
+    "body": "DHL hemleverans-retur. Instruktioner på sista sidan av retursedeln. Returfraktkostnad XXX kr."
+  },
+  {
+    "id": "31397",
+    "name": "SE Webshop OF - DHL SP - Retur",
+    "body": "DHL servicepoint-retur. Lämna på närmaste DHL servicepoint. Returfraktkostnad 69 kr."
+  },
+  {
+    "id": "31892",
+    "name": "SE Webshop OF - Kund ska returnera i VH - retur",
+    "body": "Kund returnerar i varuhus. Ta med ordernummer eller kvitto. Inget returfrakt i varuhus."
+  },
+  {
+    "id": "31903",
+    "name": "SE Webshop OF - Ej Godkänd Retur",
+    "body": "Retur kan inte godkännas pga skick på produkten. Förpackningarna måste vara obrutna och i säljbart skick."
+  },
+  {
+    "id": "30995",
+    "name": "SE Webshop OF - Första kontakt Reklamation",
+    "body": "Första svar vid reklamation. Ber om bilder och information. Internt utredning påbörjas."
+  },
+  {
+    "id": "31389",
+    "name": "SE Webshop OF - Web Rekl. - Första kontakt - Transportskador",
+    "body": "Transportskada. Ber om: närbilder på skador, helhetsbild, samlingsbild, emballagebilder alla sidor, fraktetikett, bild hur varorna låg vid leverans."
+  },
+  {
+    "id": "31390",
+    "name": "SE Webshop OF - Web Rekl. - Första kontakt Yale Doorman",
+    "body": "Yale Doorman-reklamation. Kunden ska först kontakta Yale support på yalehome.se för ärendenummer, sedan återkomma till oss."
+  },
+  {
+    "id": "31900",
+    "name": "SE Webshop OF - Be om bilder (Ångerrätt/öppet köp löpt ut) - Retur",
+    "body": "Ångerrätt/öppet köp har löpt ut. Ber om helhetsbilder på obrutna paket innan godkännande."
+  },
+  {
+    "id": "31899",
+    "name": "SE Webshop OF - Hygienartikel - Be om bilder",
+    "body": "Hygienartikel-retur. Innerplast och plombering måste vara obruten. Ber om bilder."
+  },
+  {
+    "id": "33388",
+    "name": "SE Webshop OF - Saknade varor",
+    "body": "Saknade varor vid leverans. Ber om bilder: streckkod på alla varor, paket, fraktetikett, helhetsbild leverans."
+  },
+  {
+    "id": "31393",
+    "name": "SE Webshop OF - Inkommen retur - återbet",
+    "body": "Order inkommit i retur. Återbetalningsprocessen påbörjas. Återbetalning till samma betalningsmetod."
+  },
+  {
+    "id": "30996",
+    "name": "SE Webshop - Meddela Återbetalning",
+    "body": "Meddela kund om återbetalning. Innehåller text för: Bauhausfaktura, Adyen/kortbetalning, Resurs konto, BAUHAUS-företagskonto."
+  },
+  {
+    "id": "31379",
+    "name": "SE Webshop - BO Meddela Återbet",
+    "body": "Backoffice-version av återbetalningsmeddelande. Innehåller text för alla betalmetoder inkl engelska."
+  },
+  {
+    "id": "31403",
+    "name": "SE Webshop OF - Inkommen retur utan ärende - PN / DHL",
+    "body": "Order gått i retur, ej hämtad på ombud. Frågar kund om nytt utskick eller återbetalning. Returfrakt XX kr dras av."
+  },
+  {
+    "id": "31417",
+    "name": "SE Webshop OF - Nekad retur dirlev",
+    "body": "Beställningsvara från extern leverantör - endast ångerrätt gäller, inte öppet köp. Retur kan inte godkännas."
+  },
+  {
+    "id": "31394",
+    "name": "SE Webshop OF - Prisgaranti",
+    "body": "Kund vill utnyttja prisgaranti. Kreditering av mellanskillnad görs efter att ordern är slutförd i systemet."
+  },
+  {
+    "id": "31009",
+    "name": "SE Webshop - Inget svar - läggs som löst",
+    "body": "Ingen återkoppling från kund. Ärendet läggs som löst men kan öppnas igen."
+  },
+  {
+    "id": "31461",
+    "name": "SE Webshop OF - Påminnelse Kund",
+    "body": "Påminnelse till kund som inte svarat."
+  },
+  {
+    "id": "30994",
+    "name": "SE Webshop - Besvara ärende - Löst",
+    "body": "Avsluta ärende som löst. Tackar för återkoppling, ber om betyg på kundbemötande."
+  }
+]

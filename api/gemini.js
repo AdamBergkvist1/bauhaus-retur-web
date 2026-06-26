@@ -11,13 +11,10 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/interactions',
+      `https://generativelanguage.googleapis.com/v1beta/interactions?key=${apiKey}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gemini-3.5-flash',
           input: prompt

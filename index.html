@@ -686,13 +686,35 @@ async function runAnalysis() {
   if (!text) return;
   localStorage.setItem("bauhaus_last_email", text);
   hasRisk = detectRiskKeywords(text);
+
+  // Gemini API – bättre extraktion av datum/tid/order
+  let geminiResult = null;
+  try {
+    const geminiRes = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (geminiRes.ok) geminiResult = await geminiRes.json();
+  } catch (e) {
+    console.log('Gemini ej tillgänglig, använder regex-parser');
+  }
+
+  if (geminiResult?.delivery_date) localStorage.setItem("bauhaus_delivery_date", geminiResult.delivery_date);
+  if (geminiResult?.time_from) localStorage.setItem("bauhaus_time_from", geminiResult.time_from);
+  if (geminiResult?.time_to) localStorage.setItem("bauhaus_time_to", geminiResult.time_to);
+  if (geminiResult?.order) {
+    const manualInput = document.getElementById("manualOrderInput");
+    if (!manualInput.value.trim()) manualInput.value = geminiResult.order;
+  }
+
   const articles = parseAllArticles(text);
   const postcode = extractPostcode(text);
   if (postcode) document.getElementById("inputPostcode").value = postcode;
   const manualOrder = document.getElementById("manualOrderInput").value.trim();
-  const orderMatch = text.match(/\b1\d{8}\b/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
+  const orderMatch = text.match(/#?(1\d{8})/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
   if (orderMatch) {
-    magentoOrderNumber = orderMatch[0];
+    magentoOrderNumber = orderMatch[1] || orderMatch[0];
     document.getElementById("magentoBtn").classList.remove("hidden");
     document.getElementById("magentoBtn").href = 
       `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`;
@@ -750,13 +772,13 @@ async function runAnalysis() {
   renderCaseAnalysis(analysis);
   const dateMatch = text.match(/den\s+(\d{1,2})\/(\d{1,2})/);
   const timeMatch = text.match(/kl\.?\s*(\d{1,2})[:\-.](\d{0,2})\s*[-–]\s*(\d{1,2})[:\-.]?(\d{0,2})/);
-  if (dateMatch) {
+  if (dateMatch && !geminiResult?.delivery_date) {
     const day = dateMatch[1].padStart(2,"0");
     const month = dateMatch[2].padStart(2,"0");
     const year = new Date().getFullYear();
     localStorage.setItem("bauhaus_delivery_date", `${year}-${month}-${day}`);
   }
-  if (timeMatch) {
+  if (timeMatch && !geminiResult?.time_from) {
     const fromH = timeMatch[1].padStart(2,"0");
     const toH = timeMatch[3].padStart(2,"0");
     localStorage.setItem("bauhaus_time_from", `${fromH}:00`);
@@ -767,7 +789,7 @@ async function runAnalysis() {
     await doFetchShipping(true);
   }
 }
-  
+
 // ── Artikel-uppslag ───────────────────────────────────────────────────
 async function lookupOne(article, idx) {
   const { articleNumber, quantity } = article;

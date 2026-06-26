@@ -609,11 +609,7 @@ if (urlOrder && urlName) {
 if (urlEmail) localStorage.setItem("bauhaus_customer_email", urlEmail);
 const urlPuzzel = urlParams.get("puzzel");
 if (urlPuzzel) {
-  const parts = urlPuzzel.split(' ').map(p => {
-    const m = p.match(/(\d{7})x(\d+)/);
-    return m ? `${m[2]}x ${m[1]}` : p;
-  });
-  const puzzelText = parts.join('\n');
+  const puzzelText = urlPuzzel;
   localStorage.setItem("bauhaus_last_email", puzzelText);
   document.getElementById("emailInput").value = puzzelText;
   if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;

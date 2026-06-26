@@ -39,6 +39,7 @@ ${text}`;
       }
     );
     const data = await response.json();
+    console.log('Gemini data:', JSON.stringify(data).slice(0, 500));
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     console.log('Gemini raw:', raw);
     const clean = raw.replace(/```json|```/g, '').trim();

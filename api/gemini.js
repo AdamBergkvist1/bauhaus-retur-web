@@ -19,9 +19,7 @@ Extrahera följande fält från kundmejlet nedan. Svara BARA med ett JSON-objekt
 
 Fält:
 - order: ordernummer (siffror, t.ex. "113137825") eller null
-- delivery_date: leveransdatum på formatet YYYY-MM-DD eller null
-- time_from: önskad tid från på formatet HH:MM eller null
-- time_to: önskad tid till på formatet HH:MM eller null
+- requested_time: exakt vad kunden skriver om önskat datum/tid för upphämtning, fritext, eller null
 - articles: array med { articleNumber, quantity } – artikelnummer är 7 siffror
 
 Kundmejl:

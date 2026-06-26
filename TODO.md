@@ -32,28 +32,64 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
     varierar per region/distributör (Stockholm: 10-15/16-21, övriga: 07-12:30 etc.)
   - Sparas i localStorage: bauhaus_requested_time
   - Gemini-fel är tysta (fallback till regex-parser utan att krascha)
+- **Puzzel-bokmärke uppdaterat (2026-06-26):**
+  - Läser råa mejltext från iframes med id^="email-"
+  - Skippar email-headers (Return-Path, DKIM osv)
+  - Städar HTML via innerHTML → textContent
+  - Skickar hela mejltexten som puzzel=-parameter till webbappen
+  - Webbappen kör Gemini + regex automatiskt vid load
 
 ---
 
 ## 📋 Backlog (Prioriteringsordning)
 
-### Fas 1: Gemini – visa i UI (NÄSTA STEG)
-- [ ] **Visa requested_time i ärendeanalysen:**
-      Lägg till en rad i höger kolumn som visar:
-      "⏰ Kunden önskar: förmiddagen på måndag"
-      Visas bara om localStorage("bauhaus_requested_time") är satt.
-- [ ] **Skicka requested_time i logistics-knappen:**
-      Lägg till bauhaus_requested_time i pipe-separerad clipboard-sträng
-      som skickas till Logistics-formuläret.
-- [ ] **Gemini extraherar artiklar som komplement:**
-      Om regex-parsern missar artiklar, använd geminiResult.articles som backup.
-      Kräver att vi jämför de två listorna och mergar.
+### Fas 1: Utöka Gemini till full potential (NÄSTA STEG)
+- [ ] **Utöka Gemini-prompten** så den returnerar komplett analys:
+      Nuvarande prompt extraherar bara order + requested_time.
+      Ny prompt ska returnera:
+      {
+        order, requested_time, articles, case_type,
+        macro_suggestion, summary, risk, risk_reason
+      }
+      - case_type: "retur"|"reklamation"|"leveransproblem"|"fråga"|"byte"|"övrigt"
+      - macro_suggestion: ID som matchar macros.js (bring_hd_retur, bring_sp_retur osv)
+      - summary: en mening som beskriver vad kunden vill
+      - risk: true/false – kunden nämner öppnad/använd/skadad vara
+      - risk_reason: vad som triggade risk (fritext)
+      - articles: [{articleNumber, quantity}] – komplement till regex-parsern
 
-### Fas 2: Puzzel-integration
+- [ ] **Använd Gemini-artiklar som backup:**
+      Om regex-parsern hittar 0 artiklar, använd geminiResult.articles.
+      Om regex hittar färre än Gemini – merga listorna.
+
+- [ ] **Visa Gemini-analys i UI:**
+      I höger kolumn (ärendeanalys), visa:
+      - "⏰ Kunden önskar: förmiddagen på måndag" (requested_time)
+      - "📝 Sammanfattning: Kunden vill returnera en felvänt Yale dörrlås"
+      - Gemini-makroförslag som komplement till regex-baserade
+
+- [ ] **Skicka requested_time i logistics-knappen:**
+      Lägg till bauhaus_requested_time i pipe-separerad clipboard-sträng.
+
+### Fas 2: Testfiler för regressionstestning
+- [ ] **Skapa testfiler för Gemini-integration:**
+      tests/gemini_test.js – testa att Gemini returnerar rätt JSON-struktur
+      för olika mejltyper (retur, reklamation, leveransproblem, utan artiklar).
+      Kör mot riktig API eller mocka svaret.
+- [ ] **Skapa integrationstester för hela flödet:**
+      tests/integration_test.js – simulera hela runAnalysis()-flödet:
+      mejltext in → artiklar ut → rätt ärendetyp → rätt makroförslag.
+      Säkerställer att ändringar inte fuckar det som redan fungerar.
+- [ ] **Utöka befintlig testbank:**
+      Lägg till fler mejl i tests/testEmails.js från jobbet (anonymiserade).
+      Täck: strukturerade retursvar (Artikelnummer X, Antal: Y),
+      mejl utan artikelnummer, mejl på engelska, mejl med risk-ord.
+
+### Fas 3: Puzzel-integration (djupare)
 - [ ] **Kartlägg Puzzel-gränssnittet:**
       När du börjar jobba – notera URL:en (puzzel.com/...?), 
       högerklicka i svarstextfältet och inspektera elementet.
-      Vi behöver: CSS-selektor för textfältet + hur makron väljs.
+      Vi behöver: CSS-selektor för svarstextfältet + hur makron väljs.
 - [ ] **Content Script för Puzzel:**
       Injicera tillägget direkt i Puzzel så det kan läsa inkommande
       kundmejl automatiskt och skriva in svar i textfältet.
@@ -62,34 +98,19 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
 - [ ] **Makro-integration:**
       Koppla ihop tilläggets utdata med Bauhaus-makrona i Puzzel.
       T.ex. "Bring HD - Retur" → fyll i fraktkostnad (XXX kr) automatiskt.
-      Kräver att vi ser hur makrona är uppbyggda i nya Puzzel-versionen.
-- [ ] **GDPR-kontroll:**
-      Verifiera att kunddata (namn, adress) aldrig lämnar webbläsaren.
-      Content scripts läser bara det som syns på skärmen – bör vara OK.
 
-### Fas 3: Volym & Mått
+### Fas 4: Volym & Mått
 - [ ] **Måttformat för DHL/tidsbestämd:**
       På jobbet – kolla exakt vilket format DHL Hemleverans och
       BAUHAUS Tidsbestämd kräver vid bokning (L×B×H i cm eller mm?).
 - [ ] **Volymkalkylator:**
       Räkna ut total emballagevolym (L×B×H × kvantitet) när mått finns.
 
-### Fas 4: Kvalitetssäkring
-- [ ] **Utöka testbanken:**
-      Lägg till fler mejl i tests/testEmails.js – både från Gemini
-      och verkliga kundmejl från jobbet (anonymiserade).
-      Kör: npm test
-- [ ] **Postnummer-extraktion v2:**
-      Hantera edge cases – t.ex. postnummer i e-postsignaturer,
-      postnummer utan stad efteråt.
-
 ### Fas 5: Framtida förbättringar
 - [ ] **Migrera till TypeScript:**
       Stabilare datahantering, bättre felmeddelanden.
-      Kräver byggsystem (esbuild) – komplicerar installationen något.
 - [ ] **Fraktberäkning v3 – helautomatisk cart-session:**
-      Utforska återanvändning av aktiv bauhaus.se-session så att
-      varukorgen skapas ännu snabbare utan REST-anrop.
+      Utforska återanvändning av aktiv bauhaus.se-session.
 
 ---
 
@@ -113,6 +134,17 @@ Tidslottar varierar per region/distributör – hårdkoda ALDRIG tidformat i Gem
 - "ej öppnad" triggar risk-flagga (hanteras inte ännu)
 - Kvantitet kan "smitta" mellan artiklar om de sitter nära med specialtecken
 - Extremt sms-format utan mellanslag ger ibland fel antal
+
+**Makron i macros.js (ID → när det används):**
+- bring_hd_retur: hemleverans med Bring, kunden bokar upphämtning
+- bring_sp_retur: servicepoint/ombud, kunden lämnar paket
+- bauhaus_tidsbestamd_retur: bomkörd upphämtning med eget transportbolag
+- kund_ska_returnera_vh: kunden vill lämna i varuhus
+- kund_har_returnerat_vh: kunden bekräftar varuhusretur
+- kund_nekat_leverans: kunden vägrade ta emot
+- kund_glomt_hamta: kunden glömde hämta från ombud
+- giab: skicka retur till Giab
+- lagerlagg_rma: intern lagerhantering mot RMA
 
 **API-struktur (Bauhaus):**
 - Algolia: nordic_production_sv_products (SKU = sku-fältet, ej objectID)

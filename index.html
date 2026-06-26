@@ -598,9 +598,7 @@ if (urlOrder && urlName) {
     const blData = [
       viktMatch3 ? viktMatch3[1].replace(",",".") : "",
       resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-      localStorage.getItem("bauhaus_delivery_date")||"",
-      localStorage.getItem("bauhaus_time_from")||"",
-      localStorage.getItem("bauhaus_time_to")||""
+      localStorage.getItem("bauhaus_requested_time")||""
     ].join("|");
     navigator.clipboard.writeText(blData);
     logisticsBtn.textContent = "✅ Kopierat!";
@@ -700,9 +698,8 @@ async function runAnalysis() {
     console.log('Gemini ej tillgänglig, använder regex-parser');
   }
 
-  if (geminiResult?.delivery_date) localStorage.setItem("bauhaus_delivery_date", geminiResult.delivery_date);
-  if (geminiResult?.time_from) localStorage.setItem("bauhaus_time_from", geminiResult.time_from);
-  if (geminiResult?.time_to) localStorage.setItem("bauhaus_time_to", geminiResult.time_to);
+  if (geminiResult?.requested_time) localStorage.setItem("bauhaus_requested_time", geminiResult.requested_time);
+  if (geminiResult?.order) localStorage.setItem("bauhaus_customer_order", geminiResult.order);
   if (geminiResult?.order) {
     const manualInput = document.getElementById("manualOrderInput");
     if (!manualInput.value.trim()) manualInput.value = geminiResult.order;
@@ -728,9 +725,7 @@ async function runAnalysis() {
       const blData = [
         viktMatch3 ? viktMatch3[1].replace(",",".") : "",
         resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-        localStorage.getItem("bauhaus_delivery_date")||"",
-        localStorage.getItem("bauhaus_time_from")||"",
-        localStorage.getItem("bauhaus_time_to")||""
+        localStorage.getItem("bauhaus_requested_time")||""
       ].join("|");
       navigator.clipboard.writeText(blData);
       logisticsBtn.textContent = "✅ Kopierat!";
@@ -770,20 +765,6 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
-  const dateMatch = text.match(/den\s+(\d{1,2})\/(\d{1,2})/);
-  const timeMatch = text.match(/kl\.?\s*(\d{1,2})[:\-.](\d{0,2})\s*[-–]\s*(\d{1,2})[:\-.]?(\d{0,2})/);
-  if (dateMatch && !geminiResult?.delivery_date) {
-    const day = dateMatch[1].padStart(2,"0");
-    const month = dateMatch[2].padStart(2,"0");
-    const year = new Date().getFullYear();
-    localStorage.setItem("bauhaus_delivery_date", `${year}-${month}-${day}`);
-  }
-  if (timeMatch && !geminiResult?.time_from) {
-    const fromH = timeMatch[1].padStart(2,"0");
-    const toH = timeMatch[3].padStart(2,"0");
-    localStorage.setItem("bauhaus_time_from", `${fromH}:00`);
-    localStorage.setItem("bauhaus_time_to", `${toH}:00`);
-  }
   updateShippingContents();
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
     await doFetchShipping(true);

@@ -1,39 +1,70 @@
+// api/gemini.js – Vercel serverless function
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const { text } = req.body;
-  if (!text) return res.status(400).json({ error: 'No text provided' });
+  if (!text) {
+    return res.status(400).json({ error: 'Missing text' });
+  }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const today = new Date().toISOString().split('T')[0];
+  const model  = 'gemini-2.0-flash';   // tillgänglig på free tier
+  const url    = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-  const prompt = `Du är en assistent som extraherar information från svenska kundtjänstmejl för BAUHAUS. Dagens datum: ${today}. Extrahera följande och returnera ENDAST giltig JSON utan markdown: {"order": "ordernummer 9 siffror utan #", "articles": [{"sku": "7 siffror", "qty": antal}], "delivery_date": "YYYY-MM-DD eller null", "time_from": "HH:MM eller null", "time_to": "HH:MM eller null"}. Text: ${text}`;
+  const prompt = `
+Du är en assistent för Bauhaus kundtjänst i Sverige.
+Extrahera följande fält från kundmejlet nedan. Svara BARA med ett JSON-objekt, inga förklaringar.
+
+Fält:
+- order: ordernummer (siffror, t.ex. "113137825") eller null
+- delivery_date: leveransdatum på formatet YYYY-MM-DD eller null
+- time_from: önskad tid från på formatet HH:MM eller null
+- time_to: önskad tid till på formatet HH:MM eller null
+- articles: array med { articleNumber, quantity } – artikelnummer är 7 siffror
+
+Kundmejl:
+"""
+${text}
+"""
+`;
 
   try {
-    const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/interactions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-          'Api-Revision': '2026-05-20'
-        },
-        body: JSON.stringify({
-          model: 'gemini-3.5-flash',
-          input: prompt
-        })
-      }
-    );
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 512 },
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('Gemini error:', response.status, errBody);
+      return res.status(502).json({ error: `Gemini ${response.status}`, detail: errBody });
+    }
+
     const data = await response.json();
-    console.log('Gemini data:', JSON.stringify(data).slice(0, 500));
-    const raw = data.steps?.find(s => s.type === 'model_output')?.content?.[0]?.text || '{}';
-    console.log('Gemini raw:', raw);
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    res.status(200).json(parsed);
-  } catch (e) {
-    console.error('Error:', e.message);
-    res.status(500).json({ error: e.message });
+    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+    // Strippa eventuella ```json ... ``` wrappers
+    const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch {
+      return res.status(200).json({ raw, error: 'JSON parse failed' });
+    }
+
+    return res.status(200).json(parsed);
+  } catch (err) {
+    console.error('Fetch error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }

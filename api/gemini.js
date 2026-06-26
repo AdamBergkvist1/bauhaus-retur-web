@@ -40,6 +40,7 @@ ${text}`;
     );
     const data = await response.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    console.log('Gemini raw:', raw);
     const clean = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
     res.status(200).json(parsed);

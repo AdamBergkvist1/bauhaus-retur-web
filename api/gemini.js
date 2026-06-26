@@ -7,45 +7,32 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `Du är en assistent som extraherar information från svenska kundtjänstmejl för BAUHAUS.
-
-Dagens datum: ${today}
-
-Extrahera följande från texten och returnera ENDAST giltig JSON, inget annat:
-{
-  "order": "ordernummer (9 siffror, utan #)",
-  "articles": [{"sku": "artikelnummer 7 siffror", "qty": antal}],
-  "delivery_date": "YYYY-MM-DD eller null",
-  "time_from": "HH:MM eller null",
-  "time_to": "HH:MM eller null"
-}
-
-Om kunden skriver "förmiddagen" sätt time_from: "09:00", time_to: "12:00".
-Om kunden skriver "eftermiddagen" sätt time_from: "12:00", time_to: "18:00".
-Om kunden skriver "måndag" beräkna närmaste kommande måndag från dagens datum.
-
-Text:
-${text}`;
+  const prompt = `Du är en assistent som extraherar information från svenska kundtjänstmejl för BAUHAUS. Dagens datum: ${today}. Extrahera följande och returnera ENDAST giltig JSON utan markdown: {"order": "ordernummer 9 siffror utan #", "articles": [{"sku": "7 siffror", "qty": antal}], "delivery_date": "YYYY-MM-DD eller null", "time_from": "HH:MM eller null", "time_to": "HH:MM eller null"}. Text: ${text}`;
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/interactions',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          model: 'gemini-3.5-flash',
+          input: prompt
         })
       }
     );
     const data = await response.json();
     console.log('Gemini data:', JSON.stringify(data).slice(0, 500));
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const raw = data.steps?.find(s => s.type === 'model_output')?.content?.[0]?.text || '{}';
     console.log('Gemini raw:', raw);
     const clean = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
     res.status(200).json(parsed);
   } catch (e) {
+    console.error('Error:', e.message);
     res.status(500).json({ error: e.message });
   }
 }

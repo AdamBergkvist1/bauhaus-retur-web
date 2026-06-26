@@ -596,7 +596,7 @@ if (urlPuzzel) {
   document.getElementById("emailInput").value = puzzelText;
   if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
   setTimeout(runAnalysis, 100);
-} else if (urlOrder) {
+} else if (urlOrder && !urlName) {
   localStorage.removeItem("bauhaus_last_email");
   document.getElementById("emailInput").value = "";
   document.getElementById("manualOrderInput").value = urlOrder;

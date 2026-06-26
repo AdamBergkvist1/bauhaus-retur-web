@@ -16,7 +16,8 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
+          'x-goog-api-key': apiKey,
+          'Api-Revision': '2026-05-20'
         },
         body: JSON.stringify({
           model: 'gemini-3.5-flash',

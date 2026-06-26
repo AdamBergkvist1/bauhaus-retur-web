@@ -585,6 +585,29 @@ const urlEmail = urlParams.get("email");
 if (urlPhone) localStorage.setItem("bauhaus_customer_phone", urlPhone);
 if (urlOrder) localStorage.setItem("bauhaus_customer_order", urlOrder);
 if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
+if (urlOrder && urlName) {
+  magentoOrderNumber = urlOrder;
+  document.getElementById("magentoBtn").classList.remove("hidden");
+  document.getElementById("magentoBtn").href = `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${urlOrder}`;
+  document.getElementById("dhlBtn").classList.remove("hidden");
+  document.getElementById("logisticsBtn").classList.remove("hidden");
+  const logisticsBtn = document.getElementById("logisticsBtn");
+  logisticsBtn.onclick = (e) => {
+    e.preventDefault();
+    const viktMatch3 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
+    const blData = [
+      viktMatch3 ? viktMatch3[1].replace(",",".") : "",
+      resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
+      localStorage.getItem("bauhaus_delivery_date")||"",
+      localStorage.getItem("bauhaus_time_from")||"",
+      localStorage.getItem("bauhaus_time_to")||""
+    ].join("|");
+    navigator.clipboard.writeText(blData);
+    logisticsBtn.textContent = "✅ Kopierat!";
+    setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`); }, 800);
+  };
+  logisticsBtn.href = "#";
+}
 if (urlEmail) localStorage.setItem("bauhaus_customer_email", urlEmail);
 const urlPuzzel = urlParams.get("puzzel");
 if (urlPuzzel) {

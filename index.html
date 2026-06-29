@@ -772,7 +772,6 @@ async function runAnalysis() {
     hasRisk,
   });
   if (geminiResult && !geminiResult.error) {
-    renderCaseAnalysis(analysis);
     renderGeminiAnalysis(geminiResult);
   } else {
     renderCaseAnalysis(analysis);

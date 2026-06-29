@@ -771,9 +771,11 @@ async function runAnalysis() {
     totalWeight: resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0),
     hasRisk,
   });
-  renderCaseAnalysis(analysis);
-  if (geminiResult) {
+  if (geminiResult && !geminiResult.error) {
+    renderCaseAnalysis(analysis);
     renderGeminiAnalysis(geminiResult);
+  } else {
+    renderCaseAnalysis(analysis);
   }
   updateShippingContents();
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
@@ -1263,6 +1265,7 @@ function renderCaseAnalysis(analysis) {
 }
 
 function renderGeminiAnalysis(g) {
+  document.getElementById("macroList").innerHTML = "";
   const badge = document.getElementById("caseTypeBadge");
   if (g.case_type) {
     badge.textContent = `Ärendetyp: ${g.case_type}`;

@@ -772,6 +772,9 @@ async function runAnalysis() {
     hasRisk,
   });
   renderCaseAnalysis(analysis);
+  if (geminiResult) {
+    renderGeminiAnalysis(geminiResult);
+  }
   updateShippingContents();
   if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
     await doFetchShipping(true);
@@ -1259,6 +1262,70 @@ function renderCaseAnalysis(analysis) {
   });
 }
 
+function renderGeminiAnalysis(g) {
+  const badge = document.getElementById("caseTypeBadge");
+  if (g.case_type) {
+    badge.textContent = `Ärendetyp: ${g.case_type}`;
+    badge.classList.remove("hidden");
+  }
+  if (g.summary) {
+    const existing = document.getElementById("geminiSummary");
+    const el = existing || document.createElement("div");
+    el.id = "geminiSummary";
+    el.style.cssText = "font-size:12px;color:var(--grey-700);margin-bottom:8px;padding:8px 10px;background:var(--grey-50);border-radius:4px;border:1px solid var(--grey-200);";
+    el.textContent = `📝 ${g.summary}`;
+    if (!existing) badge.insertAdjacentElement('afterend', el);
+  }
+  if (g.risk && g.risk_reason) {
+    const warningsEl = document.getElementById("caseWarnings");
+    const div = document.createElement("div");
+    div.className = "case-warn-item";
+    div.textContent = `⚠️ ${g.risk_reason}`;
+    warningsEl.appendChild(div);
+    warningsEl.classList.remove("hidden");
+  }
+  if (g.macro_suggestion) {
+    const macroListEl = document.getElementById("macroList");
+    const isDE = g.macro_suggestion === "DE-retur";
+    const suggestions = isDE ? [
+      "SE Webshop OF - DE STHLM - Retur",
+      "SE Webshop OF - DE STHLM Sydost / Sydväst - Retur",
+      "SE Webshop OF - DE GBG - Retur",
+      "SE Webshop OF - DE GBG Syd / Norr - Retur",
+      "SE Webshop OF - DE Knivsta - Retur",
+      "SE Webshop OF - DE NKPG - Retur",
+      "SE Webshop OF - DE Skåne - Retur",
+      "SE Webshop OF - DE Skåne Ost - Retur",
+      "SE Webshop OF - DE Växjö - Retur",
+      "SE Webshop OF - DE Växsjö Norr - Retur",
+      "SE Webshop OF - DE Bokad Retur"
+    ] : [g.macro_suggestion];
+    suggestions.forEach(name => {
+      const macro = MACROS.find(m => m.title === name);
+      if (!macro) return;
+      const btn = document.createElement("button");
+      btn.className = "macro-btn";
+      btn.innerHTML = `<span class="macro-title">${esc(macro.title)}</span><span class="macro-desc">${esc(macro.description)}</span>`;
+      btn.addEventListener("click", () => {
+        const text = macro.text
+          .replace(/XXX kr/g, selectedShipping ? `${selectedShipping.price} kr` : "XXX kr")
+          .replace(/\bAdam\b/g, userName);
+        navigator.clipboard.writeText(text).then(() => {
+          btn.classList.add("macro-btn--copied");
+          btn.querySelector(".macro-title").textContent = "✓ Kopierad!";
+          setTimeout(() => {
+            btn.classList.remove("macro-btn--copied");
+            btn.querySelector(".macro-title").textContent = macro.title;
+          }, 2000);
+        });
+      });
+      macroListEl.appendChild(btn);
+    });
+    document.getElementById("caseContent").classList.remove("hidden");
+    document.getElementById("casePlaceholder").classList.add("hidden");
+  }
+}
+  
 // ── Parsning (portad från parse.js) ───────────────────────────────────
 function parseAllArticles(text) {
   // Ta bort EAN som redan är kopplad till artikelnummer (format: "2x 1474110 / 4024506352209")

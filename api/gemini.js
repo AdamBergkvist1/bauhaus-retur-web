@@ -55,8 +55,11 @@ Fält:
 Tillgängliga mallar:
 ${MALLAR.map((m, i) => `${i + 1}. ${m}`).join('\n')}
 
+OBS: Mejlkedjan kan innehålla samma text flera gånger (citerade svar). Ignorera dubbletter och fokusera på unik information.
+
 Kundmejl:
 """
+
 ${text}
 """
 `;

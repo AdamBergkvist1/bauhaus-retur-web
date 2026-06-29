@@ -700,6 +700,10 @@ async function runAnalysis() {
   if (geminiResult?.delivery_date) localStorage.setItem("bauhaus_delivery_date", geminiResult.delivery_date);
   if (geminiResult?.time_from) localStorage.setItem("bauhaus_time_from", geminiResult.time_from);
   if (geminiResult?.time_to) localStorage.setItem("bauhaus_time_to", geminiResult.time_to);
+  if (geminiResult?.case_type) localStorage.setItem("bauhaus_case_type", geminiResult.case_type);
+  if (geminiResult?.summary) localStorage.setItem("bauhaus_summary", geminiResult.summary);
+  if (geminiResult?.risk_reason) localStorage.setItem("bauhaus_risk_reason", geminiResult.risk_reason);
+  if (geminiResult?.macro_suggestion) localStorage.setItem("bauhaus_macro_suggestion", geminiResult.macro_suggestion);
   if (geminiResult?.order) localStorage.setItem("bauhaus_customer_order", geminiResult.order);
   if (geminiResult?.order) {
     const manualInput = document.getElementById("manualOrderInput");
@@ -1260,7 +1264,7 @@ function parseAllArticles(text) {
   // Ta bort EAN som redan är kopplad till artikelnummer (format: "2x 1474110 / 4024506352209")
   text = text.replace(/(\d+)\s*x\s*\d{7}\s*\/\s*(\d{13})/gi, (match, qty, ean) => match.replace(ean, ''));
   const articlePositions = [];
-  const NUMBER_RE = /(?<![\d])(\d{13}|\d{7})(?![\d])/g;
+  const NUMBER_RE = /(?<![\d])(?!\()(\d{13}|\d{7})(?![\d])/g;
   let m;
   while ((m = NUMBER_RE.exec(text)) !== null) {
     articlePositions.push({ number: m[1], pos: m.index, end: m.index + m[1].length });

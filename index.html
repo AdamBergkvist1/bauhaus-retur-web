@@ -1286,6 +1286,7 @@ function renderGeminiAnalysis(g) {
   }
   if (g.macro_suggestion) {
     const macroListEl = document.getElementById("macroList");
+    macroListEl.innerHTML = "";
     const isDE = g.macro_suggestion === "DE-retur";
     const suggestions = isDE ? [
       "SE Webshop OF - DE STHLM - Retur",

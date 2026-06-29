@@ -47,7 +47,7 @@ Fält:
 - time_to: sluttid för önskat tidsfönster på formatet HH:MM, eller null
 - articles: array med { articleNumber, quantity } – artikelnummer är EXAKT 7 siffror, ALDRIG ärendenummer inom parentes eller 9-siffriga ordernummer
 - case_type: en av "retur", "reklamation", "leveransproblem", "fråga", "byte", "övrigt"
-- macro_suggestion: välj det EXAKTA mallnamnet från listan nedan som passar bäst, eller "DE-retur" om eget transportbolag ska hämta upp, eller null
+- macro_suggestion: välj det EXAKTA mallnamnet från listan nedan ENDAST om du är säker baserat på tydlig info i mejlet. Returnera "DE-retur" om kunden tydligt vill ha upphämtning med eget transportbolag. Returnera null om du är osäker på vilket fraktsätt som gäller – gissa INTE.
 - summary: en mening på svenska som beskriver vad kunden vill
 - risk: true om kunden nämner att varan är öppnad, använd, monterad eller skadad – annars false
 - risk_reason: förklaring varför risk är true, eller null

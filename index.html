@@ -1285,8 +1285,6 @@ function renderGeminiAnalysis(g) {
     warningsEl.classList.remove("hidden");
   }
   if (g.macro_suggestion) {
-    const macroListEl = document.getElementById("macroList");
-    macroListEl.innerHTML = "";
     const isDE = g.macro_suggestion === "DE-retur";
     const suggestions = isDE ? [
       "SE Webshop OF - DE STHLM - Retur",
@@ -1301,27 +1299,32 @@ function renderGeminiAnalysis(g) {
       "SE Webshop OF - DE Växsjö Norr - Retur",
       "SE Webshop OF - DE Bokad Retur"
     ] : [g.macro_suggestion];
+  
+    const macroListEl = document.getElementById("macroList");
+    macroListEl.innerHTML = "";
+  
+    const tip = document.createElement("div");
+    tip.style.cssText = "font-size:12px;color:var(--grey-700);margin-bottom:8px;padding:6px 10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:4px;";
+    tip.innerHTML = `💡 <b>Gemini föreslår${isDE ? ' (välj region):' : ':'}</b>`;
+    macroListEl.appendChild(tip);
+  
     suggestions.forEach(name => {
-      const macro = MACROS.find(m => m.title === name);
-      if (!macro) return;
       const btn = document.createElement("button");
       btn.className = "macro-btn";
-      btn.innerHTML = `<span class="macro-title">${esc(macro.title)}</span><span class="macro-desc">${esc(macro.description)}</span>`;
+      btn.innerHTML = `<span class="macro-title">${esc(name)}</span>`;
       btn.addEventListener("click", () => {
-        const text = macro.text
-          .replace(/XXX kr/g, selectedShipping ? `${selectedShipping.price} kr` : "XXX kr")
-          .replace(/\bAdam\b/g, userName);
-        navigator.clipboard.writeText(text).then(() => {
+        navigator.clipboard.writeText(name).then(() => {
           btn.classList.add("macro-btn--copied");
-          btn.querySelector(".macro-title").textContent = "✓ Kopierad!";
+          btn.querySelector(".macro-title").textContent = "✓ Kopierat!";
           setTimeout(() => {
             btn.classList.remove("macro-btn--copied");
-            btn.querySelector(".macro-title").textContent = macro.title;
+            btn.querySelector(".macro-title").textContent = name;
           }, 2000);
         });
       });
       macroListEl.appendChild(btn);
     });
+  
     document.getElementById("caseContent").classList.remove("hidden");
     document.getElementById("casePlaceholder").classList.add("hidden");
   }

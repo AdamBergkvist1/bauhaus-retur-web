@@ -598,7 +598,9 @@ if (urlOrder && urlName) {
     const blData = [
       viktMatch3 ? viktMatch3[1].replace(",",".") : "",
       resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-      localStorage.getItem("bauhaus_requested_time")||""
+      localStorage.getItem("bauhaus_delivery_date")||"",
+      localStorage.getItem("bauhaus_time_from")||"",
+      localStorage.getItem("bauhaus_time_to")||""
     ].join("|");
     navigator.clipboard.writeText(blData);
     logisticsBtn.textContent = "✅ Kopierat!";
@@ -695,6 +697,9 @@ async function runAnalysis() {
   }
 
   if (geminiResult?.requested_time) localStorage.setItem("bauhaus_requested_time", geminiResult.requested_time);
+  if (geminiResult?.delivery_date) localStorage.setItem("bauhaus_delivery_date", geminiResult.delivery_date);
+  if (geminiResult?.time_from) localStorage.setItem("bauhaus_time_from", geminiResult.time_from);
+  if (geminiResult?.time_to) localStorage.setItem("bauhaus_time_to", geminiResult.time_to);
   if (geminiResult?.order) localStorage.setItem("bauhaus_customer_order", geminiResult.order);
   if (geminiResult?.order) {
     const manualInput = document.getElementById("manualOrderInput");
@@ -721,7 +726,9 @@ async function runAnalysis() {
       const blData = [
         viktMatch3 ? viktMatch3[1].replace(",",".") : "",
         resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-        localStorage.getItem("bauhaus_requested_time")||""
+        localStorage.getItem("bauhaus_delivery_date")||"",
+        localStorage.getItem("bauhaus_time_from")||"",
+        localStorage.getItem("bauhaus_time_to")||""
       ].join("|");
       navigator.clipboard.writeText(blData);
       logisticsBtn.textContent = "✅ Kopierat!";

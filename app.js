@@ -431,6 +431,7 @@ function renderResults() {
         qtySpan.textContent  = art.quantity;
         lineSpan.textContent = renderLine(art.quantity);
         updateOutput();
+        updateShippingContents();
       };
       minus.addEventListener("click", () => upd(-1));
       plus.addEventListener("click",  () => upd(+1));

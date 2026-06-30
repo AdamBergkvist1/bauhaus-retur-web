@@ -173,6 +173,8 @@ extractPostcode (17 testfall, alla gröna per 2026-06-30). Kvarstående:
 - [ ] Fraktberäkning v3 — återanvänd aktiv bauhaus.se-session för snabbare
       varukorgsskapning utan REST-anrop
 
+      Egen anteckning: Tänker också som slutmål lite. Till bauhaus webb appen för att eeventuellt kunna sälja in den. bygg statostol verktyg för att se på nått vis hur många ärenden som hanteras korrekt, vad success rate är på alla olika delar av webbens delar. Föratt visa vad som faktiskt sparas. Något sånt
+
 ---
 
 ## 📝 Anteckningar

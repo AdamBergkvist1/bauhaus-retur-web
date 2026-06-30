@@ -256,7 +256,35 @@ async function runAnalysis() {
     if (!manualInput.value.trim()) manualInput.value = geminiResult.order;
   }
 
-  const articles    = parseAllArticles(text);
+  // Artikellista: Gemini är primär källa (förstår kontext, citerade trådar,
+  // riktigt antal) eftersom den redan instrueras att returnera den i sin
+  // JSON. Regex-parsern (parseAllArticles) är fallback om Gemini-anropet
+  // misslyckades helt. Om Gemini lyckades men gav en tom lista litar vi på
+  // det (artiklarna finns sannolikt verkligen inte) istället för att falla
+  // tillbaka till regex.
+  let articles;
+  let usedGeminiArticles = false;
+  if (geminiResult && !geminiResult.error && Array.isArray(geminiResult.articles)) {
+    const normalized = geminiResult.articles
+      .map(a => ({
+        articleNumber: String(a.articleNumber ?? "").replace(/\D/g, "").slice(0, 7),
+        quantity: Number.isFinite(a.quantity) && a.quantity > 0 ? a.quantity : 1,
+      }))
+      .filter(a => /^\d{7}$/.test(a.articleNumber));
+    // Säkerhetsnät: om samma artikelnummer förekommer flera gånger i Geminis
+    // svar (t.ex. p.g.a. lång ärendehistorik med upprepade interna noteringar),
+    // är det i praktiken alltid samma retur. Deduplicera och ta den HÖGSTA
+    // angivna kvantiteten, inte summan.
+    const byArticle = new Map();
+    for (const a of normalized) {
+      const existing = byArticle.get(a.articleNumber);
+      if (!existing || a.quantity > existing.quantity) byArticle.set(a.articleNumber, a);
+    }
+    articles = [...byArticle.values()];
+    usedGeminiArticles = true;
+  } else {
+    articles = parseAllArticles(text);
+  }
   const postcode    = extractPostcode(text);
   if (postcode) document.getElementById("inputPostcode").value = postcode;
 
@@ -299,7 +327,11 @@ async function runAnalysis() {
   consolidate();
   renderResults();
   updateOutput();
-  setStatus("", false);
+  if (!usedGeminiArticles) {
+    setStatus("⚠️ Använde reservanalys (AI ej tillgänglig) — dubbelkolla artikelantal.", false);
+  } else {
+    setStatus("", false);
+  }
 
   // DHL opacity — aktiv när artiklar hittades
   const dhlEl = document.getElementById("dhlBtn");
@@ -868,9 +900,11 @@ function esc(s) {
 function setStatus(msg, loading) {
   const el    = document.getElementById("statusText");
   const msgEl = document.getElementById("statusMsg");
+  const spinnerEl = el.querySelector(".spinner");
   if (msg) {
     msgEl.textContent = msg;
     el.classList.remove("hidden");
+    if (spinnerEl) spinnerEl.style.display = loading ? "" : "none";
   } else {
     el.classList.add("hidden");
   }

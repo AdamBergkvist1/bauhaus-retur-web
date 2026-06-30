@@ -96,22 +96,35 @@
 
       <div class="divider"></div>
 
-      <!-- Frakt -->
-      <div class="section-title"><span>🚚 Frakt &amp; kostnad</span></div>
-      <!-- Postcode kept in DOM but hidden — auto-filled via Magento bookmarklet -->
-      <div class="postcode-row" style="display:none;">
-        <input type="text" id="inputPostcode" placeholder="Postnummer" maxlength="6">
-        <button class="btn btn-secondary btn-sm" id="fetchShippingBtn">Hämta frakt</button>
+      <!-- Frakt — dold i UI eftersom funktionen kräver en aktiv inloggad
+           bauhaus.se-session (gick bara via Chrome-extension förut), men
+           koden/elementen behålls i DOM ifall vi hittar en annan lösning
+           senare. -->
+      <div style="display:none;">
+        <div class="section-title"><span>🚚 Frakt &amp; kostnad</span></div>
+        <div class="postcode-row" style="display:none;">
+          <input type="text" id="inputPostcode" placeholder="Postnummer" maxlength="6">
+          <button class="btn btn-secondary btn-sm" id="fetchShippingBtn">Hämta frakt</button>
+        </div>
+        <span id="shippingStatus" class="status-row hidden">
+          <span class="spinner spinner-sm"></span>
+          <span>Hämtar fraktalternativ…</span>
+        </span>
+        <div id="shippingError" class="error-msg hidden"></div>
+        <div id="shippingOptions" class="shipping-options hidden"></div>
+        <div id="shippingSelected" class="shipping-selected hidden">
+          <span id="shippingSelectedText"></span>
+          <button class="btn btn-secondary btn-sm" id="shippingClearBtn">Byt</button>
+        </div>
       </div>
-      <span id="shippingStatus" class="status-row hidden">
-        <span class="spinner spinner-sm"></span>
-        <span>Hämtar fraktalternativ…</span>
-      </span>
-      <div id="shippingError" class="error-msg hidden"></div>
-      <div id="shippingOptions" class="shipping-options hidden"></div>
-      <div id="shippingSelected" class="shipping-selected hidden">
-        <span id="shippingSelectedText"></span>
-        <button class="btn btn-secondary btn-sm" id="shippingClearBtn">Byt</button>
+
+      <!-- Klar kommentar -->
+      <div class="section-eyebrow">Steg 3</div>
+      <div class="section-title"><span>📄 Klar kommentar</span></div>
+      <div id="outputBox" class="output-box"></div>
+      <div style="margin-top:12px; display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-primary" id="copyBtn">📋 Kopiera</button>
+        <span id="copyFeedback" class="copy-feedback">✓ Kopierad!</span>
       </div>
 
       <div class="divider"></div>
@@ -134,17 +147,6 @@
       <div id="shippingContentsBox" class="output-box" contenteditable="true" style="min-height:60px;"></div>
       <div style="margin-top:10px;">
         <button class="btn btn-secondary btn-sm" id="copyShippingContentsBtn">📋 Kopiera fraktsedel</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Klar kommentar -->
-      <div class="section-eyebrow">Steg 3</div>
-      <div class="section-title"><span>📄 Klar kommentar</span></div>
-      <div id="outputBox" class="output-box"></div>
-      <div style="margin-top:12px; display:flex; align-items:center; gap:12px;">
-        <button class="btn btn-primary" id="copyBtn">📋 Kopiera</button>
-        <span id="copyFeedback" class="copy-feedback">✓ Kopierad!</span>
       </div>
     </div>
 

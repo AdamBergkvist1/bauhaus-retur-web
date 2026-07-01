@@ -7,8 +7,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing text' });
   }
   const apiKey = process.env.GEMINI_API_KEY;
-  const model  = 'gemini-3.1-flash-lite';
-  const url    = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const MALLAR = [
     "1 SE Webshop OF - DHL HD - Retur",
     "1 SE Webshop OF - DHL SP - Retur",
@@ -58,35 +56,68 @@ Kundmejl:
 ${text}
 """
 `;
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0, maxOutputTokens: 1024 },
-      }),
-    });
-    if (!response.ok) {
-      const errBody = await response.text();
-      console.error('Gemini error:', response.status, errBody);
-      return res.status(502).json({ error: `Gemini ${response.status}`, detail: errBody });
+  const models = ['gemini-3.1-flash-lite', 'gemini-3.1-flash'];
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const model = attempt < 2 ? models[0] : models[1];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+    if (attempt === 1) {
+      // Kort paus innan retry med samma modell
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (attempt === 2) {
+      // Lite längre paus innan vi byter till fallback-modell
+      await new Promise(r => setTimeout(r, 1500));
+      console.log('Gemini: byter till fallback-modell', model);
     }
-    const data = await response.json();
-    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    let parsed;
+
     try {
-      parsed = JSON.parse(clean);
-    } catch {
-      return res.status(200).json({ raw, error: 'JSON parse failed' });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
+        }),
+      });
+
+      if (response.status === 503 || response.status === 429) {
+        // Överlast eller rate limit — försök igen
+        const errBody = await response.text();
+        lastError = `Gemini ${response.status}: ${errBody}`;
+        console.log(`Attempt ${attempt + 1} failed (${response.status}), retrying...`);
+        continue;
+      }
+
+      if (!response.ok) {
+        const errBody = await response.text();
+        console.error('Gemini error:', response.status, errBody);
+        return res.status(502).json({ error: `Gemini ${response.status}`, detail: errBody });
+      }
+
+      const data = await response.json();
+      const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(clean);
+      } catch {
+        return res.status(200).json({ raw, error: 'JSON parse failed' });
+      }
+      return res.status(200).json(parsed);
+
+    } catch (err) {
+      lastError = err.message;
+      console.log(`Attempt ${attempt + 1} fetch error:`, err.message);
+      if (attempt < 2) continue;
     }
-    return res.status(200).json(parsed);
-  } catch (err) {
-    console.error('Fetch error:', err);
-    return res.status(500).json({ error: err.message });
   }
+
+  // Alla försök misslyckades
+  console.error('Gemini: alla 3 försök misslyckades:', lastError);
+  return res.status(502).json({ error: 'Gemini unavailable after 3 attempts', detail: lastError });
 }

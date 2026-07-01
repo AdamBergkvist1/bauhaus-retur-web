@@ -1,379 +1,14 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bauhaus Returhantering</title>
-  <style>
-    :root {
-      --red: #E2001A;
-      --red-dark: #B8001B;
-      --red-faint: #fff5f5;
-      --grey-50: #F7F8FA;
-      --grey-100: #EAEDF1;
-      --grey-200: #D5DAE1;
-      --grey-500: #8896A5;
-      --grey-700: #4A5568;
-      --grey-900: #1A202C;
-      --green: #1B873F;
-      --green-bg: #EAF5EE;
-      --green-border: #C3E6CB;
-      --warn-bg: #FFFBEB;
-      --warn-border: #FCD34D;
-      --warn-text: #92400E;
-      --white: #FFFFFF;
-      --radius: 6px;
-      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: var(--font);
-      font-size: 14px;
-      color: var(--grey-900);
-      background: var(--grey-50);
-      min-height: 100vh;
-    }
-
-    /* ── Header ── */
-    header {
-      background: var(--red);
-      color: white;
-      padding: 0 24px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      box-shadow: 0 2px 8px rgba(226,0,26,.25);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo {
-      font-weight: 900;
-      font-size: 17px;
-      letter-spacing: 1.5px;
-    }
-    .header-sep { opacity: .35; font-size: 20px; font-weight: 100; }
-    .header-title { font-size: 14px; font-weight: 500; opacity: .92; }
-    .header-spacer { flex: 1; }
-    .header-name-wrap { display: flex; align-items: center; gap: 8px; }
-    .header-name-wrap label { font-size: 12px; opacity: .75; }
-    .header-name-wrap input {
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 4px;
-      color: white;
-      padding: 4px 9px;
-      font-size: 13px;
-      font-family: var(--font);
-      width: 120px;
-    }
-    .header-name-wrap input::placeholder { color: rgba(255,255,255,.5); }
-    .header-name-wrap input:focus { outline: none; border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.2); }
-
-    /* ── Layout ── */
-    .app-wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 20px;
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 20px;
-      align-items: start;
-    }
-
-    @media (max-width: 800px) {
-      .app-wrap { grid-template-columns: 1fr; }
-    }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--white);
-      border: 1px solid var(--grey-200);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px 20px;
-    }
-    .card + .card { margin-top: 14px; }
-
-    .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      color: var(--grey-500);
-      margin-bottom: 12px;
-    }
-
-    /* ── Textarea ── */
-    textarea {
-      width: 100%;
-      min-height: 180px;
-      border: 1px solid var(--grey-200);
-      border-radius: var(--radius);
-      padding: 12px;
-      font-size: 13px;
-      font-family: var(--font);
-      color: var(--grey-900);
-      resize: vertical;
-      line-height: 1.5;
-      transition: border-color .15s;
-    }
-    textarea:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(226,0,26,.08); }
-    textarea::placeholder { color: var(--grey-500); }
-
-    /* ── Knapp primär ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      border: none;
-      border-radius: var(--radius);
-      padding: 9px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: background .15s, opacity .15s;
-    }
-    .btn-primary { background: var(--red); color: white; }
-    .btn-primary:hover { background: var(--red-dark); }
-    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-secondary { background: var(--grey-100); color: var(--grey-700); border: 1px solid var(--grey-200); }
-    .btn-secondary:hover { background: var(--grey-200); }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-
-    /* ── Spinner ── */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner {
-      width: 15px; height: 15px;
-      border: 2px solid var(--grey-200);
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      flex-shrink: 0;
-    }
-    .spinner-sm { width: 12px; height: 12px; }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--grey-500);
-      padding: 8px 0;
-    }
-
-    /* ── Resultatlista ── */
-    .result-list { display: flex; flex-direction: column; gap: 6px; }
-
-    .result-row {
-      border: 1px solid var(--grey-200);
-      border-left: 4px solid var(--green);
-      border-radius: 4px;
-      padding: 9px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      background: var(--white);
-    }
-    .result-row--error { border-left-color: var(--red); }
-
-    .result-line {
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 12.5px;
-      color: var(--grey-900);
-      word-break: break-all;
-      flex: 1;
-    }
-    .result-line--error { color: var(--red); font-family: var(--font); font-style: italic; }
-
-    .qty-controls { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-    .qty-btn {
-      width: 24px; height: 24px;
-      border: 1px solid var(--grey-200);
-      border-radius: 4px;
-      background: var(--white);
-      font-size: 15px; font-weight: 700;
-      cursor: pointer; color: var(--grey-700);
-      display: flex; align-items: center; justify-content: center;
-      line-height: 1; padding: 0;
-      transition: border-color .1s, color .1s;
-    }
-    .qty-btn:hover { border-color: var(--red); color: var(--red); }
-    .qty-val { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
-
-    /* ── Varning ── */
-    .warn-box {
-      background: var(--warn-bg);
-      border: 1px solid var(--warn-border);
-      border-radius: var(--radius);
-      padding: 10px 13px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--warn-text);
-    }
-
-    /* ── Output-ruta ── */
-    .output-box {
-      background: var(--grey-50);
-      border: 1px solid var(--grey-200);
-      border-radius: var(--radius);
-      padding: 13px 15px;
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 12.5px;
-      line-height: 1.65;
-      white-space: pre-wrap;
-      word-break: break-all;
-      color: var(--grey-900);
-      min-height: 80px;
-    }
-
-    .copy-feedback {
-      color: var(--green);
-      font-size: 12px;
-      font-weight: 700;
-      opacity: 0;
-      transition: opacity .3s;
-    }
-    .copy-feedback.show { opacity: 1; }
-
-    /* ── Frakt ── */
-    .postcode-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .postcode-row input {
-      flex: 1;
-      border: 1px solid var(--grey-200);
-      border-radius: var(--radius);
-      padding: 8px 11px;
-      font-size: 13px;
-      font-family: var(--font);
-    }
-    .postcode-row input:focus { outline: none; border-color: var(--red); }
-
-    .shipping-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-    .shipping-opt {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--grey-200);
-      border-radius: 4px;
-      padding: 8px 11px;
-      cursor: pointer;
-      background: var(--white);
-      font-family: var(--font);
-      font-size: 13px;
-      transition: border-color .12s;
-      width: 100%;
-      text-align: left;
-    }
-    .shipping-opt:hover { border-color: var(--red); background: var(--red-faint); }
-    .shipping-opt--cheapest { border-left: 3px solid var(--green); }
-    .shipping-opt-price { font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .badge-cheapest {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      background: var(--green); color: white;
-      padding: 2px 5px; border-radius: 3px;
-    }
-    .shipping-selected {
-      background: var(--green-bg);
-      border: 1px solid var(--green-border);
-      border-radius: 4px;
-      padding: 9px 12px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--green);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .error-msg {
-      color: var(--red);
-      font-size: 12px;
-      background: #fff5f5;
-      border: 1px solid #fca5a5;
-      border-radius: 4px;
-      padding: 8px 11px;
-      margin-top: 6px;
-    }
-
-    /* ── Höger kolumn: ärendeanalys ── */
-    .case-type-badge {
-      display: inline-block;
-      background: var(--grey-100);
-      border-radius: 4px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--grey-700);
-      margin-bottom: 10px;
-    }
-    .case-warnings { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-    .case-warn-item {
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 10px;
-      border-radius: 4px;
-      background: var(--warn-bg);
-      border: 1px solid var(--warn-border);
-      color: var(--warn-text);
-    }
-
-    .macro-list { display: flex; flex-direction: column; gap: 6px; }
-    .macro-btn {
-      background: var(--white);
-      border: 1px solid var(--grey-200);
-      border-left: 3px solid var(--red);
-      border-radius: 4px;
-      padding: 9px 12px;
-      cursor: pointer;
-      text-align: left;
-      width: 100%;
-      font-family: var(--font);
-      transition: background .12s;
-    }
-    .macro-btn:hover { background: var(--red-faint); }
-    .macro-btn--copied { background: var(--green-bg) !important; border-left-color: var(--green) !important; }
-    .macro-title { font-size: 12px; font-weight: 700; color: var(--grey-900); display: block; }
-    .macro-desc { font-size: 11px; color: var(--grey-500); display: block; margin-top: 2px; }
-
-    /* ── Manuell inmatning ── */
-    .manual-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--grey-500); margin-bottom: 4px; letter-spacing: .4px; }
-    .form-group input {
-      width: 100%;
-      border: 1px solid var(--grey-200);
-      border-radius: var(--radius);
-      padding: 8px 10px;
-      font-size: 13px;
-      font-family: var(--font);
-      transition: border-color .15s;
-    }
-    .form-group input:focus { outline: none; border-color: var(--red); }
-    .form-group input.invalid { border-color: var(--red); }
-
-    /* ── Divider ── */
-    .divider { height: 1px; background: var(--grey-100); margin: 14px 0; }
-
-    /* ── Tomt tillstånd ── */
-    .empty {
-      text-align: center;
-      padding: 32px 20px;
-      color: var(--grey-500);
-    }
-    .empty p { font-size: 13px; line-height: 1.6; }
-
-    .hidden { display: none !important; }
-
-    .flex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bauhaus Returhantering</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- ── Header ──────────────────────────────────────────────────── -->
 <header>
   <span class="logo">BAUHAUS</span>
   <span class="header-sep">|</span>
@@ -383,86 +18,141 @@
     <label for="inputName">Namn i makron:</label>
     <input type="text" id="inputName" placeholder="Ditt namn" maxlength="40" autocomplete="off">
   </div>
+  <button class="help-btn" id="helpBtn" aria-label="Hjälp">?</button>
 </header>
 
+<!-- ── Stepper ──────────────────────────────────────────────────── -->
+<div class="stepper-bar">
+  <div class="stepper">
+    <div class="step-item">
+      <div class="step-circle active" id="step1Circle">1</div>
+      <div class="step-label active" id="step1Label">Klistra in mejl</div>
+    </div>
+    <div class="step-line" id="stepLine1"></div>
+    <div class="step-item">
+      <div class="step-circle" id="step2Circle">2</div>
+      <div class="step-label" id="step2Label">Granska artiklar &amp; välj frakt</div>
+    </div>
+    <div class="step-line" id="stepLine2"></div>
+    <div class="step-item">
+      <div class="step-circle" id="step3Circle">3</div>
+      <div class="step-label" id="step3Label">Kopiera kommentar</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main layout ──────────────────────────────────────────────── -->
 <div class="app-wrap">
 
-  <!-- ── VÄNSTER KOLUMN ── -->
+  <!-- LEFT COLUMN -->
   <div>
 
-    <!-- INPUT -->
+    <!-- STEG 1: Input -->
     <div class="card">
-      <div class="card-title">📋 Klistra in kundmejl</div>
+      <div class="section-eyebrow">Steg 1</div>
+      <div class="section-title"><span>📋 Klistra in kundmejl</span></div>
       <textarea id="emailInput" placeholder="Klistra in hela kundmejlet här…&#10;&#10;Tillägget hittar artikelnummer, antal, postnummer och riskord automatiskt."></textarea>
-      <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+      <!-- Row 1: Analysera + Rensa + ordernummer + status -->
+      <div style="margin-top:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <button class="btn btn-primary" id="analyzeBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           Analysera
         </button>
         <button class="btn btn-secondary btn-sm" id="clearBtn">Rensa</button>
-        <input type="text" id="manualOrderInput" placeholder="Ordernummer (manuellt)" style="padding:6px 10px;font-size:12px;border:1px solid var(--grey-200);border-radius:4px;width:180px;" maxlength="9">
-        <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🔍 Öppna i Magento</a>
-        <a id="dhlBtn" href="#" target="_blank" class="btn btn-secondary btn-sm hidden">🚚 Öppna i DHL</a>
-        <a id="logisticsBtn" href="https://www-admin.bauhaus.se/bauhausadmin/amasty_deliverydate/delivery/create/" target="_blank" class="btn btn-secondary btn-sm hidden">🏭 Öppna i Logistics</a>
+        <input type="text" id="manualOrderInput" placeholder="Ordernummer (manuellt)" style="padding:6px 10px;font-size:12px;border:1px solid var(--grey-200);border-radius:var(--radius);width:185px;font-family:var(--font);" maxlength="9">
         <span id="statusText" class="status-row hidden">
           <span class="spinner"></span>
           <span id="statusMsg">Hämtar…</span>
         </span>
       </div>
+
+      <!-- Row 2: Magento / DHL / Logistics — always visible -->
+      <div class="action-btns-row">
+        <div class="action-btn-wrap">
+          <a id="magentoBtn" href="#" target="_blank" class="btn btn-secondary" style="border-left:3px solid #4A5568; opacity:0.4;">🔍 Öppna i Magento</a>
+          <span class="action-btn-tip">Öppnar ordersidan i Bauhaus admin med ordernumret inbyggt i länken. Används alltid som första steg för att hitta kundens uppgifter.</span>
+        </div>
+        <div class="action-btn-wrap">
+          <a id="dhlBtn" href="#" target="_blank" class="btn btn-secondary hidden" style="border-left:3px solid #92400E;">🚚 Öppna i DHL</a>
+          <span class="action-btn-tip">Öppnar DHL-fraktportalen med kundens namn, adress och totalvikt förifyllt. Kräver att analys körts först.</span>
+        </div>
+        <div class="action-btn-wrap">
+          <a id="logisticsBtn" href="#" target="_blank" class="btn btn-secondary hidden" style="border-left:3px solid #1B873F;">🏭 Öppna i Logistics</a>
+          <span class="action-btn-tip">För ärenden med Bauhaus Logistics / hemleverans. Kopierar viktdata + EAN-koder till urklipp och öppnar Bauhaus admin för att boka intern upphämtning.</span>
+        </div>
+      </div>
     </div>
 
-    <!-- RESULTAT -->
+    <!-- STEG 2: Resultat (hidden until analysis) -->
     <div class="card hidden" id="resultCard">
-      <div class="card-title">📦 Returkommentar</div>
-      <div id="resultList" class="result-list"></div>
 
+      <div class="section-eyebrow">Steg 2</div>
+      <div class="section-title"><span>📦 Returkommentar</span></div>
+      <div id="resultList" class="result-list"></div>
       <div id="riskWarn" class="warn-box hidden" style="margin-top:10px;">
         ⚠️ OBS: Texten indikerar öppnad/använd produkt!
       </div>
 
-      <!-- FRAKT -->
       <div class="divider"></div>
-      <div class="card-title">🚚 Frakt & kostnad</div>
 
-      <div class="postcode-row">
-        <input type="text" id="inputPostcode" placeholder="Postnummer (5 siffror)" maxlength="6">
-        <button class="btn btn-secondary btn-sm" id="fetchShippingBtn">Hämta frakt</button>
-      </div>
-      <span id="shippingStatus" class="status-row hidden">
-        <span class="spinner spinner-sm"></span>
-        <span>Hämtar fraktalternativ…</span>
-      </span>
-      <div id="shippingError" class="error-msg hidden"></div>
-      <div id="shippingOptions" class="shipping-options hidden"></div>
-      <div id="shippingSelected" class="shipping-selected hidden">
-        <span id="shippingSelectedText"></span>
-        <button class="btn btn-secondary btn-sm" id="shippingClearBtn">Byt</button>
+      <!-- Frakt — dold i UI eftersom funktionen kräver en aktiv inloggad
+           bauhaus.se-session (gick bara via Chrome-extension förut), men
+           koden/elementen behålls i DOM ifall vi hittar en annan lösning
+           senare. -->
+      <div style="display:none;">
+        <div class="section-title"><span>🚚 Frakt &amp; kostnad</span></div>
+        <div class="postcode-row" style="display:none;">
+          <input type="text" id="inputPostcode" placeholder="Postnummer" maxlength="6">
+          <button class="btn btn-secondary btn-sm" id="fetchShippingBtn">Hämta frakt</button>
+        </div>
+        <span id="shippingStatus" class="status-row hidden">
+          <span class="spinner spinner-sm"></span>
+          <span>Hämtar fraktalternativ…</span>
+        </span>
+        <div id="shippingError" class="error-msg hidden"></div>
+        <div id="shippingOptions" class="shipping-options hidden"></div>
+        <div id="shippingSelected" class="shipping-selected hidden">
+          <span id="shippingSelectedText"></span>
+          <button class="btn btn-secondary btn-sm" id="shippingClearBtn">Byt</button>
+        </div>
       </div>
 
-      <!-- OUTPUT -->
-      <div class="divider"></div>
-      <div class="card-title">📄 Klar kommentar</div>
+      <!-- Klar kommentar -->
+      <div class="section-eyebrow">Steg 3</div>
+      <div class="section-title"><span>📄 Klar kommentar</span></div>
       <div id="outputBox" class="output-box"></div>
-      <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+      <div style="margin-top:12px; display:flex; align-items:center; gap:12px;">
         <button class="btn btn-primary" id="copyBtn">📋 Kopiera</button>
         <span id="copyFeedback" class="copy-feedback">✓ Kopierad!</span>
       </div>
 
-      <!-- FRAKTSEDEL -->
       <div class="divider"></div>
-      <div class="card-title">📝 Fraktsedel-innehåll</div>
-      <div id="shippingKollislag" style="font-size:12px;font-weight:700;color:var(--grey-700);margin-bottom:6px;"></div>
-      <div id="shippingDimensions" style="font-size:12px;color:var(--grey-500);margin-bottom:8px;"></div>
+
+      <!-- Fraktsedel-innehåll -->
+      <div class="section-title"><span>📝 Fraktsedel-innehåll</span></div>
+      <div class="kollislag-row" id="shippingKollislag">
+        <label>Kollislag:</label>
+        <select id="kollislagSelect">
+          <option value="Paket">Paket</option>
+          <option value="EUR halvpall (60x80)">EUR halvpall (60x80)</option>
+          <option value="EUR helpall (120x80)">EUR helpall (120x80)</option>
+          <option value="Pall (övriga mått)">Pall (övriga mått)</option>
+          <option value="Ospecificerat">Ospecificerat</option>
+        </select>
+        <span style="font-size:13px; color:var(--grey-500);">| Totalvikt: <b id="totalviktDisplay" style="color:var(--grey-900);">–</b></span>
+      </div>
+      <div id="shippingDimensions" style="font-size:12px;color:var(--grey-500);margin-bottom:10px;"></div>
       <div id="shippingMissingDims" class="warn-box hidden" style="font-size:12px;margin-bottom:8px;"></div>
       <div id="shippingContentsBox" class="output-box" contenteditable="true" style="min-height:60px;"></div>
-      <div style="margin-top:8px;">
+      <div style="margin-top:10px;">
         <button class="btn btn-secondary btn-sm" id="copyShippingContentsBtn">📋 Kopiera fraktsedel</button>
       </div>
     </div>
 
-    <!-- MANUELL INMATNING -->
+    <!-- Manuell inmatning (hidden by default) -->
     <div class="card hidden" id="manualCard">
-      <div class="card-title">✎ Manuell inmatning – artikel <span id="manualArticleNum"></span></div>
+      <div class="section-title"><span>✎ Manuell inmatning – artikel <span id="manualArticleNum"></span></span></div>
       <div class="manual-grid">
         <div class="form-group">
           <label>EAN-kod</label>
@@ -473,958 +163,102 @@
           <input type="number" id="inputWeight" placeholder="t.ex. 1.5" min="0" step="0.01">
         </div>
       </div>
-      <button class="btn btn-secondary" id="saveManualBtn">Spara & uppdatera</button>
+      <button class="btn btn-secondary" id="saveManualBtn">Spara &amp; uppdatera</button>
     </div>
 
-  </div>
+  </div><!-- /LEFT -->
 
-  <!-- ── HÖGER KOLUMN ── -->
-  <div>
+  <!-- RIGHT COLUMN: Ärende-assistent -->
+  <div class="assistant-panel" id="caseCard">
+    <div class="assistant-header">
+      <div class="assistant-badge">✦</div>
+      <span>Ärende-assistent</span>
+    </div>
+    <div class="assistant-body">
 
-    <!-- ÄRENDEANALYS -->
-    <div class="card" id="caseCard">
-      <div class="card-title">🔍 Ärendeanalys</div>
-      <div id="casePlaceholder" class="empty">
-        <p>Klistra in ett mejl och klicka Analysera.</p>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+        <span style="font-size:15px; font-weight:700; color:var(--grey-900);">🔍 Ärendeanalys</span>
+        <div class="tooltip-wrap">
+          <span class="tooltip-icon">?</span>
+          <span class="tooltip-bubble">Automatisk analys av mejlet: ärendetyp, riskord och relevanta varningar för handläggaren.</span>
+        </div>
       </div>
+
+      <!-- Empty state -->
+      <div id="casePlaceholder" class="empty-guide">
+        <div class="empty-guide-step">
+          <div class="empty-step-num">1</div>
+          <div class="empty-step-text"><b>Klistra in kundmejlet</b> i fältet till vänster.</div>
+        </div>
+        <div class="empty-guide-step">
+          <div class="empty-step-num">2</div>
+          <div class="empty-step-text"><b>Klicka Analysera</b> — artiklar, postnummer och riskord hittas automatiskt.</div>
+        </div>
+        <div class="empty-guide-step">
+          <div class="empty-step-num">3</div>
+          <div class="empty-step-text"><b>Granska &amp; kopiera</b> — välj frakt, kontrollera och kopiera färdig kommentar.</div>
+        </div>
+      </div>
+
+      <!-- Analysis result (hidden until analysis) -->
       <div id="caseContent" class="hidden">
         <div id="caseTypeBadge" class="case-type-badge hidden"></div>
         <div id="caseWarnings" class="case-warnings"></div>
-        <div class="card-title" style="margin-top:4px;">💬 Makroförslag</div>
+
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; margin-top:4px;">
+          <span style="font-size:15px; font-weight:700; color:var(--grey-900);">💬 Makroförslag</span>
+          <div class="tooltip-wrap">
+            <span class="tooltip-icon">?</span>
+            <span class="tooltip-bubble">Färdiga Puzzel-svarsmallar rankade efter ärendet. Klicka för att kopiera mallen till urklipp.</span>
+          </div>
+        </div>
         <div id="macroList" class="macro-list"></div>
       </div>
+
+    </div>
+  </div><!-- /RIGHT -->
+
+</div><!-- /app-wrap -->
+
+<!-- ── Help modal ───────────────────────────────────────────────── -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal" id="helpModalInner">
+    <button class="modal-close" id="helpModalClose">×</button>
+    <h2>Hur använder du Returhantering?</h2>
+    <p class="modal-subtitle">Snabbguide för returflödet från kundmejl till färdig kommentar.</p>
+
+    <div class="modal-section">
+      <div class="modal-section-title"><span>Steg-för-steg-flöde</span></div>
+      <ol>
+        <li>Kör <b>Puzzel-bokmärket</b> i Puzzel på kundmejlet → fyller i mejltexten automatiskt och öppnar appen.</li>
+        <li>Klicka <b>Öppna i Magento</b> → öppnar ordersidan i Bauhaus admin.</li>
+        <li>Väl på ordersidan: kör <b>Magento-bokmärket</b> i webbläsaren → hämtar kundens adress och skickar tillbaka till appen automatiskt.</li>
+        <li>Klicka <b>Analysera</b> (eller <b>Ctrl+Enter</b>) → artiklar, vikt, mått och riskord hittas automatiskt.</li>
+        <li>Klicka <b>Öppna i DHL</b> → DHL-portalen öppnas med kundens adress och totalvikt förifyllt.</li>
+        <li>Välj rätt makro i <b>Ärende-assistent</b> → kopiera och klistra in svaret i Puzzel.</li>
+        <li>För hemleverans/DE-upphämtning: klicka <b>Öppna i Logistics</b> → kopierar viktdata och EAN-koder till urklipp, öppnar sedan Bauhaus admin för att boka upphämtningsdag.</li>
+      </ol>
     </div>
 
-  </div>
+    <div class="modal-section">
+      <div class="modal-section-title"><span>Vad gör knapparna?</span></div>
+      <ul class="btn-list">
+        <li style="border-left:3px solid #4A5568;"><b>🔍 Öppna i Magento</b> — Öppnar ordersidan i Bauhaus admin med ordernumret inbyggt i länken. Används alltid som första steg för att hitta kundens uppgifter.</li>
+        <li style="border-left:3px solid #92400E;"><b>🚚 Öppna i DHL</b> — Öppnar DHL-fraktportalen med kundens namn, adress och totalvikt förifyllt. Kräver att analys körts först.</li>
+        <li style="border-left:3px solid #1B873F;"><b>🏭 Öppna i Logistics</b> — För ärenden med Bauhaus Logistics / hemleverans. Kopierar viktdata + EAN-koder till urklipp och öppnar Bauhaus admin för att boka intern upphämtning.</li>
+      </ul>
+    </div>
 
+    <div class="modal-section">
+      <div class="modal-section-title"><span>Tips</span></div>
+      <p><b>Ctrl+Enter</b> analyserar direkt. <b>Namn i makron</b> sparas automatiskt i webbläsaren.</p>
+    </div>
+  </div>
 </div>
 
-<!-- Ladda in delad logik -->
+<!-- ── Scripts ───────────────────────────────────────────────────── -->
 <script src="macros.js"></script>
 <script src="analyzeCase.js"></script>
-<script>
-"use strict";
-
-// ── Konfig ──────────────────────────────────────────────────────────
-const ALGOLIA_APP_ID   = "TGPIEONN2S";
-const ALGOLIA_INDEX    = "nordic_production_sv_products";
-const ALGOLIA_ENDPOINT = `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/queries`;
-
-// Byt ut mot din faktiska Vercel-URL när du deployat:
-// t.ex. "https://bauhaus-retur.vercel.app"
-// Lämna tom sträng för att hoppa över frakt-API (kräver Vercel-deploy)
-const SHIPPING_API = "https://bauhaus-retur-web.vercel.app";  // Fylls i efter deploy
-
-// ── State ───────────────────────────────────────────────────────────
-let resolvedArticles = [];
-let selectedShipping = null;
-let hasRisk = false;
-let userName = "Adam";
-let manualTarget = null;
-let bauhausCookies = "";
-let magentoOrderNumber = null;
-let shippingContents = [];
-let algoliaApiKey = null;
-
-// Simpel in-memory cache (ersätter chrome.storage.local)
-const articleCache = {};
-// ── Lyssna efter meddelanden från bokmärket ──────────────────────────
-window.addEventListener("message", (event) => {
-  if (event.origin !== "https://www.bauhaus.se" && event.origin !== "https://www-admin.bauhaus.se") return;
-
-  if (event.data?.type === "BAUHAUS_COOKIES") {
-    bauhausCookies = event.data.cookies;
-    alert("✓ Cookies mottagna! Klicka nu Hämta frakt.");
-    return;
-  }
-
-  if (event.data?.type === "BAUHAUS_SHIPPING") {
-    const options = event.data.options;
-    if (!Array.isArray(options) || options.length === 0) return;
-    renderShippingOptions(options, true);
-    document.getElementById("shippingError").classList.add("hidden");
-    return;
-  }
-
-  if (event.data?.type === "MAGENTO_DATA") {
-    const { postcode, shippingOptions } = event.data;
-    if (postcode) {
-      document.getElementById("inputPostcode").value = postcode;
-    }
-    if (Array.isArray(shippingOptions) && shippingOptions.length > 0) {
-      renderShippingOptions(shippingOptions, true);
-      document.getElementById("shippingError").classList.add("hidden");
-    }
-    return;
-  }
-});
-
-// ── Init ─────────────────────────────────────────────────────────────
-const inputName = document.getElementById("inputName");
-const savedName = localStorage.getItem("bauhaus_username");
-if (savedName) { userName = savedName; inputName.value = savedName; }
-inputName.addEventListener("change", () => {
-  const n = inputName.value.trim();
-  if (n) { userName = n; localStorage.setItem("bauhaus_username", n); }
-});
-
-const urlParams = new URLSearchParams(window.location.search);
-const urlPostcode = urlParams.get("postcode");
-const urlName = urlParams.get("name");
-const urlAddress = urlParams.get("address");
-const urlCity = urlParams.get("city");
-
-if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
-if (urlName) localStorage.setItem("bauhaus_customer_name", urlName);
-if (urlAddress) localStorage.setItem("bauhaus_customer_address", urlAddress);
-if (urlCity) localStorage.setItem("bauhaus_customer_city", urlCity);
-if (urlPostcode) localStorage.setItem("bauhaus_customer_postcode", urlPostcode);
-const urlPhone = urlParams.get("phone");
-const urlOrder = urlParams.get("order");
-const urlEmail = urlParams.get("email");
-if (urlPhone) localStorage.setItem("bauhaus_customer_phone", urlPhone);
-if (urlOrder) localStorage.setItem("bauhaus_customer_order", urlOrder);
-if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
-if (urlOrder && urlName) {
-  magentoOrderNumber = urlOrder;
-  document.getElementById("magentoBtn").classList.remove("hidden");
-  document.getElementById("magentoBtn").href = `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${urlOrder}`;
-  document.getElementById("dhlBtn").classList.remove("hidden");
-  document.getElementById("logisticsBtn").classList.remove("hidden");
-  const logisticsBtn = document.getElementById("logisticsBtn");
-  logisticsBtn.onclick = (e) => {
-    e.preventDefault();
-    const viktMatch3 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
-    const blData = [
-      viktMatch3 ? viktMatch3[1].replace(",",".") : "",
-      resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-      localStorage.getItem("bauhaus_delivery_date")||"",
-      localStorage.getItem("bauhaus_time_from")||"",
-      localStorage.getItem("bauhaus_time_to")||""
-    ].join("|");
-    navigator.clipboard.writeText(blData);
-    logisticsBtn.textContent = "✅ Kopierat!";
-    setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`); }, 800);
-  };
-  logisticsBtn.href = "#";
-}
-if (urlEmail) localStorage.setItem("bauhaus_customer_email", urlEmail);
-const urlPuzzel = urlParams.get("puzzel");
-if (urlPuzzel) {
-  const puzzelText = urlPuzzel;
-  localStorage.setItem("bauhaus_last_email", puzzelText);
-  document.getElementById("emailInput").value = puzzelText;
-  if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
-  setTimeout(runAnalysis, 100);
-} else if (urlOrder && !urlName) {
-  localStorage.removeItem("bauhaus_last_email");
-  document.getElementById("emailInput").value = "";
-  document.getElementById("manualOrderInput").value = urlOrder;
-  magentoOrderNumber = urlOrder;
-  document.getElementById("magentoBtn").classList.remove("hidden");
-  document.getElementById("magentoBtn").href = `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${urlOrder}`;
-}
-const urlPartner = urlParams.get("partner");
-if (urlPartner) localStorage.setItem("bauhaus_customer_partner", urlPartner);
-
-const savedEmail = localStorage.getItem("bauhaus_last_email");
-if (savedEmail) document.getElementById("emailInput").value = savedEmail;
-
-if (urlPostcode && savedEmail) setTimeout(runAnalysis, 100);
-  
-// ── Knappar ──────────────────────────────────────────────────────────
-document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
-document.getElementById("clearBtn").addEventListener("click", () => {
-  document.getElementById("emailInput").value = "";
-  document.getElementById("resultCard").classList.add("hidden");
-  document.getElementById("manualCard").classList.add("hidden");
-  document.getElementById("caseContent").classList.add("hidden");
-  document.getElementById("casePlaceholder").classList.remove("hidden");
-  resolvedArticles = [];
-  selectedShipping = null;
-});
-
-document.getElementById("emailInput").addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAnalysis();
-});
-
-document.getElementById("fetchShippingBtn").addEventListener("click", doFetchShipping);
-document.getElementById("inputPostcode").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doFetchShipping();
-});
-
-document.getElementById("shippingClearBtn").addEventListener("click", () => {
-  selectedShipping = null;
-  document.getElementById("shippingSelected").classList.add("hidden");
-  document.getElementById("shippingOptions").classList.remove("hidden");
-  updateOutput();
-});
-
-document.getElementById("copyBtn").addEventListener("click", () => {
-  const text = document.getElementById("outputBox").textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const fb = document.getElementById("copyFeedback");
-    fb.classList.add("show");
-    setTimeout(() => fb.classList.remove("show"), 2000);
-  });
-});
-
-document.getElementById("saveManualBtn").addEventListener("click", saveManual);
-
-document.getElementById("copyShippingContentsBtn").addEventListener("click", () => {
-  const text = document.getElementById("shippingContentsBox").textContent;
-  navigator.clipboard.writeText(text);
-});
-
-// ── HUVUDFLÖDE ────────────────────────────────────────────────────────
-async function runAnalysis() {
-  const text = document.getElementById("emailInput").value.trim();
-  if (!text) return;
-  localStorage.setItem("bauhaus_last_email", text);
-  hasRisk = detectRiskKeywords(text);
-
-  // Gemini API – bättre extraktion av datum/tid/order
-  let geminiResult = null;
-  try {
-    const geminiRes = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    });
-    if (geminiRes.ok) geminiResult = await geminiRes.json();
-  } catch (e) {
-    console.log('Gemini ej tillgänglig, använder regex-parser');
-  }
-
-  if (geminiResult?.requested_time) localStorage.setItem("bauhaus_requested_time", geminiResult.requested_time);
-  if (geminiResult?.delivery_date) localStorage.setItem("bauhaus_delivery_date", geminiResult.delivery_date);
-  if (geminiResult?.time_from) localStorage.setItem("bauhaus_time_from", geminiResult.time_from);
-  if (geminiResult?.time_to) localStorage.setItem("bauhaus_time_to", geminiResult.time_to);
-  if (geminiResult?.case_type) localStorage.setItem("bauhaus_case_type", geminiResult.case_type);
-  if (geminiResult?.summary) localStorage.setItem("bauhaus_summary", geminiResult.summary);
-  if (geminiResult?.risk_reason) localStorage.setItem("bauhaus_risk_reason", geminiResult.risk_reason);
-  if (geminiResult?.macro_suggestion) localStorage.setItem("bauhaus_macro_suggestion", geminiResult.macro_suggestion);
-  if (geminiResult?.order) localStorage.setItem("bauhaus_customer_order", geminiResult.order);
-  if (geminiResult?.order) {
-    const manualInput = document.getElementById("manualOrderInput");
-    if (!manualInput.value.trim()) manualInput.value = geminiResult.order;
-  }
-
-  const articles = parseAllArticles(text);
-  const postcode = extractPostcode(text);
-  if (postcode) document.getElementById("inputPostcode").value = postcode;
-  const manualOrder = document.getElementById("manualOrderInput").value.trim();
-  const orderMatch = text.match(/#?(1\d{8})/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
-  if (orderMatch) {
-    magentoOrderNumber = orderMatch[1] || orderMatch[0];
-    document.getElementById("magentoBtn").classList.remove("hidden");
-    document.getElementById("magentoBtn").href = 
-      `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`;
-    const dhlBtn = document.getElementById("dhlBtn");
-    dhlBtn.classList.remove("hidden");
-    document.getElementById("logisticsBtn").classList.remove("hidden");
-    const logisticsBtn = document.getElementById("logisticsBtn");
-    logisticsBtn.onclick = (e) => {
-      e.preventDefault();
-      const viktMatch3 = document.getElementById("outputBox")?.textContent?.match(/Totalvikt: ([\d,.]+)/);
-      const blData = [
-        viktMatch3 ? viktMatch3[1].replace(",",".") : "",
-        resolvedArticles.filter(a=>a.ean).map(a=>`${a.quantity}x ${a.ean}`).join(", ")||"",
-        localStorage.getItem("bauhaus_delivery_date")||"",
-        localStorage.getItem("bauhaus_time_from")||"",
-        localStorage.getItem("bauhaus_time_to")||""
-      ].join("|");
-      navigator.clipboard.writeText(blData);
-      logisticsBtn.textContent = "✅ Kopierat!";
-      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`); }, 800);
-    };
-    logisticsBtn.href = "#";
-    const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
-    const isHD = kollislag.toLowerCase().includes("pall") || 
-      document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");
-    const dhlTemplate = isHD ? "DHL HD Retursedel" : "DHL SP Retursedel";
-    dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` + 
-      `template=${encodeURIComponent(dhlTemplate)}&` +
-      `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name")||"")}` +
-      `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address")||"")}` +
-      `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode")||"")}` +
-      `&city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city")||"")}` +
-      `&phone=${encodeURIComponent(localStorage.getItem("bauhaus_customer_phone")||"")}` +
-      `&email=${encodeURIComponent(localStorage.getItem("bauhaus_customer_email")||"")}` +
-      `&order=${encodeURIComponent(localStorage.getItem("bauhaus_customer_order")||"")}` +
-      `&weight=${encodeURIComponent(document.getElementById("outputBox").textContent.match(/Totalvikt: ([\d,]+)/)?.[1]||"")}`;
-  }
-  if (articles.length === 0) {
-    setStatus("Inga artikelnummer hittades i texten.", false);
-    return;
-  }
-  document.getElementById("resultCard").classList.remove("hidden");
-  setStatus(`Slår upp ${articles.length} artikel(ar)…`, true);
-  resolvedArticles = articles.map(a => ({ ...a, sku: null, ean: null, weight: null, error: null }));
-  await Promise.all(articles.map((art, i) => lookupOne(art, i)));
-  consolidate();
-  renderResults();
-  updateOutput();
-  setStatus("", false);
-  const analysis = analyzeCase(text, {
-    shippingLabel: selectedShipping?.label ?? "",
-    totalWeight: resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0),
-    hasRisk,
-  });
-  if (geminiResult && !geminiResult.error) {
-    renderGeminiAnalysis(geminiResult);
-  } else {
-    renderCaseAnalysis(analysis);
-  }
-  updateShippingContents();
-  if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
-    await doFetchShipping(true);
-  }
-}
-
-// ── Artikel-uppslag ───────────────────────────────────────────────────
-async function lookupOne(article, idx) {
-  const { articleNumber, quantity } = article;
-
-  if (articleCache[articleNumber]) {
-    resolvedArticles[idx] = { articleNumber, quantity, ...articleCache[articleNumber], error: null };
-    return;
-  }
-
-  try {
-    const data = await fetchProductFromAlgolia(articleNumber);
-    articleCache[articleNumber] = data;
-    resolvedArticles[idx] = { articleNumber, quantity, ...data, error: null };
-  } catch (err) {
-    resolvedArticles[idx] = { articleNumber, quantity, sku: null, ean: null, weight: null, error: err.message };
-  }
-}
-
-function updateShippingContents() {
-  // -- GRÄNSVÄRDEN (Lätta att justera på måndag!) --
-  const LIMIT_HD_WEIGHT = 20;   // Över 20 kg -> Hemleverans (HD)
-  const LIMIT_HD_LENGTH = 120;  // Över 120 cm -> Hemleverans (HD)
-  const LIMIT_PALL_WEIGHT = 30; // Över 30 kg -> Pall
-  const LIMIT_PALL_LENGTH = 150;// Över 150 cm -> Pall
-
-  const lines = resolvedArticles
-    .filter(a => a.ean)
-    .map(a => `${a.quantity}x ${a.shortName || a.articleNumber}`)
-    .join("\n");
-  document.getElementById("shippingContentsBox").textContent = lines;
-
-  let totalWeight = 0;
-  let totalVolume = 0;
-  let maxL = 0, maxB = 0, maxH = 0;
-  let hasDimensions = false;
-  let totalItems = 0;
-  const artLines = [];
-
-  for (const art of resolvedArticles.filter(a => a.ean)) {
-    totalWeight += (art.weight ?? 0) * art.quantity;
-    totalItems += art.quantity;
-    
-    if (art.dimensions) {
-      hasDimensions = true;
-      // Konvertera från mm till cm
-      const l = (art.dimensions.length ?? 0) / 10;
-      const b = (art.dimensions.width ?? 0) / 10;
-      const h = (art.dimensions.height ?? 0) / 10;
-      
-      // Sortera måtten för att säkerställa korrekt orientering (längst sida först)
-      const sorted = [l, b, h].sort((x, y) => y - x);
-      
-      maxL = Math.max(maxL, sorted[0]);
-      maxB = Math.max(maxB, sorted[1]);
-      maxH = Math.max(maxH, sorted[2]);
-      totalVolume += (l * b * h) * art.quantity;
-      
-      if (l > 0 && b > 0 && h > 0) {
-        const uncertain = art.dimensionsConfidence === "partial" || 
-        (art.dimensions && art.dimensions.width === art.dimensions.height) ||
-        (art.dimensions && art.dimensions.height < 200) ? " ⚠️" : "";
-        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm${uncertain}`);
-      } else {
-        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
-      }
-    } else {
-      artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
-    }
-  }
-
-// 1. TRESTAGESLOGIK: Ombud, Hemleverans (HD) eller Pall
-  let isPallet = false;
-  let isHeavyPackage = false;
-
-  if (totalWeight >= LIMIT_PALL_WEIGHT || maxL >= LIMIT_PALL_LENGTH) {
-    isPallet = true;
-  } else if (totalWeight >= LIMIT_HD_WEIGHT || maxL >= LIMIT_HD_LENGTH) {
-    isHeavyPackage = true;
-  }
-
-  // Exakta termer enligt DHL-portalen (det som ska kopieras)
-  let kollislag = "Paket";
-  let extraInfo = ""; // För att ändå ge dig en visuell varning om HD-leverans
-
-  if (isPallet) {
-    kollislag = totalWeight > 500 ? "Pall (övriga mått)" : "EUR helpall (120x80)";
-  } else if (isHeavyPackage) {
-    kollislag = "Paket";
-    // Ger dig en diskret notis bredvid knappen att det är HD
-    extraInfo = " <span style='color: var(--warn-text); font-size: 11px; font-weight: 500; margin-left: 6px;'>(Kräver Hemleverans/HD)</span>";
-  }
-
-  // 2. BERÄKNA DIMENSIONER & GENERERA UI-KNAPPAR
-  let buttonsHtml = "";
-  let warningHtml = "";
-
-  if (isPallet) {
-    // Standard EUR-pall är 120x80 cm. Pallens egen konstruktion bygger ca 15 cm på höjden.
-    const palletH = Math.round(15 + maxH);
-    // Om en vara sticker ut, expandera pallmåttet dynamiskt efter varans faktiska storlek
-    const finalPalletL = Math.max(120, Math.round(maxL));
-    const finalPalletB = Math.max(80, Math.round(maxB));
-    const palletDims = `${finalPalletL}x${finalPalletB}x${palletH}`;
-
-    buttonsHtml = `
-      <div style="font-size:12px;color:var(--grey-700);margin-top:4px;">
-        <div>🏗️ <b>Pall-mått:</b> ${finalPalletL}×${finalPalletB}×${palletH} cm <span style="color:var(--grey-500);font-size:11px;">– EUR-pall + 15cm pallbädd + maxhöjd</span></div>
-      </div>
-    `;
-  } else {
-    // Beräkningar för paket (Marginal 20%) - gäller både Ombud och HD
-    const margin = 1.20;
-    const finalMaxL = Math.round(maxL * margin);
-    const finalMaxB = Math.round(maxB * margin);
-    const finalMaxH = Math.round(maxH * margin);
-    const maxDims = hasDimensions ? `${finalMaxL}x${finalMaxB}x${finalMaxH}` : "–";
-
-    const cbrtSide = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
-    const volDims = cbrtSide ? `${cbrtSide}x${cbrtSide}x${cbrtSide}` : "–";
-
-    // DHL Maxmåttskontroll (Längd + Omkrets > 300 cm)
-    const girthMaxMethod = finalMaxL + 2 * (finalMaxB + finalMaxH);
-    const girthVolMethod = cbrtSide ? cbrtSide + 2 * (cbrtSide + cbrtSide) : 0;
-    
-    if (girthMaxMethod > 300 || girthVolMethod > 300) {
-      warningHtml = `<div class="warn-box" style="margin-top:6px; font-size:11px;">⚠️ <b>DHL Maxmått:</b> Uträknad paketvolym överstiger maxgränsen (Längd + Omkrets > 300 cm). Överväg att ändra till pall eller granska manuellt.</div>`;
-    }
-
-    // Rekommendation: Volymbaserat (kubikrot) om det är fler än 2 artiklar, annars Max-mått
-    const recommendVol = totalItems > 2;
-
-    buttonsHtml = `
-      <div style="font-size:12px;color:var(--grey-700);margin-top:4px;">
-        <div style="margin-bottom:4px;" title="Passar när allt ryms i en kartong. Tar den största artikelns mått + 20% marginal för emballage.">📦 <b>Max-mått:</b> ${maxDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Tar max från största artikeln +20%</span></div>
-        <div title="Passar när många små produkter packas ihop. Räknar total volym och ger kubiskt estimat + 20% marginal.">📊 <b>Volymbaserat:</b> ${volDims.replace(/x/g, "×")} cm <span style="color:var(--grey-500);font-size:11px;">– Total volym → kubikrot +20%</span></div>
-      </div>
-    `;
-  }
-
-  // 3. UPPDATERA UI
-  const kollislagElement = document.getElementById("shippingKollislag");
-  kollislagElement.innerHTML = `
-    <label style="font-size:12px;font-weight:600;color:var(--grey-700);">Kollislag:</label>
-    <select id="kollislagSelect" style="margin-left:6px;padding:4px 8px;font-size:12px;border:1px solid var(--grey-200);border-radius:4px;font-family:var(--font);">
-      <option value="Paket" ${kollislag === "Paket" ? "selected" : ""}>Paket</option>
-      <option value="EUR halvpall (60x80)" ${kollislag === "EUR halvpall (60x80)" ? "selected" : ""}>EUR halvpall (60x80)</option>
-      <option value="EUR helpall (120x80)" ${kollislag === "EUR helpall (120x80)" ? "selected" : ""}>EUR helpall (120x80)</option>
-      <option value="Pall (övriga mått)" ${kollislag === "Pall (övriga mått)" ? "selected" : ""}>Pall (övriga mått)</option>
-      <option value="Ospecificerat" ${kollislag === "Ospecificerat" ? "selected" : ""}>Ospecificerat</option>
-    </select>
-    ${extraInfo}
-    <span style="margin-left:12px;font-weight:normal;color:var(--grey-500);">| Totalvikt: <b>${totalWeight.toFixed(2)} kg</b></span>
-  `;
-
-  const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
-  
-  document.getElementById("shippingDimensions").innerHTML = `
-    <div style="margin-bottom:8px;font-family:monospace;font-size:11px;color:var(--grey-700);">${artText.replace(/\n/g, "<br>")}</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
-      ${buttonsHtml}
-    </div>
-    ${warningHtml}
-  `;
-
-  // Dropdown-ändring uppdaterar mått-visning
-  const select = document.getElementById("kollislagSelect");
-  if (select) {
-    select.addEventListener("change", () => {
-      const val = select.value;
-      const isPall = val.toLowerCase().includes("pall");
-      const dimsDiv = document.getElementById("shippingDimensions").querySelector("div:last-child");
-      if (isPall) {
-        const palletH = Math.round(15 + maxH);
-        const finalPalletL = Math.max(120, Math.round(maxL));
-        const finalPalletB = Math.max(80, Math.round(maxB));
-        dimsDiv.innerHTML = `<div style="font-size:12px;color:var(--grey-700);margin-top:4px;"><div>🏗️ <b>Pall-mått:</b> ${finalPalletL}×${finalPalletB}×${palletH} cm <span style="color:var(--grey-500);font-size:11px;">– EUR-pall + 15cm pallbädd + maxhöjd</span></div></div>`;
-      } else {
-        const margin = 1.20;
-        const fL = Math.round(maxL * margin);
-        const fB = Math.round(maxB * margin);
-        const fH = Math.round(maxH * margin);
-        const cbrt = hasDimensions ? Math.round(Math.cbrt(totalVolume) * margin) : null;
-        dimsDiv.innerHTML = `<div style="font-size:12px;color:var(--grey-700);margin-top:4px;"><div style="margin-bottom:4px;" title="Passar när allt ryms i en kartong. Tar den största artikelns mått + 20% marginal för emballage.">📦 <b>Max-mått:</b> ${fL}×${fB}×${fH} cm</div><div title="Passar när många små produkter packas ihop. Räknar total volym och ger kubiskt estimat + 20% marginal.">📊 <b>Volymbaserat:</b> ${cbrt ? `${cbrt}×${cbrt}×${cbrt}` : "–"} cm</div></div>`;
-      }
-    });
-  }
-  
-  // Hantera saknade mått
-  const missingDims = resolvedArticles
-    .filter(a => a.ean && !a.dimensions)
-    .map(a => a.articleNumber)
-    .join(", ");
-  const missingEl = document.getElementById("shippingMissingDims");
-  if (missingDims.length > 0) {
-    missingEl.textContent = `⚠️ Mått saknas för artiklar: ${missingDims}`;
-    missingEl.classList.remove("hidden");
-  } else {
-    missingEl.classList.add("hidden");
-  }
-}
-
-async function fetchProductFromAlgolia(articleNumber) {
-  const res = await fetch(`${SHIPPING_API}/api/shipping?action=product`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ articleNumber }),
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error);
-  return data.data;
-}
-
-// ── Konsolidera dubbletter ────────────────────────────────────────────
-function consolidate() {
-  const merged = new Map();
-  const failures = [];
-  for (const art of resolvedArticles) {
-    if (art.error || !art.ean) { failures.push(art); continue; }
-    if (merged.has(art.ean)) {
-      merged.get(art.ean).quantity += art.quantity;
-    } else {
-      merged.set(art.ean, { ...art });
-    }
-  }
-  const successNums = new Set([...merged.values()].flatMap(a => [a.articleNumber, a.ean, a.sku].filter(Boolean)));
-  resolvedArticles = [...merged.values(), ...failures.filter(f => !successNums.has(f.articleNumber))];
-}
-
-// ── Rendera resultatlista ─────────────────────────────────────────────
-function renderResults() {
-  const list = document.getElementById("resultList");
-  list.innerHTML = "";
-
-  document.getElementById("riskWarn").classList.toggle("hidden", !hasRisk);
-
-  for (const art of resolvedArticles) {
-    const row = document.createElement("div");
-    row.className = "result-row" + (art.error ? " result-row--error" : "");
-
-    if (art.ean) {
-      const isSku = s => s && /^\d{7,8}$/.test(s);
-      const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
-
-      const renderLine = (qty) => art.weight !== null ? `${qty}x ${displaySku} / ${art.ean}` : `${qty}x ${displaySku} / ${art.ean} ⚠️ vikt saknas`;
-
-      row.innerHTML = `
-        <span class="result-line">${esc(renderLine(art.quantity))}</span>
-        <div class="qty-controls">
-          <button class="qty-btn">−</button>
-          <span class="qty-val">${art.quantity}</span>
-          <button class="qty-btn">+</button>
-        </div>
-      `;
-
-      const [minus, plus] = row.querySelectorAll(".qty-btn");
-      const qtySpan = row.querySelector(".qty-val");
-      const lineSpan = row.querySelector(".result-line");
-
-      const upd = delta => {
-        art.quantity = Math.max(1, art.quantity + delta);
-        qtySpan.textContent = art.quantity;
-        lineSpan.textContent = renderLine(art.quantity);
-        updateOutput();
-      };
-      minus.addEventListener("click", () => upd(-1));
-      plus.addEventListener("click",  () => upd(+1));
-    } else {
-      row.innerHTML = `
-        <span class="result-line result-line--error">✗ ${esc(art.articleNumber)} – hittades inte</span>
-        <button class="btn btn-secondary btn-sm" data-art="${esc(art.articleNumber)}">Ange manuellt</button>
-      `;
-      row.querySelector("button").addEventListener("click", () => openManual(art.articleNumber));
-    }
-
-    list.appendChild(row);
-  }
-}
-
-// ── Output ────────────────────────────────────────────────────────────
-function updateOutput() {
-  const lines = [];
-  let totalWeight = 0;
-  const isSku = s => s && /^\d{7,8}$/.test(s);
-  for (const art of resolvedArticles.filter(a => a.ean)) {
-    const displaySku = isSku(art.sku) ? art.sku : isSku(art.articleNumber) ? art.articleNumber : art.sku || "–";
-    if (art.weight !== null) {
-      const lw = art.quantity * art.weight;
-      totalWeight += lw;
-      lines.push(`${art.quantity}x ${displaySku} / ${art.ean}`);
-    } else {
-      lines.push(`${art.quantity}x ${displaySku} / ${art.ean} (vikt saknas – ange manuellt)`);
-    }
-  }
-  if (lines.length > 0) {
-    lines.push("");
-    lines.push(`Totalvikt: ${fmtW(totalWeight)} kg`);
-  }
-  if (hasRisk) {
-    lines.push("");
-    lines.push("⚠️ OBS: Texten indikerar öppnad/använd produkt.");
-  }
-  document.getElementById("outputBox").textContent = lines.join("\n");
-}
-  
-// ── Frakt ─────────────────────────────────────────────────────────────
-async function doFetchShipping(autoSelect = false) {
-  const postcode = document.getElementById("inputPostcode").value.trim().replace(/\s/g, "");
-  if (!/^\d{5}$/.test(postcode)) {
-    showShippingError("Ange ett giltigt 5-siffrigt postnummer.");
-    return;
-  }
-
-  const articles = resolvedArticles
-    .filter(a => a.sku && a.ean && a.weight !== null)
-    .map(a => ({ sku: a.sku, quantity: a.quantity }));
-
-  if (articles.length === 0) {
-    showShippingError("Inga giltiga artiklar för fraktberäkning.");
-    return;
-  }
-
-  // Kolla om frakt-API är konfigurerat
-  if (true) {
-    // Visa fallback-prislista baserat på totalvikt
-    const totalWeight = resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0);
-    const fallback = getFallbackShipping(totalWeight);
-    renderShippingOptions(fallback, autoSelect);
-    return;
-  }
-
-  document.getElementById("shippingStatus").classList.remove("hidden");
-  document.getElementById("shippingError").classList.add("hidden");
-  document.getElementById("shippingOptions").classList.add("hidden");
-  document.getElementById("fetchShippingBtn").disabled = true;
-
-  try {
-    const res = await fetch(`${SHIPPING_API}/api/shipping?action=shipping`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postcode, articles, cookies: bauhausCookies }),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-    renderShippingOptions(data.options, autoSelect);
-  } catch (err) {
-    showShippingError(`Kunde inte hämta frakt: ${err.message}`);
-  } finally {
-    document.getElementById("shippingStatus").classList.add("hidden");
-    document.getElementById("fetchShippingBtn").disabled = false;
-  }
-}
-
-function getFallbackShipping(totalWeight) {
-  return [
-    { label: "PostNord Postombud", price: 69 },
-    { label: "DHL Servicepoint", price: 69 },
-    { label: "Airmee Servicepoint", price: 69 },
-    { label: "DHL Hemleverans", price: 0 },
-  ];
-}
-
-function renderShippingOptions(options, autoSelect) {
-  const container = document.getElementById("shippingOptions");
-  container.innerHTML = "";
-
-  options.forEach((opt, i) => {
-    const btn = document.createElement("button");
-    btn.className = "shipping-opt" + (i === 0 ? " shipping-opt--cheapest" : "");
-    btn.innerHTML = `
-      <span>${esc(opt.label)}</span>
-      <span class="shipping-opt-price">${opt.price === 0 ? "Varierar" : opt.price + " kr"}</span>
-    `;
-    btn.addEventListener("click", () => selectShipping(opt));
-    container.appendChild(btn);
-  });
-
-  if (autoSelect && options.length > 0) {
-    selectShipping(options[0]);
-    container.classList.add("hidden");
-  } else {
-    container.classList.remove("hidden");
-  }
-}
-
-function selectShipping(opt) {
-  selectedShipping = opt;
-  document.getElementById("shippingSelectedText").textContent = `✓ ${opt.label} – ${opt.price} kr`;
-  document.getElementById("shippingSelected").classList.remove("hidden");
-  document.getElementById("shippingOptions").classList.add("hidden");
-  updateOutput();
-}
-
-function showShippingError(msg) {
-  const el = document.getElementById("shippingError");
-  el.textContent = msg;
-  el.classList.remove("hidden");
-}
-
-// ── Manuell inmatning ─────────────────────────────────────────────────
-function openManual(articleNumber) {
-  manualTarget = articleNumber;
-  document.getElementById("manualArticleNum").textContent = articleNumber;
-  document.getElementById("inputEan").value = "";
-  document.getElementById("inputWeight").value = "";
-  document.getElementById("manualCard").classList.remove("hidden");
-  document.getElementById("manualCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-
-function saveManual() {
-  const ean = document.getElementById("inputEan").value.trim();
-  const weight = parseFloat(document.getElementById("inputWeight").value.replace(",", "."));
-  const eanEl = document.getElementById("inputEan");
-  const weightEl = document.getElementById("inputWeight");
-
-  const eanOk = /^\d{8,14}$/.test(ean);
-  const weightOk = !isNaN(weight) && weight > 0;
-  eanEl.classList.toggle("invalid", !eanOk);
-  weightEl.classList.toggle("invalid", !weightOk);
-  if (!eanOk || !weightOk) return;
-
-  const idx = resolvedArticles.findIndex(a => a.articleNumber === manualTarget);
-  if (idx !== -1) {
-    const sku = /^\d{7,8}$/.test(manualTarget) ? manualTarget : (resolvedArticles[idx].sku || "");
-    resolvedArticles[idx] = { ...resolvedArticles[idx], sku, ean, weight, error: null };
-    articleCache[manualTarget] = { sku, ean, weight };
-  }
-
-  document.getElementById("manualCard").classList.add("hidden");
-  consolidate();
-  renderResults();
-  updateOutput();
-}
-
-// ── Ärendeanalys ──────────────────────────────────────────────────────
-function renderCaseAnalysis(analysis) {
-  document.getElementById("casePlaceholder").classList.add("hidden");
-  document.getElementById("caseContent").classList.remove("hidden");
-
-  const badge = document.getElementById("caseTypeBadge");
-  if (analysis.caseType) {
-    badge.textContent = `Ärendetyp: ${analysis.caseType}`;
-    badge.classList.remove("hidden");
-  } else {
-    badge.classList.add("hidden");
-  }
-
-  const warningsEl = document.getElementById("caseWarnings");
-  warningsEl.innerHTML = analysis.warnings.map(w => `<div class="case-warn-item">${esc(w)}</div>`).join("");
-
-  const macroListEl = document.getElementById("macroList");
-  macroListEl.innerHTML = "";
-
-  if (analysis.macroSuggestions.length === 0) {
-    macroListEl.innerHTML = `<p style="font-size:12px;color:var(--grey-500);">Inga makroförslag för denna text.</p>`;
-    return;
-  }
-
-  analysis.macroSuggestions.forEach(({ macro }) => {
-    const btn = document.createElement("button");
-    btn.className = "macro-btn";
-    btn.innerHTML = `
-      <span class="macro-title">${esc(macro.title)}</span>
-      <span class="macro-desc">${esc(macro.description)}</span>
-    `;
-    btn.addEventListener("click", () => {
-      const text = macro.text
-        .replace(/XXX kr/g, selectedShipping ? `${selectedShipping.price} kr` : "XXX kr")
-        .replace(/\bAdam\b/g, userName);
-      navigator.clipboard.writeText(text).then(() => {
-        btn.classList.add("macro-btn--copied");
-        btn.querySelector(".macro-title").textContent = "✓ Kopierad!";
-        setTimeout(() => {
-          btn.classList.remove("macro-btn--copied");
-          btn.querySelector(".macro-title").textContent = macro.title;
-        }, 2000);
-      });
-    });
-    macroListEl.appendChild(btn);
-  });
-}
-
-function renderGeminiAnalysis(g) {
-  document.getElementById("macroList").innerHTML = "";
-  const badge = document.getElementById("caseTypeBadge");
-  if (g.case_type) {
-    badge.textContent = `Ärendetyp: ${g.case_type}`;
-    badge.classList.remove("hidden");
-  }
-  if (g.summary) {
-    const existing = document.getElementById("geminiSummary");
-    const el = existing || document.createElement("div");
-    el.id = "geminiSummary";
-    el.style.cssText = "font-size:12px;color:var(--grey-700);margin-bottom:8px;padding:8px 10px;background:var(--grey-50);border-radius:4px;border:1px solid var(--grey-200);";
-    el.textContent = `📝 ${g.summary}`;
-    if (!existing) badge.insertAdjacentElement('afterend', el);
-  }
-  if (g.risk && g.risk_reason) {
-    const warningsEl = document.getElementById("caseWarnings");
-    const div = document.createElement("div");
-    div.className = "case-warn-item";
-    div.textContent = `⚠️ ${g.risk_reason}`;
-    warningsEl.appendChild(div);
-    warningsEl.classList.remove("hidden");
-  }
-  if (g.macro_suggestion) {
-    const isDE = g.macro_suggestion === "DE-retur";
-    const suggestions = isDE ? [
-      "SE Webshop OF - DE STHLM - Retur",
-      "SE Webshop OF - DE STHLM Sydost / Sydväst - Retur",
-      "SE Webshop OF - DE GBG - Retur",
-      "SE Webshop OF - DE GBG Syd / Norr - Retur",
-      "SE Webshop OF - DE Knivsta - Retur",
-      "SE Webshop OF - DE NKPG - Retur",
-      "SE Webshop OF - DE Skåne - Retur",
-      "SE Webshop OF - DE Skåne Ost - Retur",
-      "SE Webshop OF - DE Växjö - Retur",
-      "SE Webshop OF - DE Växsjö Norr - Retur",
-      "SE Webshop OF - DE Bokad Retur"
-    ] : [g.macro_suggestion];
-  
-    const macroListEl = document.getElementById("macroList");
-    macroListEl.innerHTML = "";
-  
-    const tip = document.createElement("div");
-    tip.style.cssText = "font-size:12px;color:var(--grey-700);margin-bottom:8px;padding:6px 10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:4px;";
-    tip.innerHTML = `💡 <b>Gemini föreslår${isDE ? ' (välj region):' : ':'}</b>`;
-    macroListEl.appendChild(tip);
-  
-    suggestions.forEach(name => {
-      const btn = document.createElement("button");
-      btn.className = "macro-btn";
-      btn.innerHTML = `<span class="macro-title">${esc(name)}</span>`;
-      btn.addEventListener("click", () => {
-        navigator.clipboard.writeText(name).then(() => {
-          btn.classList.add("macro-btn--copied");
-          btn.querySelector(".macro-title").textContent = "✓ Kopierat!";
-          setTimeout(() => {
-            btn.classList.remove("macro-btn--copied");
-            btn.querySelector(".macro-title").textContent = name;
-          }, 2000);
-        });
-      });
-      macroListEl.appendChild(btn);
-    });
-  
-    document.getElementById("caseContent").classList.remove("hidden");
-    document.getElementById("casePlaceholder").classList.add("hidden");
-  }
-}
-  
-// ── Parsning (portad från parse.js) ───────────────────────────────────
-function parseAllArticles(text) {
-  // Ta bort EAN som redan är kopplad till artikelnummer (format: "2x 1474110 / 4024506352209")
-  text = text.replace(/(\d+)\s*x\s*\d{7}\s*\/\s*(\d{13})/gi, (match, qty, ean) => match.replace(ean, ''));
-  const articlePositions = [];
-  const NUMBER_RE = /(?<![\d])(?!\()(\d{13}|\d{7})(?![\d])/g;
-  let m;
-  while ((m = NUMBER_RE.exec(text)) !== null) {
-    articlePositions.push({ number: m[1], pos: m.index, end: m.index + m[1].length });
-  }
-  if (articlePositions.length === 0) return [];
-
-  const QTY_RE = /(?:\bx(\d{1,3})\b|\b(\d{1,3})\s*(?:st\.?|x|pcs?)\b|[Aa]ntal[:\s]+(\d{1,3}))/gi;
-  const quantities = [];
-  while ((m = QTY_RE.exec(text)) !== null) {
-    const qty = parseInt(m[1] ?? m[2] ?? m[3], 10);
-    quantities.push({ qty, pos: m.index, end: m.index + m[0].length });
-  }
-
-  const assigned = new Map();
-  for (const art of articlePositions) assigned.set(art.number + ":" + art.pos, []);
-
-  for (const q of quantities) {
-    let bestScore = Infinity, bestKey = null;
-    for (const art of articlePositions) {
-      const gapAfterQty = art.pos - q.end;
-      const gapAfterArt = q.pos - art.end;
-      let dist;
-      if (gapAfterQty >= 0 && gapAfterQty <= 80) dist = gapAfterQty * 0.9;
-      else if (gapAfterArt >= 0 && gapAfterArt <= 80) dist = gapAfterArt * 1.1;
-      else continue;
-      if (dist < bestScore) { bestScore = dist; bestKey = art.number + ":" + art.pos; }
-    }
-    if (bestKey) assigned.get(bestKey).push(q.qty);
-  }
-
-  const seen = new Map();
-  for (const art of articlePositions) {
-    const qtys = assigned.get(art.number + ":" + art.pos);
-    const qty = qtys.length > 0 ? qtys.reduce((a, b) => a + b, 0) : 1;
-    if (seen.has(art.number)) seen.set(art.number, seen.get(art.number) + qty);
-    else seen.set(art.number, qty);
-  }
-
-  return [...seen.entries()].map(([articleNumber, quantity]) => ({ articleNumber, quantity }));
-}
-
-function detectRiskKeywords(text) {
-  const RISK_KEYWORDS = ["öppnat","öppnad","använd","använts","trasig","trasigt","monterad","monterat","skadad","defekt","brutet","bruten","sönder"];
-  const NEGATION_PATTERNS = [
-    /o[öo]ppna[dt]/g, /oo?ppna[dt]/g, /oanvänd[ts]?/g, /oanvänt/g,
-    /omonterad[t]?/g, /otrasig[t]?/g, /oskadad[t]?/g, /odefekt/g,
-    /obruten/g, /obrutet/g,
-    /(?:ej|inte|aldrig|utan att|ej heller)\s+(?:\w+\s+){0,2}(?:öppna[dt]|använd[ts]?|monterad[t]?|trasig[t]?|skadad[t]?|defekt|bruten|brutet|sönder)/g,
-    /har\s+(?:inte|aldrig|ej)\s+(?:öppna[dt]|använd[ts]?|monterat?)/g,
-    /i\s+original(?:förpackning|emballage|skick|förpack)/g,
-    /fortfarande\s+(?:förseglad|plomberad|oöppnad|oanvänd)/g,
-    /i\s+o(?:brutet|skadat|öppnat)\s+skick/g,
-  ];
-  let cleaned = text.toLowerCase();
-  for (const p of NEGATION_PATTERNS) cleaned = cleaned.replace(p, " ");
-  return RISK_KEYWORDS.some(kw => cleaned.includes(kw));
-}
-
-function extractPostcode(text) {
-  // Exkludera telefonnummer (innehåller bindestreck eller börjar med 0)
-  const cleaned = text.replace(/\d[\d\s-]{6,}\d/g, " ");
-  const re = /(?<![\d])(?:(\d{3})\s(\d{2})|(\d{5}))(?![\d])/g;
-  let m;
-  while ((m = re.exec(cleaned)) !== null) {
-    const raw = m[0].replace(/\s/g, "");
-    if (raw >= "10000" && raw <= "99999") return raw;
-  }
-  return null;
-}
-
-// ── Hjälpfunktioner ───────────────────────────────────────────────────
-function fmtW(n) { return parseFloat(n.toFixed(3)).toString().replace(".", ","); }
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-function setStatus(msg, loading) {
-  const el = document.getElementById("statusText");
-  const msgEl = document.getElementById("statusMsg");
-  if (msg) {
-    msgEl.textContent = msg;
-    el.classList.remove("hidden");
-  } else {
-    el.classList.add("hidden");
-  }
-}
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>

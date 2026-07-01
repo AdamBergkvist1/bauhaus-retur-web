@@ -150,8 +150,23 @@ if (urlPuzzel) {
   magentoBtn.href = `https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${urlOrder}`;
 }
 
-const urlPartner = urlParams.get("partner");
+const urlPartner  = urlParams.get("partner");
 if (urlPartner) localStorage.setItem("bauhaus_customer_partner", urlPartner);
+
+const urlTracking = urlParams.get("tracking");
+if (urlTracking) localStorage.setItem("bauhaus_tracking_number", urlTracking);
+
+// Artiklar från Magento-bokmärket (Fall 1) — används som fallback om
+// Gemini/regex inte hittar artiklar i mejltexten
+const urlProducts = urlParams.get("products");
+let magentoProducts = [];
+if (urlProducts) {
+  try {
+    magentoProducts = JSON.parse(urlProducts);
+  } catch (e) {
+    console.log("Kunde inte parsa products-param:", e);
+  }
+}
 
 const savedEmail = localStorage.getItem("bauhaus_last_email");
 if (savedEmail) document.getElementById("emailInput").value = savedEmail;
@@ -315,8 +330,20 @@ async function runAnalysis() {
   }
 
   if (articles.length === 0) {
-    setStatus("Inga artikelnummer hittades i texten.", false);
-    return;
+    // Fallback: använd artiklar från Magento-bokmärket om sådana finns
+    if (magentoProducts.length > 0) {
+      articles = magentoProducts.map(p => ({
+        articleNumber: String(p.articleNumber).replace(/\D/g, "").slice(0, 7),
+        quantity: Number.isFinite(p.quantity) && p.quantity > 0 ? p.quantity : 1,
+      })).filter(a => /^\d{7}$/.test(a.articleNumber));
+      if (articles.length > 0) {
+        setStatus("⚠️ Inga artiklar i mejltexten — använder artiklar från Magento-ordern.", false);
+      }
+    }
+    if (articles.length === 0) {
+      setStatus("Inga artikelnummer hittades i texten.", false);
+      return;
+    }
   }
   document.getElementById("resultCard").classList.remove("hidden");
   setStatus(`Slår upp ${articles.length} artikel(ar)…`, true);

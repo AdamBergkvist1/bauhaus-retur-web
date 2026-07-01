@@ -174,19 +174,30 @@ if (urlPostcode && savedEmail) setTimeout(runAnalysis, 100);
 
 setStep(1);
 
-// ── BroadcastChannel: lyssnar på DHL-spårningsdata från Magento-bokmärket ──
+// ── localStorage: lyssnar på DHL-spårningsdata från Magento-bokmärket ──
 let dhlTrackingData = null;
-try {
-  const dhlChannel = new BroadcastChannel('bauhaus_dhl_tracking');
-  dhlChannel.addEventListener('message', (event) => {
-    if (event.data?.type === 'DHL_TRACKING') {
-      dhlTrackingData = event.data;
-      showDHLCard();
+
+function checkDHLTracking() {
+  try {
+    const raw = localStorage.getItem('bauhaus_dhl_tracking');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    // Ignorera gammal data (äldre än 10 minuter)
+    if (Date.now() - data.timestamp > 600000) {
+      localStorage.removeItem('bauhaus_dhl_tracking');
+      return;
     }
-  });
-} catch (e) {
-  console.log('BroadcastChannel ej tillgänglig:', e);
+    if (dhlTrackingData?.timestamp === data.timestamp) return; // redan visat
+    dhlTrackingData = data;
+    localStorage.removeItem('bauhaus_dhl_tracking');
+    showDHLCard();
+  } catch (e) {}
 }
+
+// Kolla var 2:a sekund om ny spårningsdata finns
+setInterval(checkDHLTracking, 2000);
+// Kolla direkt vid sidladdning
+checkDHLTracking();
 
 function showDHLCard() {
   if (!dhlTrackingData) return;

@@ -1,16 +1,18 @@
-# Projektlogg: Bauhaus Retur-tillägg
-# Senast uppdaterad: 2026-06-26
+# Projektlogg: Bauhaus Returhantering — Webbapp
+# Senast uppdaterad: 2026-06-30
 
 ## 🎯 Målsättning
-Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera data 
+Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera data
 (vikt, antal, frakt) och eliminera manuellt arbete i Puzzel-ärendesystemet.
+Webbappen (bauhaus-retur-web.vercel.app) ersatte det tidigare Chrome-tillägget
+efter att IT blockerade extensions.
 
 ---
 
 ## ✅ Klart
 
+### Kärnfunktionalitet
 - Artikeluppslag via Algolia (EAN + vikt + SKU)
-- Automatisk varukorgsskapning via Bauhaus REST API
 - Fraktalternativ hämtas automatiskt baserat på artiklar + postnummer
 - Postnummer extraheras automatiskt från markerad text
 - Billigaste frakt väljs automatiskt, kan bytas manuellt
@@ -18,136 +20,247 @@ Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera dat
 - Riskords-detektion (öppnad/använd/trasig) med negationshantering
 - Dubbelnoterings-detektion (samma vara som SKU + EAN)
 - Manuell inmatning som fallback om artikel ej hittas
-- Självläkande cache (rensar felaktiga Magento-ID:n automatiskt)
-- Måttextraktion sparas i cache (redo att användas)
-- Jest-testsvit med 63 testfall (npm test)
-- Auto-läsning med fallback-knapp "Läs hela sidan" (v8.2)
-- Konfigurerbart namn i makrotexter via header-input (sparas i localStorage)
-- **Gemini API-integration (2026-06-26):**
-  - Vercel serverless function: api/gemini.js
-  - Modell: gemini-3.1-flash-lite (500 RPD på free tier)
-  - AQ.-nyckelformat (nytt Google-format juni 2026) via x-goog-api-key header
-  - Extraherar: ordernummer, requested_time (fritext), artiklar
-  - requested_time är fritext – inte hårdkodat HH:MM – eftersom tidslottar
-    varierar per region/distributör (Stockholm: 10-15/16-21, övriga: 07-12:30 etc.)
-  - Sparas i localStorage: bauhaus_requested_time
-  - Gemini-fel är tysta (fallback till regex-parser utan att krascha)
-- **Puzzel-bokmärke uppdaterat (2026-06-26):**
-  - Läser råa mejltext från iframes med id^="email-"
-  - Skippar email-headers (Return-Path, DKIM osv)
-  - Städar HTML via innerHTML → textContent
-  - Skickar hela mejltexten som puzzel=-parameter till webbappen
-  - Webbappen kör Gemini + regex automatiskt vid load
+- Gemini AI-integration (gemini-2.5-flash-lite) för ärendeanalys, med
+  regex-baserad analyzeCase.js som fallback
+- Fraktsedel-innehåll: kollislag, mått (max-mått + volymbaserat), kopiera-knapp
+
+### Design V2 (2026-06-29 — 2026-06-30)
+- Fullständig visuell + UX-redesign byggd via Claude Design, mergad manuellt
+  till `index.html` / `style.css` / `app.js` på branchen `Design-V2`
+- Numrerad stepper-indikator (Klistra in mejl → Granska & välj frakt → Kopiera)
+- Neutral "Ärende-assistent"-panel (höger kolumn), röd accentkant på
+  sektionsrubriker, mer whitespace, Inter-typsnitt
+- Magento/DHL/Logistics-knappar flyttade till egen rad, större, med
+  aktiveringslogik (Magento alltid aktiv, DHL/Logistics dimmade tills
+  artiklar/EAN hittats) och hover-tooltips som förklarar vad varje knapp gör
+- Hjälpmodal (?-knapp i header) med 7-stegs guide + knappförklaringar + tips
+- Postnummerfält dolt i UI (kvar i DOM för bookmarklet-kompatibilitet) —
+  fältet fylls alltid automatiskt via Magento-bokmärket, skrivs aldrig manuellt
+- "Frakt & kostnad"-sektionen (fraktalternativ+pris) helt dold i UI (display:none,
+  koden kvar i DOM/app.js orörd). Anledning: krävde en aktiv inloggad
+  bauhaus.se-session för att simulera varukorg, vilket bara fungerade i den
+  gamla Chrome-extension-arkitekturen — går inte att replikera i en fristående
+  Vercel-app. Returkostnad hanteras istället via DHL-knappen + makroförslagen.
+- Sektionsordning omstrukturerad: Returkommentar → Klar kommentar (Steg 3) →
+  Fraktsedel-innehåll (tidigare låg Fraktsedel-innehåll mitt i flödet, före
+  Klar kommentar, vilket inte matchade verkligt arbetsflöde)
+- Kodbas uppdelad: index.html (struktur) / style.css (all styling) /
+  app.js (all logik) — tidigare allt-i-ett i index.html
+- **Status:** Live på Vercel preview, testad av Adam under två arbetsdagar
+  (2026-06-30 och en till planerad). Inte mergad till main ännu.
+
+### Gemini-driven artikellista (2026-06-30)
+- **Bug:** regex-parsern (`parseAllArticles`) dubbelräknade artiklar i långa
+  ärendehistoriker där samma artikel+EAN nämns flera gånger i separata
+  interna anteckningar/citerade mejl (t.ex. en bandlastar-retur som
+  nämndes 3 gånger i tråden gav felaktigt "3x" istället för "1x").
+- **Fix:** Gemini (`api/gemini.js`) är nu primär källa för artikellista +
+  kvantitet — den läser hela sammanhanget och förstår att upprepade
+  nämnanden i en ärendehistorik är samma retur. Regex-parsern är kvar som
+  fallback bara om Gemini-anropet misslyckas helt. Dubbelt skydd:
+  1) Gemini-prompten har explicita regler (artikelnummer alltid 7-siffrig
+     sträng, bokningsnummer/ID är ALDRIG artikelnummer, upprepade nämnanden
+     i `---`-avgränsad ärendehistorik räknas en gång)
+  2) `app.js` deduplicerar ändå alltid på articleNumber och tar HÖGSTA
+     angivna kvantitet (inte summan) som extra säkerhetsnät, oavsett vad
+     Gemini råkar svara
+- Diskret varningstext i statusraden ("⚠️ Använde reservanalys...") visas
+  om Gemini misslyckas och regex-fallback används, så man vet att extra
+  koll på artikelantal kan behövas
+- Verifierat fungerande på bandlastar-ärendet (Anders/Knivsta, artikel
+  1524645) — gav korrekt 1x efter fixen
+
+### Adressformat-bugg i DE-returbokning (2026-06-30)
+- **Allvarlig bug:** Bauhaus Logistics-formuläret kräver att kundadressen
+  fylls i som "Gata, Stad, Postnummer, Land" — annars geokodar Magento
+  adressen felaktigt (ett verkligt fall skickade en retur till en halvö
+  utanför Helsingfors istället för Sverige). Bauhaus Returbokning-bokmärket
+  fyllde bara i gatan, inte hela formatet.
+- **Fix:** Adressextraktionen i Returbokning-bokmärket bygger nu en komplett
+  "Gata, Stad, Postnummer, Land"-sträng. Extraktionen sker mönsterbaserat
+  relativt postnummer-radens position (inte hårdkodade radnummer), eftersom
+  adressblockets antal rader kan variera (5 eller 6 rader). Verifierat med
+  flera olika adresser.
+
+### Bokmärkesfixar — arkiv-hantering (2026-06-30)
+- **Bug:** Magento- och Bauhaus Returbokning-bokmärkena kunde inte hitta
+  ordrar som flyttats till Magentos arkiv ("Vi kunde inte hitta...").
+  Roten: "Go to Archive" är en `<button id="go_to_archive">`, inte en
+  `<a>`-länk — textmatchning på `<a>` missade den helt.
+- **Fix:** Båda bokmärkena uppdaterade till att använda
+  `document.getElementById('go_to_archive')`, öppna Filter-panelen om den
+  är stängd innan sökfältet fylls i, och spara sökordernumret i
+  sessionStorage (`magento_pending_search` / `bl_pending_search`) eftersom
+  Magento gör en full sidnavigering till arkivet — JS-kontexten nollställs
+  och kan inte själv fortsätta efter klicket. Lösning: bokmärket körs en
+  gång till manuellt (med tydlig alert-instruktion) på arkivsidan, då
+  läses sessionStorage och resten av flödet (sök → Apply Filters → Visa)
+  sker automatiskt.
+- Verifierat fungerande för både vanliga ordrar och arkivordrar, i båda
+  bokmärkena.
+
+### Övriga Design V2-fixar (2026-06-30)
+- Fraktsedel-innehåll (kvantitet, totalvikt, mått, kollislag) uppdaterades
+  inte när man ändrade artikelantal via +/- knapparna efter analys — bara
+  "Klar kommentar" hängde med. Fixat: `updateShippingContents()` anropas nu
+  även från qty-knapparnas click-handler.
+
+### Bokmärkenas URL — viktigt att komma ihåg under Design-V2-testperioden
+- Vercel skapar en NY preview-URL för varje deployment till Design-V2-branchen.
+  Puzzel- och Magento-bokmärkena måste uppdateras med den senaste URL:en
+  efter varje uppladdning, annars testar man av misstag mot en gammal version
+  utan att märka det. Detta löser sig automatiskt vid merge till main (då blir
+  produktions-URL:en stabil och bokmärkena behöver bara pekas dit en gång).
+
+### Testverktyg (2026-06-30)
+- Adam kan inte installera mjukvara (Node/npm) på jobbdatorn — all testning
+  måste kunna köras direkt i webbläsaren utan installation.
+- Byggde `test.html`: en fristående sida (ingen build-process, inga externa
+  libs) som kör 17 testfall direkt i webbläsaren mot kopior av de "rena"
+  funktionerna (parseAllArticles, detectRiskKeywords, extractPostcode).
+  Visar grön/röd sammanfattning + exakt förväntat vs faktiskt värde vid fel.
+  Nås via [preview-url]/test.html.
+- Testfallen inkluderar permanenta regressionstester för redan hittade buggar
+  (bandlastar-dubbelräkningen, bokningsnummer-som-artikelnummer), medvetet
+  formulerade som "känd regex-begränsning, skyddet ligger i Gemini-prompten
+  + app.js-dedupe" snarare än att kräva att regex-parsern själv fixas.
+- **VIKTIGT att komma ihåg:** funktionerna i test.html är KOPIOR av de i
+  app.js, inte samma kod som körs live. Om parseAllArticles, detectRiskKeywords
+  eller extractPostcode ändras i app.js måste motsvarande funktion i test.html
+  uppdateras manuellt, annars testar testsidan fel/gammal kod.
 
 ---
 
 ## 📋 Backlog (Prioriteringsordning)
 
-### Fas 1: Utöka Gemini till full potential (NÄSTA STEG)
-- [ ] **Utöka Gemini-prompten** så den returnerar komplett analys:
-      Nuvarande prompt extraherar bara order + requested_time.
-      Ny prompt ska returnera:
-      {
-        order, requested_time, articles, case_type,
-        macro_suggestion, summary, risk, risk_reason
-      }
-      - case_type: "retur"|"reklamation"|"leveransproblem"|"fråga"|"byte"|"övrigt"
-      - macro_suggestion: ID som matchar macros.js (bring_hd_retur, bring_sp_retur osv)
-      - summary: en mening som beskriver vad kunden vill
-      - risk: true/false – kunden nämner öppnad/använd/skadad vara
-      - risk_reason: vad som triggade risk (fritext)
-      - articles: [{articleNumber, quantity}] – komplement till regex-parsern
+### Fas 1: Slutföra Design V2
+- [x] Bygga test.html som webbläsarbaserad testsvit (klart 2026-06-30)
+- [ ] Testa Design V2 under en andra hel arbetsdag (planerad 2026-07-01),
+      särskilt: DHL-knappens URL-byggande, manuell inmatning-flödet,
+      fraktsedel-mått med riktig Algolia-data (inte sample)
+- [ ] Beslut om merge `Design-V2` → `main` efter andra testdagen
+- [ ] Uppdatera bokmärkena permanent till produktions-URL efter merge
+      (just nu måste Puzzel/Magento-bokmärkena uppdateras med ny preview-URL
+      varje gång en ny fil laddas upp till Design-V2 — löser sig vid merge)
 
-- [ ] **Använd Gemini-artiklar som backup:**
-      Om regex-parsern hittar 0 artiklar, använd geminiResult.articles.
-      Om regex hittar färre än Gemini – merga listorna.
+### Fas 2: Testverktyg / kvalitetssäkring — PÅBÖRJAD
+test.html finns och täcker parseAllArticles, detectRiskKeywords,
+extractPostcode (17 testfall, alla gröna per 2026-06-30). Kvarstående:
+- [ ] Hålla test.html i synk manuellt när funktionerna i app.js ändras
+      (funktionerna är kopierade, inte importerade — kräver disciplin)
+- [ ] Överväg att lägga till testfall för adressformaterings-logiken i
+      Returbokning-bokmärket (gata/stad/postnummer/land-extraktion), eftersom
+      det är DOM-beroende men mönstret (extrahera ur radstruktur) skulle
+      kunna testas isolerat med exempel-HTML-strängar
+- [ ] Regressionscheck-lista för manuell test efter UI/JS-ändringar (separat
+      från test.html, för saker som inte går att automatisera i webbläsaren)
+- [ ] Bokmärkes-specifik hälsokontroll — snabb konsol-snutt för att verifiera
+      att alla DOM-selektorer bokmärkena beror på fortfarande matchar något
 
-- [ ] **Visa Gemini-analys i UI:**
-      I höger kolumn (ärendeanalys), visa:
-      - "⏰ Kunden önskar: förmiddagen på måndag" (requested_time)
-      - "📝 Sammanfattning: Kunden vill returnera en felvänt Yale dörrlås"
-      - Gemini-makroförslag som komplement till regex-baserade
+### Fas 3: Nya funktioner — planerade (2026-07-01)
 
-- [ ] **Skicka requested_time i logistics-knappen:**
-      Lägg till bauhaus_requested_time i pipe-separerad clipboard-sträng.
+#### Fall 1 — Magento-bokmärket läser artiklar från orderdetaljsidan
+**Bakgrund:** Kundtjänst skapar ibland ärenden där de skriver varunamn (t.ex.
+"VÄXTHUS CANOPIA HARMONY ALU/POLY 4,6M²") men inte artikelnummer. Gemini/regex
+hittar då ingenting eftersom det inte finns 7-siffriga artikelnummer i texten.
+**Plan:**
+- Utöka Magento-bokmärket att läsa "Beställda produkter"-tabellen på orderdetaljsidan
+  och extrahera: artikelnummer (synligt som "Artikelnummer: XXXXXXX" under produktnamnet),
+  produktnamn och antal
+- Skicka dessa med till appen som ny URL-parameter `products=` (JSON-array)
+- I appen: om Gemini/regex inte hittar några artiklar MEN Magento-artiklar finns
+  i URL:en, visa dem direkt i Returkommentar-sektionen som om de vore analyserade
+- Status: EJ PÅBÖRJAD
 
-### Fas 2: Testfiler för regressionstestning
-- [ ] **Skapa testfiler för Gemini-integration:**
-      tests/gemini_test.js – testa att Gemini returnerar rätt JSON-struktur
-      för olika mejltyper (retur, reklamation, leveransproblem, utan artiklar).
-      Kör mot riktig API eller mocka svaret.
-- [ ] **Skapa integrationstester för hela flödet:**
-      tests/integration_test.js – simulera hela runAnalysis()-flödet:
-      mejltext in → artiklar ut → rätt ärendetyp → rätt makroförslag.
-      Säkerställer att ändringar inte fuckar det som redan fungerar.
-- [ ] **Utöka befintlig testbank:**
-      Lägg till fler mejl i tests/testEmails.js från jobbet (anonymiserade).
-      Täck: strukturerade retursvar (Artikelnummer X, Antal: Y),
-      mejl utan artikelnummer, mejl på engelska, mejl med risk-ord.
+#### Fall 3 — DHL-retur-mejl genereras automatiskt
+**Bakgrund:** 5-10 ärenden per dag där kund nekar leverans eller DHL kör tillbaka
+sändningen. Kräver ett specifikt formaterat mejl till DHL:s kontor
+(dhlfreightkad.dom.se@dhl.com) med sändningsnummer, artiklar med EAN+antal,
+produktlänkar och beskrivning av emballage. Idag skrivs detta manuellt.
 
-### Fas 3: Puzzel-integration (djupare)
-- [ ] **Kartlägg Puzzel-gränssnittet:**
-      När du börjar jobba – notera URL:en (puzzel.com/...?), 
-      högerklicka i svarstextfältet och inspektera elementet.
-      Vi behöver: CSS-selektor för svarstextfältet + hur makron väljs.
-- [ ] **Content Script för Puzzel:**
-      Injicera tillägget direkt i Puzzel så det kan läsa inkommande
-      kundmejl automatiskt och skriva in svar i textfältet.
-      Flöde: kundmejl visas → tillägg läser text automatiskt →
-      du väljer makro → fraktkostnad + artikelkommentar fylls in direkt.
-- [ ] **Makro-integration:**
-      Koppla ihop tilläggets utdata med Bauhaus-makrona i Puzzel.
-      T.ex. "Bring HD - Retur" → fyll i fraktkostnad (XXX kr) automatiskt.
+**Förutsättningar för att mejlet ska kunna genereras:**
+- Sändningsnumret (det långa, t.ex. `37332538642990565`) finns i Magento-bokmärkets
+  `href`-attribut på "Spåra denna leverans"-länken — kan extraheras automatiskt
+- Artiklar med EAN kommer från Algolia-uppslaget som redan sker
+- Produktlänkar byggs som `https://www.bauhaus.se/search?q=[artikelnummer]`
+  (enkel men fungerande länk som DHL-personal kan klicka för produktinfo)
+- Standardtext om bauhaus-emballage/tejp är densamma för alla ärenden
+- **Active Tracing-kontrollen görs manuellt av handläggaren** — man måste
+  besöka Active Tracing-sidan och bekräfta att sändningen faktiskt inte är
+  mottagen av kund (status "nekad" / "returneras till avsändaren") innan mejlet
+  skickas. Detta kan inte automatiseras säkert i nuläget.
+
+**Plan — fas 3a (bygg nu, låg risk):**
+1. Magento-bokmärket extraherar sändningsnumret från href-attributet och skickar
+   det med till appen som URL-parameter `tracking=`
+2. Gemini-prompten utökas med ärendetyp "dhl_retur" för ärenden där kund nekar
+   leverans / DHL kört tillbaka sändningen
+3. Om Gemini identifierar ärendet som "dhl_retur" visar appen ett extra kort i
+   Ärende-assistent-panelen med:
+   - Sändningsnummer (förifyllt från URL-parametern, redigerbart)
+   - Komplett mejlutkast färdigt att kopiera, med korrekt format:
+     * Rubrik: "Retur av sändning [nummer] - BAUHAUS"
+     * Till: dhlfreightkad.dom.se@dhl.com
+     * Från: reklamation@bauhaus.se
+     * Artikelrader med EAN och antal
+     * Produktlänkar
+     * Standardtext om emballage
+   - Knapp "📋 Kopiera DHL-mejl"
+4. Du skapar child ticket i Puzzel manuellt och klistrar in utkastet
+
+**Plan — fas 3b (framtida, efter fas 3a verifierats):**
+- Bokmärke som öppnar Active Tracing-sidan OCH läser av status automatiskt,
+  sparar sändningsnumret till sessionStorage — eliminerar manuellt steg
+- Puzzel-integration: bokmärke som skapar child ticket automatiskt med
+  mejlutkastet förifyllt (kräver noggrann testning av Puzzel API/DOM)
+
+**Status: EJ PÅBÖRJAD — börja med Fall 1 först**
+
+#### Fall 2 — Fel artiklar plockas upp av Puzzel-bokmärket
+**Bakgrund:** I Dmitry-ärendet plockar Puzzel-bokmärket upp artikelnumret
+`1068602` (VINKELFÄSTE) trots att det inte syns i mejltexten. Trolig orsak:
+bokmärket läser från en iframe som inte är synlig på skärmen (relaterat ärende,
+signaturblock eller metadata i Puzzel-gränssnittet).
+**Plan:**
+- Felsök vilken iframe som innehåller `1068602` — lägg till console.log i
+  bokmärket som loggar innehållet i varje iframe innan det filtreras
+- Om problemet kan isoleras: lägg till ett filter som exkluderar den iframe-typen
+**Status: EJ PÅBÖRJAD — låg prioritet, kräver felsökning vid nästa tillfälle
+detta inträffar
 
 ### Fas 4: Volym & Mått
-- [ ] **Måttformat för DHL/tidsbestämd:**
-      På jobbet – kolla exakt vilket format DHL Hemleverans och
-      BAUHAUS Tidsbestämd kräver vid bokning (L×B×H i cm eller mm?).
-- [ ] **Volymkalkylator:**
-      Räkna ut total emballagevolym (L×B×H × kvantitet) när mått finns.
+- [ ] Verifiera DHL/BAUHAUS Tidsbestämd-format för mått vid bokning
+      (L×B×H i cm eller mm?) och justera Fraktsedel-innehåll vid behov
 
 ### Fas 5: Framtida förbättringar
-- [ ] **Migrera till TypeScript:**
-      Stabilare datahantering, bättre felmeddelanden.
-- [ ] **Fraktberäkning v3 – helautomatisk cart-session:**
-      Utforska återanvändning av aktiv bauhaus.se-session.
+- [ ] Migrera till TypeScript (kräver byggsystem, komplicerar installationen)
+- [ ] Fraktberäkning v3 — återanvänd aktiv bauhaus.se-session för snabbare
+      varukorgsskapning utan REST-anrop
 
 ---
 
 ## 📝 Anteckningar
 
-**Gemini API-nyckel:**
-- Nyckel slutar på ...T2Ag (Default Gemini API Key, projekt gen-lang-client-0560408923)
-- Nyckel slutar på ...R7yw (Bauhaus WebbApp API, projekt gen-lang-client-0358389646) – reserv
-- gemini-2.0-flash är AVSTÄNGD (limit 0/dag) – använd INTE
-- gemini-3.1-flash-lite har 500 RPD – räcker för daglig användning
-- AQ.-nycklar fungerar med x-goog-api-key header mot native endpoint
-- AQ.-nycklar fungerar INTE mot OpenAI-kompatibla endpoints (ger 401)
-
-**Puzzel** – ärendesystemet som används. Körs i Chrome (chrome-baserat).
+**Puzzel** – ärendesystemet som används. Körs i Chrome.
 Makron finns för vanliga svar – bl.a. "Bring HD - Retur", "Bring SP - Retur",
-"BAUHAUS Tidsbestämd", "Bomkörd upphämtning" m.fl.
-Fraktkostnad (XXX kr) i makrona är manuell idag → ska fyllas i automatiskt.
-Tidslottar varierar per region/distributör – hårdkoda ALDRIG tidformat i Gemini-prompt.
+"BAUHAUS Tidsbestämd", DE-region-mallar (se PUZZEL_MALLAR.md) m.fl.
 
 **Kända begränsningar i parsern:**
-- "ej öppnad" triggar risk-flagga (hanteras inte ännu)
-- Kvantitet kan "smitta" mellan artiklar om de sitter nära med specialtecken
 - Extremt sms-format utan mellanslag ger ibland fel antal
-
-**Makron i macros.js (ID → när det används):**
-- bring_hd_retur: hemleverans med Bring, kunden bokar upphämtning
-- bring_sp_retur: servicepoint/ombud, kunden lämnar paket
-- bauhaus_tidsbestamd_retur: bomkörd upphämtning med eget transportbolag
-- kund_ska_returnera_vh: kunden vill lämna i varuhus
-- kund_har_returnerat_vh: kunden bekräftar varuhusretur
-- kund_nekat_leverans: kunden vägrade ta emot
-- kund_glomt_hamta: kunden glömde hämta från ombud
-- giab: skicka retur till Giab
-- lagerlagg_rma: intern lagerhantering mot RMA
+- Kvantitet kan "smitta" mellan artiklar om de sitter nära med specialtecken
 
 **API-struktur (Bauhaus):**
-- Algolia: nordic_production_sv_products (SKU = sku-fältet, ej objectID)
-- REST: /rest/sv/V1/guest-carts/{token}/totals → shipping_groups
-- Frakt: /shipmentpartners/service/get → options med priser
-- Tidsbestämd leverans: title innehåller "Tidsbestämd", code = "default_95"
+- Algolia: nordic_production_sv_products (SKU = sku-fältet, ej objectID),
+  app-ID TGPIEONN2S, API-nyckel roteras dagligen — hämtas dynamiskt, aldrig
+  hårdkodad
+- Gemini: gemini-2.5-flash-lite, AQ.-format API-nyckel via x-goog-api-key
+  header (formatet bytte från AIzaSy-prefix till AQ.-prefix i mitten av 2026)
+
+**Bokmärken — kända DOM-beroenden att hålla koll på:**
+- Magento "Go to Archive": `<button id="go_to_archive">` — om Magento byter
+  detta id går arkiv-fallback sönder igen
+- Magento ordersök: `input[name="increment_id"]`, "Apply Filters"-knapp
+  matchas på textinnehåll (känsligt för UI-språkändringar)
+- Arkiv-URL:ens säkerhetsnyckel (`/archive/orders/key/...`) är
+  sessionsspecifik och kan inte hårdkodas — måste alltid läsas av live
+  via knappen, aldrig som statisk länk

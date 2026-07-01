@@ -157,12 +157,76 @@ extractPostcode (17 testfall, alla gröna per 2026-06-30). Kvarstående:
 - [ ] Bokmärkes-specifik hälsokontroll — snabb konsol-snutt för att verifiera
       att alla DOM-selektorer bokmärkena beror på fortfarande matchar något
 
-### Fas 3: Puzzel-integration
-- [ ] Verifiera att Puzzel-bokmärket fortfarande matchar aktuell DOM-struktur
-      (samma typ av risk som Magento-arkivbuggen — bör ingå i Fas 2:s
-      hälsokontroll)
-- [ ] Undersök om makro-text kan fyllas i automatiskt i Puzzels svarsfält
-      (kräver att vi ser hur Puzzels textfält är uppbyggt)
+### Fas 3: Nya funktioner — planerade (2026-07-01)
+
+#### Fall 1 — Magento-bokmärket läser artiklar från orderdetaljsidan
+**Bakgrund:** Kundtjänst skapar ibland ärenden där de skriver varunamn (t.ex.
+"VÄXTHUS CANOPIA HARMONY ALU/POLY 4,6M²") men inte artikelnummer. Gemini/regex
+hittar då ingenting eftersom det inte finns 7-siffriga artikelnummer i texten.
+**Plan:**
+- Utöka Magento-bokmärket att läsa "Beställda produkter"-tabellen på orderdetaljsidan
+  och extrahera: artikelnummer (synligt som "Artikelnummer: XXXXXXX" under produktnamnet),
+  produktnamn och antal
+- Skicka dessa med till appen som ny URL-parameter `products=` (JSON-array)
+- I appen: om Gemini/regex inte hittar några artiklar MEN Magento-artiklar finns
+  i URL:en, visa dem direkt i Returkommentar-sektionen som om de vore analyserade
+- Status: EJ PÅBÖRJAD
+
+#### Fall 3 — DHL-retur-mejl genereras automatiskt
+**Bakgrund:** 5-10 ärenden per dag där kund nekar leverans eller DHL kör tillbaka
+sändningen. Kräver ett specifikt formaterat mejl till DHL:s kontor
+(dhlfreightkad.dom.se@dhl.com) med sändningsnummer, artiklar med EAN+antal,
+produktlänkar och beskrivning av emballage. Idag skrivs detta manuellt.
+
+**Förutsättningar för att mejlet ska kunna genereras:**
+- Sändningsnumret (det långa, t.ex. `37332538642990565`) finns i Magento-bokmärkets
+  `href`-attribut på "Spåra denna leverans"-länken — kan extraheras automatiskt
+- Artiklar med EAN kommer från Algolia-uppslaget som redan sker
+- Produktlänkar byggs som `https://www.bauhaus.se/search?q=[artikelnummer]`
+  (enkel men fungerande länk som DHL-personal kan klicka för produktinfo)
+- Standardtext om bauhaus-emballage/tejp är densamma för alla ärenden
+- **Active Tracing-kontrollen görs manuellt av handläggaren** — man måste
+  besöka Active Tracing-sidan och bekräfta att sändningen faktiskt inte är
+  mottagen av kund (status "nekad" / "returneras till avsändaren") innan mejlet
+  skickas. Detta kan inte automatiseras säkert i nuläget.
+
+**Plan — fas 3a (bygg nu, låg risk):**
+1. Magento-bokmärket extraherar sändningsnumret från href-attributet och skickar
+   det med till appen som URL-parameter `tracking=`
+2. Gemini-prompten utökas med ärendetyp "dhl_retur" för ärenden där kund nekar
+   leverans / DHL kört tillbaka sändningen
+3. Om Gemini identifierar ärendet som "dhl_retur" visar appen ett extra kort i
+   Ärende-assistent-panelen med:
+   - Sändningsnummer (förifyllt från URL-parametern, redigerbart)
+   - Komplett mejlutkast färdigt att kopiera, med korrekt format:
+     * Rubrik: "Retur av sändning [nummer] - BAUHAUS"
+     * Till: dhlfreightkad.dom.se@dhl.com
+     * Från: reklamation@bauhaus.se
+     * Artikelrader med EAN och antal
+     * Produktlänkar
+     * Standardtext om emballage
+   - Knapp "📋 Kopiera DHL-mejl"
+4. Du skapar child ticket i Puzzel manuellt och klistrar in utkastet
+
+**Plan — fas 3b (framtida, efter fas 3a verifierats):**
+- Bokmärke som öppnar Active Tracing-sidan OCH läser av status automatiskt,
+  sparar sändningsnumret till sessionStorage — eliminerar manuellt steg
+- Puzzel-integration: bokmärke som skapar child ticket automatiskt med
+  mejlutkastet förifyllt (kräver noggrann testning av Puzzel API/DOM)
+
+**Status: EJ PÅBÖRJAD — börja med Fall 1 först**
+
+#### Fall 2 — Fel artiklar plockas upp av Puzzel-bokmärket
+**Bakgrund:** I Dmitry-ärendet plockar Puzzel-bokmärket upp artikelnumret
+`1068602` (VINKELFÄSTE) trots att det inte syns i mejltexten. Trolig orsak:
+bokmärket läser från en iframe som inte är synlig på skärmen (relaterat ärende,
+signaturblock eller metadata i Puzzel-gränssnittet).
+**Plan:**
+- Felsök vilken iframe som innehåller `1068602` — lägg till console.log i
+  bokmärket som loggar innehållet i varje iframe innan det filtreras
+- Om problemet kan isoleras: lägg till ett filter som exkluderar den iframe-typen
+**Status: EJ PÅBÖRJAD — låg prioritet, kräver felsökning vid nästa tillfälle
+detta inträffar
 
 ### Fas 4: Volym & Mått
 - [ ] Verifiera DHL/BAUHAUS Tidsbestämd-format för mått vid bokning
@@ -172,8 +236,6 @@ extractPostcode (17 testfall, alla gröna per 2026-06-30). Kvarstående:
 - [ ] Migrera till TypeScript (kräver byggsystem, komplicerar installationen)
 - [ ] Fraktberäkning v3 — återanvänd aktiv bauhaus.se-session för snabbare
       varukorgsskapning utan REST-anrop
-
-      Egen anteckning: Tänker också som slutmål lite. Till bauhaus webb appen för att eeventuellt kunna sälja in den. bygg statostol verktyg för att se på nått vis hur många ärenden som hanteras korrekt, vad success rate är på alla olika delar av webbens delar. Föratt visa vad som faktiskt sparas. Något sånt
 
 ---
 

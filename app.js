@@ -385,15 +385,48 @@ async function runAnalysis() {
     const normalized = geminiResult.articles
       .map(a => ({
         articleNumber: String(a.articleNumber ?? "").replace(/\D/g, "").slice(0, 7),
+        name: a.name || null,
         quantity: Number.isFinite(a.quantity) && a.quantity > 0 ? a.quantity : 1,
-      }))
-      .filter(a => /^\d{7}$/.test(a.articleNumber));
-    // Säkerhetsnät: om samma artikelnummer förekommer flera gånger i Geminis
-    // svar (t.ex. p.g.a. lång ärendehistorik med upprepade interna noteringar),
-    // är det i praktiken alltid samma retur. Deduplicera och ta den HÖGSTA
-    // angivna kvantiteten, inte summan.
+      }));
+
+    // Separera artiklar med och utan artikelnummer
+    const withNumber   = normalized.filter(a => /^\d{7}$/.test(a.articleNumber));
+    const nameOnly     = normalized.filter(a => !/^\d{7}$/.test(a.articleNumber) && a.name);
+
+    // För name-only artiklar: försök matcha mot Magento-produkter
+    const matchedFromName = [];
+    for (const a of nameOnly) {
+      const searchName = a.name.toLowerCase();
+      const matches = magentoProducts.filter(p =>
+        p.name.toLowerCase().includes(searchName) ||
+        searchName.includes(p.name.toLowerCase().split(' ')[0]) // första ordet matchar
+      );
+      if (matches.length === 1) {
+        // Exakt en träff — använd den direkt
+        matchedFromName.push({
+          articleNumber: matches[0].articleNumber,
+          quantity: a.quantity,
+        });
+      } else if (matches.length > 1) {
+        // Flera träffar — försök mer exakt matchning
+        const exactMatch = matches.find(p =>
+          p.name.toLowerCase().includes(searchName.toLowerCase())
+        );
+        if (exactMatch) {
+          matchedFromName.push({
+            articleNumber: exactMatch.articleNumber,
+            quantity: a.quantity,
+          });
+        }
+        // Om fortfarande oklart — hoppa över (visas inte, faller till Magento-fallback nedan)
+      }
+    }
+
+    const allArticles = [...withNumber, ...matchedFromName];
+
+    // Deduplicera på artikelnummer, ta högsta kvantitet
     const byArticle = new Map();
-    for (const a of normalized) {
+    for (const a of allArticles) {
       const existing = byArticle.get(a.articleNumber);
       if (!existing || a.quantity > existing.quantity) byArticle.set(a.articleNumber, a);
     }

@@ -60,7 +60,15 @@ export default async function handler(req, res) {
 
       const best = hits.find(h => String(h.objectID) === articleNumber)
         ?? hits.find(h => h.url?.includes(articleNumber));
-      if (!best) throw new Error("Artikeln hittades inte i Algolia (kan vara avpublicerad).");
+      if (!best) {
+        const err = new Error("Artikeln hittades inte i Algolia (kan vara avpublicerad).");
+        err.debugHits = hits.map(h => ({ objectID: h.objectID, sku: h.sku, url: h.url, name: h.name, ean: h.ean }));
+        throw err;
+      }
+      // TILLFÄLLIG DIAGNOSTIK — ta bort igen efter felsökning
+      if (best) {
+        console.log("DEBUG matchad träff:", { queried: articleNumber, matchedVia: String(best.objectID) === articleNumber ? "objectID" : "url", best, allHits: hits });
+      }
 
       const rawSku = String(best.sku ?? "");
       const rawObjId = String(best.objectID ?? "");
@@ -200,7 +208,7 @@ export default async function handler(req, res) {
         !dimensions ? "none" :
         (dimensions.length && dimensions.width && dimensions.height) ? "full" : "partial";
 
-      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions, dimensionsConfidence } });
+      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions, dimensionsConfidence, _debugAllHits: hits, _debugMatchedVia: String(best.objectID) === articleNumber ? "objectID" : "url" } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

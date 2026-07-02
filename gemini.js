@@ -37,12 +37,14 @@ Fält:
 - delivery_date: FÖRSTA datum kunden nämner på formatet YYYY-MM-DD, eller null. Dagens datum är ${today}.
 - time_from: starttid för önskat tidsfönster på formatet HH:MM, eller null
 - time_to: sluttid för önskat tidsfönster på formatet HH:MM, eller null
-- articles: array med { articleNumber, quantity } – detta är den AUKTORITATIVA artikellistan som används direkt i gränssnittet, så var extra noggrann här:
-  - articleNumber MÅSTE vara en STRÄNG av EXAKT 7 siffror, inga mellanslag, bindestreck eller andra tecken (t.ex. "1524645", aldrig 1524645 som tal eller "152 4645")
-  - Ett sjusiffrigt nummer är BARA ett artikelnummer om det står tillsammans med eller tydligt syftar på en produkt/vara. Nummer som föregås av "ID", "bokning", "ärende", "ref", "case" eller liknande är INTE artikelnummer, även om de råkar vara sju siffror – exkludera dem helt
-  - Mejlkedjan/ärendehistoriken består ofta av MÅNGA separata interna anteckningar och mejl (avgränsade med "---" eller liknande), skrivna vid olika tillfällen av olika handläggare, för att kunna följa upp ärendet. Om samma artikelnummer (ofta tillsammans med samma EAN-kod, det 13-siffriga numret bredvid) förekommer i FLERA av dessa separata anteckningar, är det i praktiken ALLTID samma fysiska retur omnämnd flera gånger för uppföljning – inte flera separata returer. Räkna den EN gång oavsett hur många gånger den nämns i olika delar av tråden
-  - quantity är det FAKTISKA antalet av varan kunden returnerar totalt, inte antalet gånger artikeln nämns i texten. Om olika anteckningar anger samma kvantitet för samma artikel (t.ex. "1x" nämnt tre gånger för samma artikelnummer+EAN), är svaret 1, inte 3
-  - Om du är osäker på exakt antal för en artikel som annars tydligt nämns, använd det mest sannolika antalet baserat på sammanhanget snarare än att utelämna artikeln
+- articles: array med { articleNumber, name, quantity } – detta är den AUKTORITATIVA artikellistan:
+  - articleNumber: STRÄNG av EXAKT 7 siffror om det finns i texten, annars null
+  - name: produktnamnet som kunden nämner (t.ex. "gräsklippare", "växthus", "häcksax") – alltid med om du kan utläsa det ur kontexten, annars null. Använd det mest beskrivande namnet kunden anger, på svenska. Om artikelnummer finns behöver du inte sätta name.
+  - quantity: det FAKTISKA antalet kunden vill returnera
+  - Ett sjusiffrigt nummer är BARA ett artikelnummer om det tydligt syftar på en produkt. Nummer som föregås av "ID", "bokning", "ärende", "ref" är INTE artikelnummer
+  - Om samma artikel nämns flera gånger i citerade mejl räknas den EN gång
+  - Exempel utan artikelnummer: kunden skriver "jag vill returnera en gräsklippare" → { "articleNumber": null, "name": "gräsklippare", "quantity": 1 }
+  - Exempel med artikelnummer: "returnera 2x 1429515" → { "articleNumber": "1429515", "name": null, "quantity": 2 }
 - case_type: en av "retur", "reklamation", "leveransproblem", "fråga", "byte", "övrigt"
 - macro_suggestion: välj det EXAKTA mallnamnet från listan nedan ENDAST om du är säker baserat på tydlig info i mejlet. Returnera "DE-retur" om kunden tydligt vill ha upphämtning med eget transportbolag. Returnera null om du är osäker på vilket fraktsätt som gäller – gissa INTE.
 - summary: en mening på svenska som beskriver vad kunden vill

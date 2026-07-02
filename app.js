@@ -8,6 +8,7 @@ const SHIPPING_API     = "https://bauhaus-retur-web.vercel.app";
 
 // ── State ────────────────────────────────────────────────────────────
 let resolvedArticles   = [];
+let analysisGeneration = 0;
 let selectedShipping   = null;
 let hasRisk            = false;
 let userName           = "Adam";

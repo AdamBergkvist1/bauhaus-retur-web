@@ -589,7 +589,14 @@ function renderResults() {
       const qtySpan       = row.querySelector(".qty-val");
       const lineSpan      = row.querySelector(".result-line");
       const upd = delta => {
-        art.quantity = Math.max(1, art.quantity + delta);
+        art.quantity = Math.max(0, art.quantity + delta);
+        if (art.quantity === 0) {
+          resolvedArticles = resolvedArticles.filter(a => a !== art);
+          row.remove();
+          updateOutput();
+          updateShippingContents();
+          return;
+        }
         qtySpan.textContent  = art.quantity;
         lineSpan.textContent = renderLine(art.quantity);
         updateOutput();

@@ -59,8 +59,8 @@ export default async function handler(req, res) {
       if (!Array.isArray(hits) || hits.length === 0) throw new Error("Artikeln hittades inte.");
 
       const best = hits.find(h => String(h.objectID) === articleNumber)
-        ?? hits.find(h => h.url?.includes(articleNumber))
-        ?? hits[0];
+        ?? hits.find(h => h.url?.includes(articleNumber));
+      if (!best) throw new Error("Artikeln hittades inte i Algolia (kan vara avpublicerad).");
 
       const rawSku = String(best.sku ?? "");
       const rawObjId = String(best.objectID ?? "");

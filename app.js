@@ -342,6 +342,7 @@ document.getElementById("copyShippingContentsBtn").addEventListener("click", () 
 
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────
 async function runAnalysis() {
+  const myGeneration = ++analysisGeneration;
   const text = document.getElementById("emailInput").value.trim();
   if (!text) return;
   localStorage.setItem("bauhaus_last_email", text);
@@ -485,7 +486,9 @@ async function runAnalysis() {
   setStep(2);
 
   resolvedArticles = articles.map(a => ({ ...a, sku: null, ean: null, weight: null, error: null }));
-  await Promise.all(articles.map((art, i) => lookupOne(art, i)));
+  const myArticles = resolvedArticles;
+  await Promise.all(articles.map((art, i) => lookupOne(art, i, myArticles)));
+  if (myGeneration !== analysisGeneration) return;
   consolidate();
   renderResults();
   updateOutput();
@@ -518,18 +521,18 @@ async function runAnalysis() {
 }
 
 // ── Artikel-uppslag ───────────────────────────────────────────────────
-async function lookupOne(article, idx) {
+async function lookupOne(article, idx, target) {
   const { articleNumber, quantity } = article;
   if (articleCache[articleNumber]) {
-    resolvedArticles[idx] = { articleNumber, quantity, ...articleCache[articleNumber], error: null };
+    target[idx] = { articleNumber, quantity, ...articleCache[articleNumber], error: null };
     return;
   }
   try {
     const data = await fetchProductFromAlgolia(articleNumber);
     articleCache[articleNumber] = data;
-    resolvedArticles[idx] = { articleNumber, quantity, ...data, error: null };
+    target[idx] = { articleNumber, quantity, ...data, error: null };
   } catch (err) {
-    resolvedArticles[idx] = { articleNumber, quantity, sku: null, ean: null, weight: null, error: err.message };
+    target[idx] = { articleNumber, quantity, sku: null, ean: null, weight: null, error: err.message };
   }
 }
 

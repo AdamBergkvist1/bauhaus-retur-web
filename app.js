@@ -108,10 +108,12 @@ const urlParams   = new URLSearchParams(window.location.search);
 const urlPostcode = urlParams.get("postcode");
 const urlName     = urlParams.get("name");
 const urlAddress  = urlParams.get("address");
+const urlStreet   = urlParams.get("street");
 const urlCity     = urlParams.get("city");
 if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
 if (urlName)    localStorage.setItem("bauhaus_customer_name",     urlName);
 if (urlAddress) localStorage.setItem("bauhaus_customer_address",  urlAddress);
+if (urlStreet)  localStorage.setItem("bauhaus_customer_street",   urlStreet);
 if (urlCity)    localStorage.setItem("bauhaus_customer_city",     urlCity);
 if (urlPostcode) localStorage.setItem("bauhaus_customer_postcode", urlPostcode);
 
@@ -457,7 +459,7 @@ async function runAnalysis() {
     dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` +
       `template=${encodeURIComponent(dhlTemplate)}&` +
       `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name") || "")}` +
-      `&address=${encodeURIComponent(localStorage.getItem("bauhaus_customer_address") || "")}` +
+      `&street=${encodeURIComponent(localStorage.getItem("bauhaus_customer_street") || "")}` +
       `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode") || "")}` +
       `&city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city") || "")}` +
       `&phone=${encodeURIComponent(localStorage.getItem("bauhaus_customer_phone") || "")}` +

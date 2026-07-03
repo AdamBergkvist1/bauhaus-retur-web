@@ -1,5 +1,5 @@
 # Projektlogg: Bauhaus Returhantering — Webbapp
-# Senast uppdaterad: 2026-07-02
+# Senast uppdaterad: 2026-07-03
 
 ## 🎯 Målsättning
 Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera data
@@ -46,7 +46,7 @@ efter att IT blockerade extensions.
   Klar kommentar, vilket inte matchade verkligt arbetsflöde)
 - Kodbas uppdelad: index.html (struktur) / style.css (all styling) /
   app.js (all logik) — tidigare allt-i-ett i index.html
-- **Status:** Live på Vercel, mergad till main (se nedan, 2026-07-01/02).
+- **Status:** Live på Vercel, mergad till main, i produktion.
 
 ### Gemini-driven artikellista (2026-06-30)
 - **Bug:** regex-parsern (`parseAllArticles`) dubbelräknade artiklar i långa
@@ -137,40 +137,83 @@ efter att IT blockerade extensions.
   variabeln, och ett guard-check (`if (myGeneration !== analysisGeneration) return;`)
   kastar resultatet om en nyare körning hunnit starta under tiden.
   Committat i `app.js` (tre ställen: State-deklaration, `runAnalysis`, `lookupOne`).
-  Verifierad orsak till dubbla Gemini-anrop vid samma klick: en känd
-  dubbeltriggning i URL-hanteringen (rad ~138 och ~173, två separata
-  `setTimeout(runAnalysis, 100)` som båda kan trigga om en sparad
-  `bauhaus_last_email` i localStorage matchar innan ny text hunnit skrivas
-  in) — själva dubbeltriggningen är kvar (ofarlig nu tack vare guard-checken)
-  men inte städad bort. Se backlog.
+  Känd, kvarstående dubbeltriggning av `runAnalysis()` vid sidladdning
+  (två separata `setTimeout`-anrop, rad ~138/~173) gör nu ingen skada tack
+  vare guard-checken, men är inte städad bort — se backlog.
 
-- **Bug B — Osäker Algolia-fallback i api/shipping.js (huvudorsaken till det
-  faktiska symptomet):** I `action === "product"`-hanteraren föll koden
-  tillbaka på `hits[0]` (första Algolia-sökresultatet) om ingen träff hade
-  exakt matchande `objectID` eller URL — oavsett om den träffen faktiskt
-  hade något med den sökta artikeln att göra. Orsakade att avpublicerade/
-  discontinued artiklar (verifierat via SAP: artikel 1258319, flytväst,
-  "Active For Purchasing: Discontinued (V)") matchades mot en helt
-  orelaterad produkt (fågelmatare, art. 1025460, EAN 5708127253198) eftersom
-  den avpublicerade artikeln inte längre finns korrekt indexerad i Algolia.
+- **Bug B — Osäker Algolia-fallback i api/shipping.js:** I
+  `action === "product"`-hanteraren föll koden tillbaka på `hits[0]` (första
+  Algolia-sökresultatet) om ingen träff hade exakt matchande `objectID`
+  eller URL — oavsett relevans. Orsakade att avpublicerade/discontinued
+  artiklar (verifierat via SAP: artikel 1258319, flytväst, "Active For
+  Purchasing: Discontinued (V)") matchades mot en helt orelaterad produkt
+  (fågelmatare, art. 1025460).
   **Fix:** Tar bort `?? hits[0]`-fallbacken, kastar nu tydligt fel
   (`"Artikeln hittades inte i Algolia (kan vara avpublicerad)."`) istället.
-  Detta triggar det redan befintliga "Ange manuellt"-flödet (`openManual`/
-  `saveManual`) som redan hanterade "artikel hittades inte"-fallet korrekt
-  utan ändring. Committat i `api/shipping.js`. Verifierat konsekvent
-  (3/3 test med hård refresh) efter fix — ger nu korrekt felmeddelande
-  varje gång istället för att slumpmässigt/inkonsekvent matcha fel produkt.
+  Triggar det redan befintliga "Ange manuellt"-flödet (`openManual`/
+  `saveManual`). Committat i `api/shipping.js`. Verifierat konsekvent
+  (3/3 test) efter fix.
   Vid manuell inmatning för avpublicerade artiklar: hämta EAN + vikt från
   SAP (exempel för 1258319: GTIN 7392715582142, vikt 0,496 kg).
 
-- **DHL-bokmärket** (gatuadress) — granskat på begäran, ser redan korrekt ut.
-  Fyller gata/postnummer/stad i separata dedikerade fält
-  (`fromAddressStreet`, `fromAddressPostalCodeInp`, `fromAddressCity`), så
-  "bara gatunamn skickas"-problemet (samma typ av bugg som DE-returbokningen
-  ovan) kan inte uppstå där. Ingen ändring gjord.
-  **OBS:** detta gäller DHL-bokmärket specifikt — Bauhaus Logistics-
-  bokmärket (som gav den ursprungliga Finland-buggen, se ovan) är redan
-  fixat sen tidigare (2026-06-30) och är ett separat skript.
+- **DHL-bokmärket** (gatuadress) — granskat, sett korrekt ut vid första
+  anblick (fyller gata/postnummer/stad i separata fält). Visade sig senare
+  (se Session 2026-07-03, Bug D) att den underliggande orsaken låg i
+  `app.js`, inte i själva DHL-bokmärket.
+
+### Session 2026-07-03 — Fel artikel (SKU-matchning) och gatuadress till DHL
+
+- **Bug C — Algolia-matchning kollade fel fält (order 113328701, artikel
+  1229844, "SKORSTENSSTÖD ADURO TELESKOP"):** Efter gårdagens fix (Bug B)
+  gav vissa AKTIVA, publicerade artiklar ändå "hittades inte", trots att de
+  fanns i Algolia. Roten: matchningen i `api/shipping.js` kollade bara
+  `objectID` och Algolias URL-slug mot det sökta artikelnumret — men
+  Algolias `objectID` är ett internt Magento-produkt-ID (t.ex. `409403`),
+  inte artikelnumret, och produkt-URL:er är SEO-slugs utan siffror
+  (`/skorstensstod-aduro-teleskop`). Det korrekta fältet, `sku`, lästes ut
+  men användes aldrig för själva matchningen. Bekräftat med tillfällig
+  `debugHits`-diagnostik i API-svaret (borttagen igen efter felsökning).
+  **Fix:** `best`-matchningen kollar nu `sku` FÖRST, innan `objectID`/`url`
+  som sekundära fallbacks. Committat i `api/shipping.js`. Verifierat
+  fungerande (1229844 gav korrekt `1x 1229844 / 5704065006292`).
+
+- **Bug D — Gatuadress till DHL innehöll hela adressen istället för bara
+  gatan (Maria Lovisa Sundberg-ärendet, "Nästakvarn 1, Källby"):** DHL-
+  formulärets Gatuadress-fält fylldes med
+  `"Nästakvarn 1, Källby, 53173, Sverige"` istället för bara
+  `"Nästakvarn 1"`. Felsökningen var ovanligt lång (se lärdomar nedan) —
+  misstänkte först Magento-bokmärkets `getAddr()`-radextraktion
+  (verifierad korrekt via tillfällig `console.log("DEBUG adressrader:",
+  lines)` i bokmärket, sen borttagen), men den faktiska roten var att
+  `app.js` aldrig läste in `street`-URL-parametern alls — bara `address`
+  (den fulla, hopsatta strängen). DHL-bokmärkets egen fallback
+  (`p.get("street")||p.get("address")`) föll därför alltid tillbaka på
+  den fulla strängen, eftersom `street` aldrig fanns i webbappens URL
+  till DHL-portalen.
+  **Fix:** `app.js` läser nu in `urlStreet` (`urlParams.get("street")`),
+  sparar den i `localStorage["bauhaus_customer_street"]`, och `dhlBtn.href`
+  skickar `&street=...` (istället för `&address=...`) vidare till DHL-
+  portalen. Committat i `app.js`.
+
+- **Extra städning — `api/app.js`-dubblett borttagen:** Under Bug D-
+  felsökningen upptäcktes en gammal, oanvänd kopia av `app.js` som av
+  misstag legat kvar i `api/`-mappen (helt annan, äldre version — saknade
+  bland annat `analysisGeneration`). Detta orsakade en stor del av
+  förvirringen: en av gatuadress-fixens ändringar råkade committas till
+  fel fil (`api/app.js` istället för roten `app.js`), vilket fick det att
+  se ut som ett Vercel cache/deploy-problem i timmar innan filförväxlingen
+  upptäcktes. Bekräftat via sökning att `api/app.js` inte refererades
+  någonstans i övrig kod (ingen fetch, ingen import, ingen
+  `export default function handler` som krävs för att fungera som
+  Vercel serverless-funktion) — säker att ta bort. Borttagen.
+
+- **Lärdom, tillagd som stående arbetsprincip:** gissa aldrig på en
+  grundorsak eller föreslå en kodändring baserat på antagande. Be alltid
+  användaren köra en specifik diagnos först (DevTools console/Network-flik,
+  exakta kommandon, skärmdumpar av faktiskt resultat) och bekräfta fynd
+  innan ändringar föreslås. Vid osäkerhet om vilken order/vilket
+  ärende/vilken fil som avses — fråga explicit istället för att anta.
+  (Sparad i Claudes minne, gäller genomgående för projektet.)
 
 ---
 
@@ -178,7 +221,7 @@ efter att IT blockerade extensions.
 
 ### Fas 1: Slutföra Design V2
 - [x] Bygga test.html som webbläsarbaserad testsvit (klart 2026-06-30)
-- [x] Merge `Design-V2` → `main` (klart, live i produktion per 2026-07-02)
+- [x] Merge `Design-V2` → `main` (klart, live i produktion)
 - [ ] Uppdatera bokmärkena permanent till produktions-URL om något
       fortfarande pekar mot en gammal preview-URL
 
@@ -195,19 +238,23 @@ extractPostcode (17 testfall). Kvarstående:
       från test.html, för saker som inte går att automatisera i webbläsaren)
 - [ ] Bokmärkes-specifik hälsokontroll — snabb konsol-snutt för att verifiera
       att alla DOM-selektorer bokmärkena beror på fortfarande matchar något
-- [ ] **Nytt (2026-07-02):** Städa bort dubbeltriggningen av `runAnalysis()`
-      vid sidladdning (rad ~138 och ~173 i app.js, två separata
-      `setTimeout`-anrop som kan båda trigga). Ofarligt nu tack vare
-      `analysisGeneration`-guarden, men onödigt dubbelt nätverksanrop mot
-      Gemini varje gång det inträffar. Låg prioritet — kosmetiskt/effektivitet,
-      inte en funktionsbugg längre.
+- [ ] Städa bort dubbeltriggningen av `runAnalysis()` vid sidladdning
+      (rad ~138 och ~173 i app.js, två separata `setTimeout`-anrop som kan
+      båda trigga). Ofarligt nu tack vare `analysisGeneration`-guarden, men
+      onödigt dubbelt nätverksanrop mot Gemini varje gång det inträffar.
+      Låg prioritet — kosmetiskt/effektivitet, inte en funktionsbugg längre.
 
-### Fas 3: Nya funktioner — planerade (2026-07-01)
+### Fas 3: Nya funktioner — planerade
 
 #### Fall 1 — Magento-bokmärket läser artiklar från orderdetaljsidan
 **Bakgrund:** Kundtjänst skapar ibland ärenden där de skriver varunamn (t.ex.
-"VÄXTHUS CANOPIA HARMONY ALU/POLY 4,6M²") men inte artikelnummer. Gemini/regex
-hittar då ingenting eftersom det inte finns 7-siffriga artikelnummer i texten.
+"VÄXTHUS CANOPIA HARMONY ALU/POLY 4,6M²") men inte artikelnummer, eller där
+inget artikelnummer alls nämns men det tydligt framgår att HELA ordern
+returneras (t.ex. hela paketet gick i retur/kunden nekade hela leveransen).
+**Verkliga exempel att testa mot när funktionen byggs:** ärende #2130731 och
+#2131316 (2026-07-03) — inget artikelnummer i ärendetexten, men tydligt att
+hela ordern ska returneras. #2131316 fungerade redan delvis (hämtade
+varorna) — bra jämförelsefall.
 
 **Plan:**
 - Utöka Magento-bokmärket att läsa "Beställda produkter"-tabellen på orderdetaljsidan
@@ -228,12 +275,12 @@ bokmärkets `products=`-URL-parameter) via `withNumber`/`nameOnly`-filtreringen
 i `runAnalysis`. I gräsklippare-ärendet visades hela ordern (4 artiklar)
 istället för bara gräsklipparen.
 
-**Nästa felsökningssteg (samma metod som fungerade för dagens session):**
-Öppna DevTools (F12) → Network-fliken → kör Analysera på gräsklippare-
-ärendet → klicka på `/api/gemini`-anropet → Response-fliken. Se om Gemini
-faktiskt returnerade ett `name`-fält för artikeln eller inte. Det avgör om
-felet ligger i Geminis output/prompt eller i matchningslogiken
-(`matchedFromName`, rad ~397–423 i app.js) som redan finns för det här fallet.
+**Nästa felsökningssteg (samma metod som fungerade för Session 2026-07-02
+och 2026-07-03):** Öppna DevTools (F12) → Network-fliken → kör Analysera på
+gräsklippare-ärendet → klicka på `/api/gemini`-anropet → Response-fliken.
+Se om Gemini faktiskt returnerade ett `name`-fält för artikeln eller inte.
+Det avgör om felet ligger i Geminis output/prompt eller i matchningslogiken
+(`matchedFromName`, i app.js) som redan finns för det här fallet.
 
 **Status: EJ PÅBÖRJAD** — väntar på DevTools-svar från Gemini för detta ärende.
 
@@ -309,13 +356,16 @@ end-to-end-flödet är inte fullt verifierat än. Börja med Fall 1/Bug 2 först
 ### Övrigt / diverse att kolla upp
 - [ ] En återkommande textrad ("Du hjälper mig utveckla ett internt
       Chrome-tillägg för Bauhaus returhantering. Prioritera stabil, modern
-      kod") har dykt upp i början av flera meddelanden till Claude under
-      2026-07-02-sessionen. Stämmer inte med verkligheten (webbappen, inte
-      ett Chrome-tillägg) och kommer troligen från något autotext-verktyg/
-      tillägg på Adams sida, inte något han skriver medvetet. Ingen
-      kodpåverkan hittills eftersom Claude konsekvent bortsett från den,
-      men värt att lokalisera källan för att undvika att den smyger med i
-      något viktigare sammanhang senare.
+      kod") fortsätter dyka upp i början av i princip varje meddelande till
+      Claude, nu även 2026-07-03 — oftast som en helt egen rubrikrad före
+      resten av meddelandet. Stämmer inte med verkligheten (webbappen,
+      inte ett Chrome-tillägg). Claude har konsekvent bortsett från den
+      genom båda sessionerna utan att den påverkat något kodarbete. Mönstret
+      (egen rad, identisk ordalydelse varje gång, dyker upp oavsett vad
+      Adam faktiskt skriver) tyder starkt på ett autotext-verktyg,
+      snippet-manager eller AI-sidopanel på Adams sida som läggs till
+      automatiskt — inte något Adam skriver medvetet. Fortsatt värt att
+      lokalisera källan när det finns en ledig stund.
 
 ---
 
@@ -330,13 +380,16 @@ Makron finns för vanliga svar – bl.a. "Bring HD - Retur", "Bring SP - Retur",
 - Kvantitet kan "smitta" mellan artiklar om de sitter nära med specialtecken
 
 **API-struktur (Bauhaus):**
-- Algolia: nordic_production_sv_products (SKU = sku-fältet, ej objectID),
-  app-ID TGPIEONN2S, API-nyckel roteras dagligen — hämtas dynamiskt, aldrig
-  hårdkodad. **OBS (2026-07-02):** Algolias sökindex kan ge inkonsekventa
-  resultat för avpublicerade/discontinued artiklar (ibland träff mot fel
-  produkt, ibland ingen träff alls, mellan identiska anrop) — se Bug B ovan.
-  Koden hanterar nu detta genom att kräva exakt objectID/URL-matchning och
-  hellre fela tydligt än gissa.
+- Algolia: nordic_production_sv_products. **VIKTIGT (2026-07-03):**
+  produktmatchning mot ett sökt artikelnummer måste kolla `sku`-fältet
+  FÖRST — `objectID` är ett internt Magento-ID, inte artikelnumret, och
+  produkt-URL:er är SEO-slugs utan siffror. Använd `objectID`/URL bara som
+  sekundära fallbacks. App-ID TGPIEONN2S, API-nyckel roteras dagligen —
+  hämtas dynamiskt, aldrig hårdkodad.
+  Algolias sökindex kan även ge inkonsekventa resultat för avpublicerade/
+  discontinued artiklar (ibland träff mot fel produkt, ibland ingen träff
+  alls, mellan identiska anrop) — koden kräver exakt sku/objectID/URL-
+  matchning och hellre felar tydligt än gissar (se Bug B, 2026-07-02).
 - Gemini: gemini-2.5-flash-lite, AQ.-format API-nyckel via x-goog-api-key
   header (formatet bytte från AIzaSy-prefix till AQ.-prefix i mitten av 2026)
 
@@ -351,4 +404,27 @@ Makron finns för vanliga svar – bl.a. "Bring HD - Retur", "Bring SP - Retur",
 - DHL-bokmärket förlitar sig på `data-testid="startFromTemplateBtn"` och
   textmatchning mot mallnamn ("DHL SP Retursedel" / "DHL HD Retursedel") —
   känsligt för UI-ändringar hos DHL:s portal, granskat och fungerande
-  per 2026-07-02
+  per 2026-07-03. Läser `street`/`postcode`/`city` som separata URL-
+  parametrar (inte en kombinerad adressträng) — `app.js` måste alltid
+  skicka `street=` separat till DHL-portalens URL, se Bug D.
+- Magento-bokmärkets `getAddr()`-funktion extraherar gata/stad/postnummer
+  mönsterbaserat relativt postnummer-radens position i adressblocket
+  (`.order-shipping-address`), inte hårdkodade radnummer — adressblockets
+  radantal kan variera (extra rad för företagsnamn/övrig info mellan namn
+  och gata är vanligt och redan hanterat, eftersom gata alltid är raden
+  direkt ovanför stadsraden oavsett hur många rader som ligger ovanför det).
+
+**Filstruktur (2026-07-03):** `api/`-mappen innehåller ENDAST
+`shipping.js` och `gemini.js` (serverless-funktioner). En felaktig
+`api/app.js`-dubblett (gammal kopia av frontend-koden) upptäcktes och
+togs bort under dagens felsökning — se Session 2026-07-03. Om `app.js`
+någonsin behöver redigeras: dubbelkolla ALLTID att adressfältet i
+GitHub-editorn säger `.../edit/main/app.js`, inte `.../edit/main/api/app.js`,
+innan commit.
+
+**Arbetsprincip (tillagd 2026-07-03, sparad i Claudes minne):** Vid
+felsökning i det här projektet — gissa aldrig på grundorsak eller
+kodändring. Be alltid om en specifik diagnos (DevTools console/Network,
+exakt kommando, skärmdump av faktiskt resultat) och bekräfta innan en fix
+föreslås. Vid osäkerhet om vilket ärende/vilken fil/vilken URL som avses,
+fråga explicit istället för att anta.

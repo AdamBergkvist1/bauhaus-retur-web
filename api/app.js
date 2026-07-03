@@ -107,7 +107,7 @@ const urlParams   = new URLSearchParams(window.location.search);
 const urlPostcode = urlParams.get("postcode");
 const urlName     = urlParams.get("name");
 const urlAddress  = urlParams.get("address");
-const urlStreet    = urlParams.get("street");
+const urlStreet   = urlParams.get("street");
 const urlCity     = urlParams.get("city");
 if (urlPostcode) document.getElementById("inputPostcode").value = urlPostcode;
 if (urlName)    localStorage.setItem("bauhaus_customer_name",     urlName);

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Åtgärdsplan — bauhaus-retur-web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF7; --ink:#141414; --red:#C8102E; --red-dark:#9A0C23;
+  --amber:#B45309; --amber-bg:#FEF3E2; --green:#1B7A43; --green-bg:#E8F5EE;
+  --line:#D9D6CF; --grey:#6B6862; --card:#FFFFFF;
+  --mono:'IBM Plex Mono',monospace; --sans:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding-bottom:80px}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+
+/* ── Header: arbetsorder ── */
+header{border-bottom:3px solid var(--ink);background:var(--card)}
+.head-top{display:flex;justify-content:space-between;align-items:flex-start;padding:26px 0 8px;gap:16px;flex-wrap:wrap}
+.stamp{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey)}
+.stamp b{color:var(--ink)}
+h1{font-weight:900;font-stretch:80%;font-size:clamp(30px,5.5vw,46px);line-height:1.02;text-transform:uppercase;letter-spacing:-.01em}
+h1 .rd{color:var(--red)}
+.head-meta{display:flex;gap:22px;flex-wrap:wrap;padding:12px 0 20px;font-family:var(--mono);font-size:12px;color:var(--grey)}
+.head-meta span b{color:var(--ink);font-weight:600}
+.progress-rail{height:8px;background:var(--line);position:relative}
+.progress-fill{height:100%;width:0;background:var(--red);transition:width .35s ease}
+.progress-label{font-family:var(--mono);font-size:11px;color:var(--grey);text-align:right;padding:5px 0 14px}
+
+/* ── Sections ── */
+section{margin-top:42px}
+.sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:18px}
+.sec-head h2{font-weight:800;font-stretch:85%;font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+.sec-head .tag{font-family:var(--mono);font-size:11px;color:var(--grey)}
+
+/* ── Regler ── */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.rule{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);padding:12px 14px;font-size:13.5px}
+.rule b{display:block;font-stretch:85%;text-transform:uppercase;font-size:12px;letter-spacing:.05em;margin-bottom:4px}
+
+/* ── Fyndfilter ── */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-family:var(--mono);font-size:12px;padding:6px 14px;border:1.5px solid var(--ink);background:var(--card);cursor:pointer;border-radius:999px;transition:.15s}
+.chip.on{background:var(--ink);color:#fff}
+.chip .n{opacity:.55;margin-left:4px}
+.finding{background:var(--card);border:1px solid var(--line);padding:13px 16px;margin-bottom:8px;display:flex;gap:14px;align-items:flex-start}
+.finding.hide{display:none}
+.sev{flex:0 0 auto;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:3px 8px;margin-top:2px;color:#fff;text-transform:uppercase}
+.sev.krit{background:var(--red)} .sev.hog{background:var(--amber)} .sev.mind{background:var(--grey)} .sev.stad{background:var(--ink)}
+.finding h4{font-size:14.5px;font-weight:700;margin-bottom:2px}
+.finding p{font-size:13px;color:#3d3b37}
+.finding code{font-family:var(--mono);font-size:12px;background:#F1EFE9;padding:1px 5px;border-radius:3px}
+
+/* ── Fas-accordion ── */
+.phase{background:var(--card);border:1px solid var(--line);margin-bottom:12px}
+.phase-head{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;user-select:none}
+.phase-num{font-family:var(--mono);font-weight:600;font-size:13px;background:var(--ink);color:#fff;padding:4px 9px;flex:0 0 auto}
+.phase.krit .phase-num{background:var(--red)}
+.phase-head h3{font-size:16.5px;font-weight:800;font-stretch:88%;flex:1}
+.phase-count{font-family:var(--mono);font-size:12px;color:var(--grey)}
+.phase-arrow{transition:.2s;font-size:13px;color:var(--grey)}
+.phase.open .phase-arrow{transform:rotate(90deg)}
+.phase-body{display:none;border-top:1px dashed var(--line);padding:14px 18px 18px}
+.phase.open .phase-body{display:block}
+.phase-goal{font-size:13px;color:var(--grey);margin-bottom:12px;font-style:italic}
+.step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #EFEDE7;align-items:flex-start}
+.step:last-child{border-bottom:none}
+.step input{margin-top:3px;width:17px;height:17px;accent-color:var(--red);cursor:pointer;flex:0 0 auto}
+.step-txt{font-size:13.5px}
+.step-txt b{font-weight:700}
+.step-txt code{font-family:var(--mono);font-size:12px;background:#F1EFE9;padding:1px 5px;border-radius:3px}
+.step.done .step-txt{opacity:.45;text-decoration:line-through}
+.lbl{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 7px;margin-right:6px;text-transform:uppercase;vertical-align:1px}
+.lbl.diag{background:#EDE9FE;color:#5B21B6}
+.lbl.beslut{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)}
+.lbl.verif{background:var(--green-bg);color:var(--green)}
+
+/* ── Frågor & risker ── */
+.qgrid{display:grid;gap:10px}
+.q{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--amber);padding:12px 16px;display:flex;gap:14px;align-items:baseline}
+.q .qid{font-family:var(--mono);font-weight:600;color:var(--amber);flex:0 0 auto}
+.q .blocks{font-family:var(--mono);font-size:11px;color:var(--grey);margin-left:auto;flex:0 0 auto}
+.risk{background:var(--card);border:1.5px solid var(--red);padding:13px 16px;margin-bottom:10px;position:relative}
+.risk::before{content:"⚑ SÄNKER PROJEKTET";position:absolute;top:-9px;left:12px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;padding:2px 8px}
+.risk h4{font-size:14px;font-weight:700;margin:4px 0 3px}
+.risk p{font-size:13px;color:#3d3b37}
+
+footer{margin-top:56px;border-top:3px solid var(--ink);padding-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--grey);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="head-top">
+      <div>
+        <div class="stamp">INTERN ARBETSORDER · <b>BAUHAUS-RETUR-WEB</b> · main</div>
+        <h1>Åtgärdsplan<span class="rd">.</span><br>18 punkter, 6 faser</h1>
+      </div>
+      <div class="stamp" style="text-align:right">
+        GRANSKNING UTFÖRD<br><b>2026-07-03</b><br><br>
+        KÄLLA: committad kod,<br>16 filer / ~3 000 rader
+      </div>
+    </div>
+    <div class="head-meta">
+      <span>Kritiska: <b id="cKrit">4</b></span>
+      <span>Hög påverkan: <b>6</b></span>
+      <span>Mindre: <b>6</b></span>
+      <span>Städning: <b>2</b></span>
+      <span>Öppna frågor: <b>5</b></span>
+    </div>
+  </div>
+  <div class="progress-rail"><div class="progress-fill" id="pf"></div></div>
+  <div class="wrap"><div class="progress-label" id="pl">0 av 24 steg avprickade</div></div>
+</header>
+
+<div class="wrap">
+
+<!-- ARBETSREGLER -->
+<section>
+  <div class="sec-head"><h2>Arbetsregler</h2><span class="tag">gäller varje steg — inga undantag</span></div>
+  <div class="rules">
+    <div class="rule"><b>1 · Rätt fil</b>Kontrollera edit-URL:en före varje commit. <code>api/gemini.js</code> ≠ <code>gemini.js</code>. Fel-fil-commits har redan kostat timmar två gånger.</div>
+    <div class="rule"><b>2 · Verifiera efter commit</b>Hämta raw-filen från GitHub och bekräfta ändringen. Lita aldrig på editorns visning.</div>
+    <div class="rule"><b>3 · Diagnos före fix</b>Steg märkta <span class="lbl diag">🔬 diagnos</span> kräver DevTools-bevis från Adam innan kod ändras.</div>
+    <div class="rule"><b>4 · En sak i taget</b>Ett steg = en commit = en verifiering. Blanda aldrig två fixar.</div>
+    <div class="rule"><b>5 · Rör inte fungerande logik</b>Ändra bara det steget anger. Ingen passa-på-refaktorering.</div>
+    <div class="rule"><b>6 · Testsynk</b>Ändras <code>parseAllArticles</code> / <code>detectRiskKeywords</code> / <code>extractPostcode</code> → kopiera till <code>test.html</code> och kör sviten.</div>
+  </div>
+</section>
+
+<!-- FYND -->
+<section>
+  <div class="sec-head"><h2>Fynden</h2><span class="tag">filtrera per allvarlighetsgrad</span></div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-f="alla">Alla <span class="n">18</span></button>
+    <button class="chip" data-f="krit">🔴 Kritiska <span class="n">4</span></button>
+    <button class="chip" data-f="hog">🟠 Hög påverkan <span class="n">6</span></button>
+    <button class="chip" data-f="mind">🟡 Mindre <span class="n">6</span></button>
+    <button class="chip" data-f="stad">🧹 Städning <span class="n">2</span></button>
+  </div>
+  <div id="findings">
+    <div class="finding" data-s="krit"><span class="sev krit">Krit</span><div><h4>1 · Fel Gemini-fil är live</h4><p>Root-<code>gemini.js</code> är NYARE än <code>api/gemini.js</code> (name-fält, retry, fallback-modell) men Vercel deployar bara <code>api/</code>. Live-prompten ber aldrig om <code>name</code> → förklarar sannolikt Bug 2 (gräsklipparen, order 113343937). → Fas 1</p></div></div>
+    <div class="finding" data-s="krit"><span class="sev krit">Krit</span><div><h4>2 · Ordernummer-regex matchar inuti EAN</h4><p><code>/#?(1\d{8})/</code> saknar sifferavgränsare — EAN 7319740009246 ger falskt ordernummer 197400092 → fel Magento/DHL-länk. → Fas 2.2</p></div></div>
+    <div class="finding" data-s="krit"><span class="sev krit">Krit</span><div><h4>3 · Debug-data kvar i produktions-API</h4><p><code>_debugAllHits</code> (alla 5 Algolia-träffar) och felaktig <code>_debugMatchedVia</code> skickas i varje produktsvar, trots att TODO.md anger att de togs bort. → Fas 2.1</p></div></div>
+    <div class="finding" data-s="krit"><span class="sev krit">Krit</span><div><h4>4 · Gemini-nummer trunkeras med slice(0,7)</h4><p>Ett 13-siffrigt EAN från Gemini blir EAN:ets 7 första siffror = ett annat, slumpmässigt artikelnummer som slås upp. → Fas 2.3</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>5 · DHL-kort: redigerat sändningsnummer följer inte med</h4><p>Fältet är inte kopplat till mejlkroppen — Kopiera skickar det gamla numret. → Fas 3.1</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>6 · DHL-mejl kan bli tomt</h4><p>Kortet byggs av <code>resolvedArticles</code> vid spårningsdatans ankomst — före analys blir artikellistan tom utan varning. → Fas 3.2</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>7 · "0 kr" kan läcka till kund</h4><p>Hemleverans pris 0 visas som "0 kr" i valt fraktalternativ och skulle ersätta "XXX kr" i makrotext till kund. → Fas 3.3</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>8 · if (true): riktiga frakt-API:t är död kod</h4><p>Alltid statisk prislista, viktparametern ignoreras, PostNord 69 kr auto-väljs, "billigast"-markering på osorterad lista. Medvetet läge eller kvarglömd spärr? → Fas 3.4 / Fråga F2</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>9 · Rensa-knappen städar inte allt</h4><p>DHL-kort, fraktval, fraktsedel-innehåll och status ligger kvar — förväxlingsrisk mellan kundärenden. → Fas 4.1</p></div></div>
+    <div class="finding" data-s="hog"><span class="sev hog">Hög</span><div><h4>10 · maxOutputTokens 1024</h4><p>Långa ärenden kan trunkera Geminis JSON → tyst regex-fallback. Höj till 2048. → Fas 5.2</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>11 · /api/gemini kraschar utan body</h4><p><code>req.body ?? {}</code> saknas (500 istället för 400). → Fas 5.1</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>12 · Oescapad interpolation i DHL-kortet</h4><p><code>shipmentNumber</code>/<code>latestStatus</code>/<code>userName</code> rakt in i innerHTML — <code>esc()</code> finns redan, använd den. → Fas 5.3</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>13 · Clipboard utan .catch</h4><p>Tyst fel vid saknat fönsterfokus; en kopieringsknapp saknar all feedback. → Fas 5.4</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>14 · hitsPerPage = 5</h4><p>Rätt produkt kan hamna utanför topp 5 → falskt "hittades inte". Höj till 15. → Fas 2.4</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>15 · Mått-regex söker hela sidan</h4><p>Första L×B×H-mönstret i HTML:en kan komma från relaterade produkter → fel mått. → Fas 5.6</p></div></div>
+    <div class="finding" data-s="mind"><span class="sev mind">Mindre</span><div><h4>16 · matchedFromName har svag logik</h4><p>Första-ordet-matchning ger falska träffar; flerträffs-grenen upprepar samma villkor. Åtgärdas endast om Fas 1 inte räcker. → Fas 5.5</p></div></div>
+    <div class="finding" data-s="stad"><span class="sev stad">Städ</span><div><h4>17 · Döda filer: parse.js, dimensions.js (+ root gemini.js efter Fas 1)</h4><p>Chrome extension-kvarlevor som inte laddas — varje död dubblett är nästa fel-fil-incident. → Fas 4.2</p></div></div>
+    <div class="finding" data-s="stad"><span class="sev stad">Städ</span><div><h4>18 · Dubbeltrigg av runAnalysis vid sidladdning</h4><p>Ofarlig (generationsguard) men dubbla Gemini-anrop. → Fas 4.3</p></div></div>
+  </div>
+</section>
+
+<!-- FASER -->
+<section>
+  <div class="sec-head"><h2>Exekveringsfaser</h2><span class="tag">pricka av — varje fas lämnar appen fungerande</span></div>
+
+  <div class="phase open">
+    <div class="phase-head"><span class="phase-num">FAS 0</span><h3>Säkring</h3><span class="phase-count">~10 min</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <div class="phase-goal">Möjlighet att alltid backa till känt fungerande läge.</div>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>0.1</b> Skapa release-tag <code>fore-atgardsplan-2026-07</code> på nuvarande main.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>0.2</b> Committa <code>ATGARDSPLAN.md</code> till repo-roten.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>0.3</b> <span class="lbl verif">baslinje</span>Kör känt fungerande ärende (art. 1229844) live — referens för all regressionskontroll.</span></label>
+    </div>
+  </div>
+
+  <div class="phase krit">
+    <div class="phase-head"><span class="phase-num">FAS 1</span><h3>Deploya rätt Gemini-fil — trolig lösning på Bug 2</h3><span class="phase-count">30–45 min</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <div class="phase-goal">Root-gemini.js:s innehåll (name-fält + retry) in i api/gemini.js; root-filen bort; verifiera mot gräsklipparärendet.</div>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>1.1</b> <span class="lbl beslut">F1</span>Fallback-modell: verifiera att <code>gemini-3.1-flash</code> finns, eller ta säkra vägen <code>gemini-3.1-flash-lite</code> som retry-modell (rekommenderas).</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>1.2–1.3</b> Kopiera HELA root-<code>gemini.js</code> → ersätt innehållet i <code>api/gemini.js</code>. Kontrollera att edit-URL:en innehåller <code>/edit/main/api/gemini.js</code>.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>1.4</b> <span class="lbl verif">verifiera</span>Raw-URL: filen ska innehålla <code>"name": "gräsklippare"</code> och retry-loopen. Kör sedan baslinjeärendet (0.3) — oförändrat resultat krävs.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>1.5</b> Ta bort root-<code>gemini.js</code> (nu en död dubblett av api/app.js-typen).</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>1.6</b> <span class="lbl diag">🔬 diagnos</span>Kör gräsklipparärendet (113343937) med Network-fliken: <code>/api/gemini</code>-svaret ska innehålla <code>name</code>, appen ska visa 1 artikel — inte 4. Räcker inte det → Fas 5.5.</span></label>
+    </div>
+  </div>
+
+  <div class="phase krit">
+    <div class="phase-head"><span class="phase-num">FAS 2</span><h3>API-korrekthet — fel data till kund/DHL</h3><span class="phase-count">~30 min</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>2.1</b> Ta bort <code>_debugAllHits</code> + <code>_debugMatchedVia</code> ur <code>api/shipping.js</code>-svaret.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>2.2</b> Ordernummer-regex → <code>/#?(?&lt;!\d)(1\d{8})(?!\d)/</code> i <code>app.js</code> (roten!). Konsoltest: EAN får inte matcha.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>2.3</b> Ersätt <code>slice(0,7)</code> med validering: behåll endast exakt 7 siffror, annars <code>""</code> → nameOnly-spåret. EAN får ALDRIG trunkeras.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>2.4</b> <span class="lbl beslut">F5</span>Höj <code>hitsPerPage</code> 5 → 15 (separat commit).</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><span class="lbl verif">regression</span>Baslinjeärendet + EAN-testtext: rätt artikel, Magento-knappen tänds INTE av EAN:et.</span></label>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">FAS 3</span><h3>Utgående data — DHL-mejl &amp; priser</h3><span class="phase-count">45–60 min · kräver F2–F4</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>3.1</b> <span class="lbl beslut">F4</span>Bind sändningsnummerfältet till mejltexten i <code>copyDHLEmail</code> (eller ta bort fältet).</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>3.2</b> DHL-kort utan analyserade artiklar: visa varning + inaktivera Kopiera. Tomt mejl får inte kunna kopieras obemärkt.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>3.3</b> Pris 0 → visa "Varierar" och lämna "XXX kr" orört i makron. "0 kr" i kundsvar är ett fel mot kund.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>3.4</b> <span class="lbl beslut">F2</span><code>if (true)</code>-fraktspärren: medveten → städa till namngiven konstant + sortera fallback; annars separat felsökning, rör inget.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>3.5</b> <span class="lbl beslut">F3</span>Ska frakt tillbaka in i returkommentaren? Ändra endast efter besked.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><span class="lbl verif">regression</span>Simulera DHL-flödet via <code>localStorage.setItem('bauhaus_dhl_tracking', ...)</code> i konsolen — med och utan artiklar.</span></label>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">FAS 4</span><h3>Städning av arbetsytan</h3><span class="phase-count">~20 min</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>4.1</b> Rensa-knappen nollställer ALLT: DHL-kort, fraktval, fraktsedel, status, riskflagga.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>4.2</b> Ta bort <code>parse.js</code> och <code>dimensions.js</code> — EFTER referenssökning i hela repot. En commit per fil.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>4.3</b> Städa dubbeltriggningen av <code>runAnalysis()</code> (rad ~138/173) — lågprio.</span></label>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">FAS 5</span><h3>Robusthet — en commit per punkt</h3><span class="phase-count">löpande</span><span class="phase-arrow">▶</span></div>
+    <div class="phase-body">
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.1</b> <code>req.body ?? {}</code> i api/gemini.js.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.2</b> <code>maxOutputTokens</code> → 2048.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.3</b> <code>esc()</code> på all data som interpoleras i DHL-kortets HTML.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.4</b> <code>.catch()</code> + synlig feedback på alla clipboard-anrop.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.5</b> (villkorad) Skärp <code>matchedFromName</code> — endast om Fas 1.6 visar att det behövs. Testfall i test.html FÖRST.</span></label>
+      <label class="step"><input type="checkbox"><span class="step-txt"><b>5.6</b> <span class="lbl diag">🔬 diagnos</span>Begränsa mått-regexen till spec-tabellen — verifiera mot 2–3 riktiga produktsidor innan commit.</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- FRÅGOR -->
+<section>
+  <div class="sec-head"><h2>Öppna frågor</h2><span class="tag">Adam svarar innan berörd fas startar</span></div>
+  <div class="qgrid">
+    <div class="q"><span class="qid">F1</span><span>Fallback-modell i retryn: testa <code style="font-family:var(--mono);font-size:12px">gemini-3.1-flash</code> eller ta säkra <code style="font-family:var(--mono);font-size:12px">gemini-3.1-flash-lite</code>?</span><span class="blocks">→ Fas 1.1</span></div>
+    <div class="q"><span class="qid">F2</span><span>Är <code style="font-family:var(--mono);font-size:12px">if (true)</code>-fraktspärren ett medvetet permanent läge?</span><span class="blocks">→ Fas 3.4</span></div>
+    <div class="q"><span class="qid">F3</span><span>Ska frakten tillbaka in i returkommentaren, eller lever den bara i makrona?</span><span class="blocks">→ Fas 3.5</span></div>
+    <div class="q"><span class="qid">F4</span><span>DHL-kortets sändningsnummerfält: binda till mejltexten eller ta bort fältet helt?</span><span class="blocks">→ Fas 3.1</span></div>
+    <div class="q"><span class="qid">F5</span><span>Godkänns höjning av hitsPerPage 5 → 15?</span><span class="blocks">→ Fas 2.4</span></div>
+  </div>
+</section>
+
+<!-- PROJEKTSÄNKARE -->
+<section>
+  <div class="sec-head"><h2>Projektsänkare</h2><span class="tag">kan förstöra mer än de fixar</span></div>
+  <div class="risk"><h4>Fel fil-commits (root vs api/)</h4><p>Redan hänt två gånger — timmar av spökfelsökning. Arbetsregel 1 + 2 är obligatoriska vid varje enskild commit.</p></div>
+  <div class="risk"><h4>Prompt-deploy utan baslinjetest</h4><p>Fas 1 ändrar artikellistan i VARJE ärende. Utan omedelbar körning av baslinjeärendet kan ett systematiskt fel gå rakt in i skarpa kundärenden.</p></div>
+  <div class="risk"><h4>Att "fixa" if (true) utan beslut F2</h4><p>Aktiverar en overifierad API-väg (cookies, guest-carts) i produktion → trasig frakt för alla ärenden.</p></div>
+  <div class="risk"><h4>DHL-mejl med fel eller tomt innehåll</h4><p>Skickar felaktig data till extern part — det svåraste felet i appen att återkalla. Fas 3.1/3.2 före skarp användning av DHL-flödet.</p></div>
+  <div class="risk"><h4>Filborttagning utan referenssökning · parserändring utan testsynk</h4><p>Sök hela repot före varje delete. Ändrade parserfunktioner utan test.html-synk gör testsviten tyst lögnaktig.</p></div>
+</section>
+
+<footer>
+  <span>ATGARDSPLAN.md = exekverbar källa (committas till repot) · denna sida = review-vy</span>
+  <span>bauhaus-retur-web · granskning 2026-07-03</span>
+</footer>
+</div>
+
+<script>
+// Filterchips
+const chips = document.querySelectorAll('.chip');
+chips.forEach(c => c.addEventListener('click', () => {
+  chips.forEach(x => x.classList.remove('on'));
+  c.classList.add('on');
+  const f = c.dataset.f;
+  document.querySelectorAll('.finding').forEach(el =>
+    el.classList.toggle('hide', f !== 'alla' && el.dataset.s !== f));
+}));
+// Accordion
+document.querySelectorAll('.phase-head').forEach(h =>
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+// Progress (endast i minnet under sessionen)
+const boxes = document.querySelectorAll('.step input');
+const pf = document.getElementById('pf'), pl = document.getElementById('pl');
+function upd(){
+  const done = [...boxes].filter(b => b.checked).length;
+  pf.style.width = (done / boxes.length * 100) + '%';
+  pl.textContent = done + ' av ' + boxes.length + ' steg avprickade';
+  boxes.forEach(b => b.closest('.step').classList.toggle('done', b.checked));
+}
+boxes.forEach(b => b.addEventListener('change', upd));
+upd();
+</script>
+</body>
+</html>

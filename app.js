@@ -312,6 +312,14 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("casePlaceholder").classList.remove("hidden");
   resolvedArticles  = [];
   selectedShipping  = null;
+  shippingContents  = [];
+  hasRisk           = false;
+  document.getElementById("dhlReturnCard")?.remove();
+  document.getElementById("shippingSelected").classList.add("hidden");
+  document.getElementById("shippingOptions").classList.add("hidden");
+  document.getElementById("shippingContentsBox").textContent = "";
+  document.getElementById("riskWarn").classList.add("hidden");
+  setStatus("", false);
   setStep(1);
   magentoBtn.style.opacity = "0.4";
 });

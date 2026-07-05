@@ -49,7 +49,7 @@ export default async function handler(req, res) {
           requests: [{
             indexName: ALGOLIA_INDEX,
             query: articleNumber,
-            params: "hitsPerPage=5&attributesToRetrieve=url,objectID,ean,name,sku",
+            params: "hitsPerPage=15&attributesToRetrieve=url,objectID,ean,name,sku",
           }],
         }),
       });

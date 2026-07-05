@@ -239,7 +239,7 @@ function showDHLCard() {
       ${rekommendation}
     </div>
     <div style="font-size:12px;color:var(--grey-500);margin-bottom:14px;">
-      Senaste status: <b style="color:var(--grey-900);">${latestStatus}</b> (${latestDate})
+      Senaste status: <b style="color:var(--grey-900);">${esc(latestStatus)}</b> (${esc(latestDate)})
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
       <div class="form-group">
@@ -248,12 +248,12 @@ function showDHLCard() {
       </div>
       <div class="form-group">
         <label>Ämne</label>
-        <input type="text" id="dhlEmailSubject" value="Retur av sändning ${shipmentNumber} - BAUHAUS">
+        <input type="text" id="dhlEmailSubject" value="Retur av sändning ${esc(shipmentNumber)} - BAUHAUS">
       </div>
     </div>
     <div class="form-group" style="margin-bottom:12px;">
       <label>Sändningsnummer (redigerbart)</label>
-      <input type="text" id="dhlShipmentNumber" value="${shipmentNumber}" style="font-family:monospace;">
+      <input type="text" id="dhlShipmentNumber" value="${esc(shipmentNumber)}" style="font-family:monospace;">
     </div>
     <div class="output-box" id="dhlEmailBody" contenteditable="true" style="min-height:160px;white-space:pre-wrap;font-size:12px;">${dhlEmail}</div>
     <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">

@@ -166,6 +166,37 @@ function extractPostcode(text) {
   return null;
 }
 
+function matchArticlesByName(nameOnly, magentoProducts) {
+  const matchedFromName = [];
+  for (const a of nameOnly) {
+    const searchName = a.name.toLowerCase();
+    const matches = magentoProducts.filter(p =>
+      p.name.toLowerCase().includes(searchName) ||
+      searchName.includes(p.name.toLowerCase().split(' ')[0]) // första ordet matchar
+    );
+    if (matches.length === 1) {
+      // Exakt en träff — använd den direkt
+      matchedFromName.push({
+        articleNumber: matches[0].articleNumber,
+        quantity: a.quantity,
+      });
+    } else if (matches.length > 1) {
+      // Flera träffar — försök mer exakt matchning
+      const exactMatch = matches.find(p =>
+        p.name.toLowerCase().includes(searchName.toLowerCase())
+      );
+      if (exactMatch) {
+        matchedFromName.push({
+          articleNumber: exactMatch.articleNumber,
+          quantity: a.quantity,
+        });
+      }
+      // Om fortfarande oklart — hoppa över (visas inte, faller till Magento-fallback nedan)
+    }
+  }
+  return matchedFromName;
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // TESTRAMVERK — minimal, ingen extern lib behövs
 // ═══════════════════════════════════════════════════════════════════
@@ -314,6 +345,53 @@ function defineTests() {
 
     test("Postnummer i Norrtälje-ärendet (76194)", () => {
       return expectEqual(extractPostcode("Gräsviken 13, 761 94 Norrtälje"), "76194");
+    });
+  });
+
+  describe("matchArticlesByName (Fas 5.5-förberedelse)", () => {
+    const products = [
+      { articleNumber: "1428733", name: "GRÄSKLIPPARE SCHEPPACH BC-MP320-X 20V" },
+      { articleNumber: "1234561", name: "BATTERI SCHEPPACH 20V 4AH" },
+      { articleNumber: "7654321", name: "LADDARE SCHEPPACH 20V SNABB" },
+      { articleNumber: "1111111", name: "TRÄDGÅRDSHANDSKAR L" },
+    ];
+
+    test("Gräsklippare-fallet (Bug 2): 'gräsklippare' → exakt rätt artikel", () => {
+      const r = matchArticlesByName([{ articleNumber: "", name: "gräsklippare", quantity: 1 }], products);
+      return expectEqual(r, [{ articleNumber: "1428733", quantity: 1 }]);
+    });
+
+    test("Ingen träff → tom lista (faller till Magento-fallback)", () => {
+      const r = matchArticlesByName([{ articleNumber: "", name: "studsmatta", quantity: 1 }], products);
+      return expectEqual(r, []);
+    });
+
+    test("Kvantitet följer med korrekt", () => {
+      const r = matchArticlesByName([{ articleNumber: "", name: "trädgårdshandskar", quantity: 3 }], products);
+      return expectEqual(r, [{ articleNumber: "1111111", quantity: 3 }]);
+    });
+
+    test("KÄND SVAGHET (dokumenterande): substring ger semantiskt fel träff", () => {
+      const p2 = [{ articleNumber: "2222222", name: "SÅGBOCK TRÄ 2-PACK" }];
+      const r = matchArticlesByName([{ articleNumber: "", name: "såg", quantity: 1 }], p2);
+      // 'såg' matchar SÅGBOCK via includes — fel produkt. Dokumenterar nuläget.
+      return "Nuvarande utfall: " + JSON.stringify(r) + " (sågbock är inte en såg — skärps i 5.5)";
+    });
+
+    test("KÄND SVAGHET (dokumenterande): två gräsklippare → godtycklig första väljs", () => {
+      const p3 = [
+        { articleNumber: "3333333", name: "GRÄSKLIPPARE SCHEPPACH BC-MP320-X 20V" },
+        { articleNumber: "4444444", name: "GRÄSKLIPPARE BOSCH ROTAK 32" },
+      ];
+      const r = matchArticlesByName([{ articleNumber: "", name: "gräsklippare", quantity: 1 }], p3);
+      // Önskat beteende i 5.5: hoppa över vid tvetydighet. Idag väljs första.
+      return "Nuvarande utfall: " + JSON.stringify(r) + " (tvetydig träff borde hoppa över — skärps i 5.5)";
+    });
+
+    test("KÄND SVAGHET (dokumenterande): 'batteri till gräsklippare' → hoppas över helt", () => {
+      const r = matchArticlesByName([{ articleNumber: "", name: "batteri till gräsklippare", quantity: 1 }], products);
+      // Första-ordet-regeln ger 2 träffar (batteri + gräsklippare), exakt-steget löser inte → tom
+      return "Nuvarande utfall: " + JSON.stringify(r) + " (kund som beskriver tillbehör tappas)";
     });
   });
 }

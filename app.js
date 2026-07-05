@@ -443,7 +443,7 @@ async function runAnalysis() {
   if (postcode) document.getElementById("inputPostcode").value = postcode;
 
   const manualOrder = document.getElementById("manualOrderInput").value.trim();
-  const orderMatch  = text.match(/#?(1\d{8})/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
+  const orderMatch  = text.match(/#?(?<!\d)(1\d{8})(?!\d)/) || (manualOrder.match(/\b1\d{8}\b/) ? [manualOrder] : null);
   if (orderMatch) {
     magentoOrderNumber = orderMatch[1] || orderMatch[0];
     magentoBtn.style.opacity = "1";

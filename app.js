@@ -372,6 +372,39 @@ document.getElementById("copyShippingContentsBtn").addEventListener("click", () 
   });
 });
 
+// Matcha name-only artiklar (Gemini gav name men inget artikelnummer) mot
+// Magento-produkter från bokmärkets products=-parameter.
+function matchArticlesByName(nameOnly, magentoProducts) {
+  const matchedFromName = [];
+  for (const a of nameOnly) {
+    const searchName = a.name.toLowerCase();
+    const matches = magentoProducts.filter(p =>
+      p.name.toLowerCase().includes(searchName) ||
+      searchName.includes(p.name.toLowerCase().split(' ')[0]) // första ordet matchar
+    );
+    if (matches.length === 1) {
+      // Exakt en träff — använd den direkt
+      matchedFromName.push({
+        articleNumber: matches[0].articleNumber,
+        quantity: a.quantity,
+      });
+    } else if (matches.length > 1) {
+      // Flera träffar — försök mer exakt matchning
+      const exactMatch = matches.find(p =>
+        p.name.toLowerCase().includes(searchName.toLowerCase())
+      );
+      if (exactMatch) {
+        matchedFromName.push({
+          articleNumber: exactMatch.articleNumber,
+          quantity: a.quantity,
+        });
+      }
+      // Om fortfarande oklart — hoppa över (visas inte, faller till Magento-fallback nedan)
+    }
+  }
+  return matchedFromName;
+}
+
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────
 async function runAnalysis() {
   const myGeneration = ++analysisGeneration;
@@ -427,33 +460,7 @@ async function runAnalysis() {
     const nameOnly     = normalized.filter(a => !/^\d{7}$/.test(a.articleNumber) && a.name);
 
     // För name-only artiklar: försök matcha mot Magento-produkter
-    const matchedFromName = [];
-    for (const a of nameOnly) {
-      const searchName = a.name.toLowerCase();
-      const matches = magentoProducts.filter(p =>
-        p.name.toLowerCase().includes(searchName) ||
-        searchName.includes(p.name.toLowerCase().split(' ')[0]) // första ordet matchar
-      );
-      if (matches.length === 1) {
-        // Exakt en träff — använd den direkt
-        matchedFromName.push({
-          articleNumber: matches[0].articleNumber,
-          quantity: a.quantity,
-        });
-      } else if (matches.length > 1) {
-        // Flera träffar — försök mer exakt matchning
-        const exactMatch = matches.find(p =>
-          p.name.toLowerCase().includes(searchName.toLowerCase())
-        );
-        if (exactMatch) {
-          matchedFromName.push({
-            articleNumber: exactMatch.articleNumber,
-            quantity: a.quantity,
-          });
-        }
-        // Om fortfarande oklart — hoppa över (visas inte, faller till Magento-fallback nedan)
-      }
-    }
+    const matchedFromName = matchArticlesByName(nameOnly, magentoProducts);
 
     const allArticles = [...withNumber, ...matchedFromName];
 

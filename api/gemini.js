@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  const { text } = req.body;
+  const { text } = req.body ?? {};
   if (!text) {
     return res.status(400).json({ error: 'Missing text' });
   }
@@ -83,7 +83,7 @@ ${text}
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
+          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
         }),
       });
 

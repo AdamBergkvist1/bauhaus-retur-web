@@ -201,7 +201,7 @@ export default async function handler(req, res) {
         !dimensions ? "none" :
         (dimensions.length && dimensions.width && dimensions.height) ? "full" : "partial";
 
-      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions, dimensionsConfidence, _debugAllHits: hits, _debugMatchedVia: String(best.objectID) === articleNumber ? "objectID" : "url" } });
+      res.status(200).json({ success: true, data: { sku, ean, weight, shortName, dimensions, dimensionsConfidence } });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

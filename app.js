@@ -276,6 +276,11 @@ function copyDHLEmail() {
     fb.textContent = '✓ Kopierat!';
     fb.classList.add('show');
     setTimeout(() => { fb.textContent = ''; fb.classList.remove('show'); }, 2000);
+  }).catch(() => {
+    const fb = document.getElementById('dhlCopyFeedback');
+    fb.textContent = '⚠️ Kunde inte kopiera';
+    fb.classList.add('show');
+    setTimeout(() => { fb.textContent = ''; fb.classList.remove('show'); }, 2000);
   });
 }
 
@@ -292,7 +297,9 @@ function setupLogisticsBtn() {
       localStorage.getItem("bauhaus_time_from") || "",
       localStorage.getItem("bauhaus_time_to") || ""
     ].join("|");
-    navigator.clipboard.writeText(blData);
+    navigator.clipboard.writeText(blData).catch(() => {
+      logisticsBtn.textContent = "⚠️ Kunde inte kopiera";
+    });
     logisticsBtn.textContent = "✅ Kopierat!";
     setTimeout(() => {
       logisticsBtn.textContent = "🏭 Öppna i Logistics";
@@ -343,12 +350,26 @@ document.getElementById("copyBtn").addEventListener("click", () => {
     fb.classList.add("show");
     setTimeout(() => fb.classList.remove("show"), 2000);
     setStep(3);
+  }).catch(() => {
+    const fb = document.getElementById("copyFeedback");
+    fb.textContent = "⚠️ Kunde inte kopiera";
+    fb.classList.add("show");
+    setTimeout(() => { fb.textContent = ""; fb.classList.remove("show"); }, 2000);
   });
 });
 document.getElementById("saveManualBtn").addEventListener("click", saveManual);
 document.getElementById("copyShippingContentsBtn").addEventListener("click", () => {
   const text = document.getElementById("shippingContentsBox").textContent;
-  navigator.clipboard.writeText(text);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyShippingContentsBtn");
+    const orig = btn.textContent;
+    btn.textContent = "✓ Kopierat!";
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }).catch(() => {
+    const btn = document.getElementById("copyShippingContentsBtn");
+    btn.textContent = "⚠️ Kunde inte kopiera";
+    setTimeout(() => { btn.textContent = "📋 Kopiera fraktsedel"; }, 2000);
+  });
 });
 
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────
@@ -936,6 +957,9 @@ function renderCaseAnalysis(analysis) {
           btn.classList.remove("macro-btn--copied");
           btn.querySelector(".macro-title").textContent = macro.title;
         }, 2000);
+      }).catch(() => {
+        btn.querySelector(".macro-title").textContent = "⚠️ Kunde inte kopiera";
+        setTimeout(() => { btn.querySelector(".macro-title").textContent = macro.title; }, 2000);
       });
     });
     macroListEl.appendChild(btn);
@@ -998,6 +1022,9 @@ function renderGeminiAnalysis(g) {
             btn.classList.remove("macro-btn--copied");
             btn.querySelector(".macro-title").textContent = name;
           }, 2000);
+        }).catch(() => {
+          btn.querySelector(".macro-title").textContent = "⚠️ Kunde inte kopiera";
+          setTimeout(() => { btn.querySelector(".macro-title").textContent = name; }, 2000);
         });
       });
       macroListEl.appendChild(btn);

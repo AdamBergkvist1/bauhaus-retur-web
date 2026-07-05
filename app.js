@@ -388,7 +388,7 @@ async function runAnalysis() {
   if (geminiResult && !geminiResult.error && Array.isArray(geminiResult.articles)) {
     const normalized = geminiResult.articles
       .map(a => ({
-        articleNumber: String(a.articleNumber ?? "").replace(/\D/g, "").slice(0, 7),
+        articleNumber: (d => d.length === 7 ? d : "")(String(a.articleNumber ?? "").replace(/\D/g, "")),
         name: a.name || null,
         quantity: Number.isFinite(a.quantity) && a.quantity > 0 ? a.quantity : 1,
       }));

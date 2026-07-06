@@ -36,7 +36,8 @@
 - [x] **1.3** Öppna `https://github.com/AdamBergkvist1/bauhaus-retur-web/edit/main/api/gemini.js` — KONTROLLERA att URL:en innehåller `/edit/main/api/gemini.js`. Ersätt hela innehållet med det kopierade. Justera fallback-modellen enligt beslut i 1.1. Commit: "Deploy new Gemini prompt (name field + retry) to api/gemini.js".
 - [x] **1.4** Verifiera via raw-URL att `api/gemini.js` nu innehåller strängen `"name": "gräsklippare"` (exempelraden i prompten) och `for (let attempt = 0; attempt < 3; attempt++)`.
 - [x] **1.5** Ta bort root-filen `gemini.js` (GitHub: öppna filen → papperskorgsikonen → commit "Remove root gemini.js — deployed version lives in api/"). Den är nu en död dubblett av samma farliga typ som `api/app.js` var.
-- [ ] **1.6** 🔬 **Verifiera mot verkligt ärende:** Adam kör gräsklippare-ärendet (order 113343937) live med DevTools → Network → `/api/gemini` → Response. Förväntat: `articles` innehåller `{"articleNumber": null, "name": "gräsklippare", ...}` och appen visar EN artikel, inte fyra. Om `name` returneras men matchningen ändå misslyckas → felet ligger i `matchedFromName` (app.js) → gå till Fas 5.5, annars är Bug 2 LÖST — uppdatera TODO.md.
+- [x] **1.6** 🔬 **Verifiera mot verkligt ärende:** Adam kör gräsklippare-ärendet (order 113343937) live med DevTools → Network → `/api/gemini` → Response. Förväntat: `articles` innehåller `{"articleNumber": null, "name": "gräsklippare", ...}` och appen visar EN artikel, inte fyra. Om `name` returneras men matchningen ändå misslyckas → felet ligger i `matchedFromName` (app.js) → gå till Fas 5.5, annars är Bug 2 LÖST — uppdatera TODO.md.
+  - **Verifierat på jobbet 2026-07-06:** name-matchning gav korrekt enskild artikel 1429515 på order 113343937. EAN-avvikelse mot ärendetråd var INTE bugg — artikeln har två giltiga GTIN i SAP (4046664217572 + 4046664222217), appen visade webbens korrekta. **BUG 2 STÄNGD.**
 
 **Risk om fel:** Prompt-ändring påverkar artikellistan i ALLA ärenden. Därför: kör baslinjeärendet (0.3) direkt efter 1.4 och bekräfta oförändrat resultat innan 1.5.
 
@@ -59,7 +60,9 @@
 - [ ] **3.2 DHL-kort: vägra tom artikellista.** Fil: `app.js`, `showDHLCard`. Om `resolvedArticles.filter(a => a.ean).length === 0`: rendera kortet med en tydlig varningsruta ("⚠️ Inga analyserade artiklar ännu — kör Analysera först, mejlet saknar artikelrader") och inaktivera Kopiera-knappen tills artiklar finns. Mejl utan innehållsrader får inte kunna kopieras obemärkt.
 - [ ] **3.3 Pris 0 får aldrig bli "0 kr".** Fil: `app.js`. (a) I `selectShipping`: visa `Varierar` istället för `0 kr` när `opt.price === 0`. (b) I makro-ersättningen i `renderCaseAnalysis`: ersätt `XXX kr` med priset ENDAST om `selectedShipping.price > 0`, annars lämna `XXX kr` kvar så handläggaren ser att det måste fyllas i. Motivering: "0 kr" i ett kundsvar är ett faktiskt fel mot kund.
 - [ ] **3.4** 🔬 **BESLUT KRÄVS (Adam):** `if (true)` i `doFetchShipping` gör att det riktiga frakt-API:t är död kod och en statisk prislista alltid används (auto-väljer PostNord 69 kr, ignorerar vikt). Fråga: är detta ett medvetet permanent läge (API:t kräver cookies/deploy) eller en kvarglömd felsökningsspärr? — **Om medvetet:** ta bort den döda API-koden och ersätt `if (true)` med en kommenterad konstant `USE_FALLBACK_PRICES = true`, och sortera fallback-listan avsiktligt. **Om inte:** separat felsökningssession krävs; rör inget nu.
+  - **Beslut 2026-07-06 (F2):** fast prislista behålls. Ny utforskning planerad: riktiga returfraktpriser via serverless guest-cart mot bauhaus.se (CORS-fri från Vercel, gamla extension-idén).
 - [ ] **3.5** 🔬 **BESLUT KRÄVS (Adam):** Frakten ingår inte längre i returkommentaren (`updateOutput` skriver bara artiklar + totalvikt + risk). Är det avsiktligt (frakten hanteras i makrot) eller en regression mot det gamla formatet "frakt → artiklar → totalvikt"? Ändra endast efter besked.
+- [ ] **3.6 DHL-returkortet har ALDRIG fungerat i webbversionen.** Grundorsak bekräftad via konsoltest (`localStorage.getItem` returnerar `null`): localStorage delas inte mellan `activetracing.dhl.com` och appens origin (extension-kvarleva). Polling-kod + `showDHLCard` intakta men får aldrig data. **Fix:** DHL-grenen i `bookmarklets/bauhaus-magento-webb-shortcut.js` ska skicka data via URL-parametrar istället, `app.js` läser vid load. **Designfråga:** ny flik saknar analyserade artiklar (kopplas till 3.2).
 
 **Regressionskontroll:** Simulera DHL-flödet (Active Tracing-bokmärket kan inte köras utan inloggning — testa genom att i konsolen sätta `localStorage.setItem('bauhaus_dhl_tracking', JSON.stringify({shipmentNumber:'37332538642990565', latestStatus:'Test', latestDate:'2026-07-04', isDHLHolding:true, timestamp:Date.now()}))` och verifiera kortets beteende med och utan analyserade artiklar).
 
@@ -69,7 +72,8 @@
 
 - [x] **4.1 Rensa-knappen städar allt.** Fil: `app.js`, clear-hanteraren. Lägg till: ta bort `#dhlReturnCard` om det finns, dölj `#shippingSelected`, visa `#shippingOptions` tomt, nollställ `selectedShipping` (finns), töm `#outputBox`, `#shippingContentsBox`, dölj `#statusText`, nollställ `hasRisk = false` och dölj `#riskWarn`. Motivering: data från förra kundärendet får inte följa med in i nästa.
 - [x] **4.2 Ta bort döda Chrome-extension-filer:** `parse.js` och `dimensions.js` (refererar `popup.js`/`background.js`/Jest, laddas inte av `index.html`). En commit per fil. Verifiera EFTERÅT att appen laddar utan konsolfel (filerna ska inte refereras någonstans — sök i repot på `parse.js` och `dimensions.js` innan borttagning för säkerhets skull).
-- [ ] **4.3 Städa dubbeltriggningen av `runAnalysis()`** vid sidladdning (två `setTimeout`, ~rad 138/173): behåll EN triggpunkt. Ofarlig men kostar ett extra Gemini-anrop per sidladdning. Lågprio — får skjutas.
+- [x] **4.3 Städa dubbeltriggningen av `runAnalysis()`** vid sidladdning (två `setTimeout`, ~rad 138/173): behåll EN triggpunkt. Ofarlig men kostar ett extra Gemini-anrop per sidladdning. Lågprio — får skjutas.
+  - **Diagnos 2026-07-06:** Puzzel-URL saknar `postcode=` — dubbeltrigg sker aldrig. Stängd utan kodändring.
 
 ---
 
@@ -81,6 +85,7 @@
 - [x] **5.4** `app.js`: lägg `.catch()` med synlig feedback på alla `navigator.clipboard.writeText`-anrop (minst: `copyShippingContentsBtn` som idag saknar all feedback).
 - [ ] **5.5 (villkorad — endast om Fas 1.6 visade att matchningen brister trots `name`):** Skärp `matchedFromName`: (a) normalisera båda sidor (gemener, trimma), (b) ta bort `split(' ')[0]`-villkoret (kategoriord ger falska träffar), (c) vid flera träffar: kräv att HELA söknamnet finns i produktnamnet och att endast en träff uppfyller det — annars hoppa över och låt handläggaren välja manuellt. Skriv testfall i `test.html` FÖRST (gräsklipparfallet + ett tvetydigt fall), implementera sedan.
 - [ ] **5.6** `api/shipping.js` mått-"Försök 1": begränsa L×B×H-regexen till spec-tabellens del av HTML:en istället för hela sidan (första steg: kräv att träffen ligger inom 500 tecken efter strängen "Mått" eller inom en `<table`-sektion). 🔬 Kräver verifiering mot 2–3 riktiga produktsidor innan commit.
+  - **Diagnos klar 2026-07-06:** mått finns i `td.dimensions` `title`-attribut i tabell scope `pc-variants-attributes-table`. Vissa produkter saknar raden legitimt. Fix: läs cellen istället för regex över hela sidan. SAP har ofta mått när webben saknar.
 
 ---
 
@@ -89,10 +94,9 @@
 | # | Fråga | Blockerar |
 |---|-------|-----------|
 | F1 | Fallback-modell: testa `gemini-3.1-flash` eller ta säkra `gemini-3.1-flash-lite` som retry-modell? | Fas 1.1 |
-| F2 | Är `if (true)`-fraktspärren medveten och permanent? | Fas 3.4 |
+| F2 | ~~Är `if (true)`-fraktspärren medveten och permanent?~~ **BESVARAD 2026-07-06:** ja, fast prislista behålls (se Fas 3.4). | Fas 3.4 |
 | F3 | Ska frakt tillbaka in i returkommentaren? | Fas 3.5 |
 | F4 | DHL-kortets sändningsnummerfält: binda till mejltexten (3.1) eller ta bort fältet helt? | Fas 3.1 |
-| F5 | Godkänns höjning av `hitsPerPage` 5→15? | Fas 2.4 |
 
 ## ⚠️ PROJEKTSÄNKARE (kan förstöra mer än de fixar om de görs fel)
 

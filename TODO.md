@@ -1,5 +1,5 @@
 # Projektlogg: Bauhaus Returhantering — Webbapp
-# Senast uppdaterad: 2026-07-03
+# Senast uppdaterad: 2026-07-06
 
 ## 🎯 Målsättning
 Automatisera och kvalitetssäkra returhanteringen genom att snabbt extrahera data
@@ -238,11 +238,12 @@ extractPostcode (17 testfall). Kvarstående:
       från test.html, för saker som inte går att automatisera i webbläsaren)
 - [ ] Bokmärkes-specifik hälsokontroll — snabb konsol-snutt för att verifiera
       att alla DOM-selektorer bokmärkena beror på fortfarande matchar något
-- [ ] Städa bort dubbeltriggningen av `runAnalysis()` vid sidladdning
+- [x] Städa bort dubbeltriggningen av `runAnalysis()` vid sidladdning
       (rad ~138 och ~173 i app.js, två separata `setTimeout`-anrop som kan
       båda trigga). Ofarligt nu tack vare `analysisGeneration`-guarden, men
       onödigt dubbelt nätverksanrop mot Gemini varje gång det inträffar.
-      Låg prioritet — kosmetiskt/effektivitet, inte en funktionsbugg längre.
+      **Diagnos 2026-07-06:** Puzzel-URL saknar `postcode=` → dubbeltrigg
+      sker aldrig i praktiken. Stängd utan kodändring.
 
 ### Fas 3: Nya funktioner — planerade
 
@@ -282,7 +283,11 @@ Se om Gemini faktiskt returnerade ett `name`-fält för artikeln eller inte.
 Det avgör om felet ligger i Geminis output/prompt eller i matchningslogiken
 (`matchedFromName`, i app.js) som redan finns för det här fallet.
 
-**Status: EJ PÅBÖRJAD** — väntar på DevTools-svar från Gemini för detta ärende.
+**Status: STÄNGD (verifierat på jobbet 2026-07-06)** — name-matchning gav
+korrekt enskild artikel 1429515 på order 113343937 (visade EN artikel, inte
+fyra). EAN-avvikelsen mot ärendetråden var INTE en bugg: artikeln har två
+giltiga GTIN i SAP (4046664217572 + 4046664222217) och appen visade webbens
+korrekta. Matchningslogiken (`matchedFromName`) fungerar — Fas 5.5 behövs inte.
 
 #### Fall 2 — Fel artiklar plockas upp av Puzzel-bokmärket (Dmitry-ärendet)
 **Bakgrund:** I Dmitry-ärendet plockar Puzzel-bokmärket upp artikelnumret
@@ -340,18 +345,33 @@ produktlänkar och beskrivning av emballage. Idag skrivs detta manuellt.
 - Puzzel-integration: bokmärke som skapar child ticket automatiskt med
   mejlutkastet förifyllt (kräver noggrann testning av Puzzel API/DOM)
 
-**Status: DELVIS PÅBÖRJAD** — `showDHLCard`-funktionen och localStorage-
-polling från Active Tracing-bokmärket finns committat i app.js, men
-end-to-end-flödet är inte fullt verifierat än. Börja med Fall 1/Bug 2 först.
+**Status: GRUNDORSAK BEKRÄFTAD 2026-07-06 — kortet har ALDRIG fungerat i
+webbversionen.** Konsoltest visade att `localStorage.getItem` returnerar
+`null`: localStorage delas inte mellan `activetracing.dhl.com` och appens
+origin (en kvarleva från extension-arkitekturen). `showDHLCard` +
+polling-koden är intakta men får aldrig någon data. **Fix:** DHL-grenen i
+`bookmarklets/bauhaus-magento-webb-shortcut.js` ska skicka data via
+URL-parametrar istället, och `app.js` läser dem vid load. **Designfråga:**
+en ny flik saknar analyserade artiklar (kopplas till Fas 3.2 i ATGARDSPLAN —
+DHL-kort ska vägra tom artikellista). Se Fas 3.6 i ATGARDSPLAN.md.
 
 ### Fas 4: Volym & Mått
 - [ ] Verifiera DHL/BAUHAUS Tidsbestämd-format för mått vid bokning
       (L×B×H i cm eller mm?) och justera Fraktsedel-innehåll vid behov
+- [ ] Måttextraktion (`api/shipping.js`, se ATGARDSPLAN Fas 5.6).
+      **Diagnos 2026-07-06:** måtten ligger i `td.dimensions` `title`-attribut
+      i tabellen med scope `pc-variants-attributes-table`. Vissa produkter
+      saknar raden legitimt. Fix: läs cellen istället för regex över hela
+      sidan. SAP har ofta mått när webben saknar.
 
 ### Fas 5: Framtida förbättringar
 - [ ] Migrera till TypeScript (kräver byggsystem, komplicerar installationen)
 - [ ] Fraktberäkning v3 — återanvänd aktiv bauhaus.se-session för snabbare
-      varukorgsskapning utan REST-anrop
+      varukorgsskapning utan REST-anrop.
+      **Beslut 2026-07-06 (F2, ATGARDSPLAN Fas 3.4):** fast prislista behålls
+      tills vidare. Ny utforskning planerad: hämta riktiga returfraktpriser via
+      en serverless guest-cart mot bauhaus.se (CORS-fri från Vercel — den gamla
+      extension-idén).
 
 ### Övrigt / diverse att kolla upp
 - [ ] En återkommande textrad ("Du hjälper mig utveckla ett internt

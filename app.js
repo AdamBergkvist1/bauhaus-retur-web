@@ -218,6 +218,18 @@ function checkDHLUrlParams() {
 }
 checkDHLUrlParams();
 
+function checkUrlRefresh() {
+  const p = new URLSearchParams(location.search);
+  if (!p.get('postcode') && !p.get('products')) return;
+  // Visa en kort flash-indikering att appen uppdaterats med ny data
+  const banner = document.createElement('div');
+  banner.textContent = '✓ Uppdaterad med Magento-data';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1B7A43;color:#fff;text-align:center;padding:10px;font-weight:600;z-index:9999;font-size:14px;';
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3000);
+}
+checkUrlRefresh();
+
 function showDHLCard() {
   if (!dhlTrackingData) return;
   const { shipmentNumber, latestStatus, latestDate, isDHLHolding } = dhlTrackingData;

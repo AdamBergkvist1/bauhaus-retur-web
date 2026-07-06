@@ -372,6 +372,15 @@ DHL-kort ska vägra tom artikellista). Se Fas 3.6 i ATGARDSPLAN.md.
       tills vidare. Ny utforskning planerad: hämta riktiga returfraktpriser via
       en serverless guest-cart mot bauhaus.se (CORS-fri från Vercel — den gamla
       extension-idén).
+      
+### Fas 6: Framtida Backend / Databas (Supabase idéer)
+- [ ] **Loggning av saknad artikeldata:** Spara manuellt inmatade EAN och mått i databasen. Kan användas för att bygga en "fellista" till e-com och låta appen minnas värdena nästa gång samma artikel dyker upp.
+- [ ] **Analys och tidsbesparing:** Spara anonymiserad metadata (datum, ärendetyp, fraktsätt) per analys för att mäta appens nytta (t.ex. "sparade 150 timmar denna månad") och se frekventa returartiklar.
+- [ ] **Bildhantering och skickbedömning:** Låt handläggare dra in bilder i appen (via Storage) och koppla till ordernumret för att underlätta samarbete och bevisbörda vid värdeminskningsavdrag.
+- [ ] **Centraliserade svarsmallar:** Flytta `macros.js` och `PUZZEL_MALLAR_INNEHALL.json` till databasen. Bygg ett litet admingränssnitt så koordinatorer kan uppdatera fraktpriser och texter utan kod-commits.
+- [ ] **Inloggning & Behörighet:** Koppla på Auth så att appen låses och endast användare med `@bauhaus.se`-mejladress kan logga in.
+- [ ] **Gemensam ärendehistorik:** Spara gjorda analyser kopplade till handläggarens namn. Gör det sökbart så kollegor kan se tidigare bedömningar på en order.
+- [ ] **AI Feedback-loop (Träna Gemini):** Lägg till en "Tummen ner"-knapp vid felaktig AI-analys. Spara misslyckandet + originalmejlet i databasen för att senare kunna analysera och finjustera prompten.
 
 ### Övrigt / diverse att kolla upp
 - [ ] En återkommande textrad ("Du hjälper mig utveckla ett internt

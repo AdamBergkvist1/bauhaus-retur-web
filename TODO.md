@@ -457,3 +457,11 @@ kodändring. Be alltid om en specifik diagnos (DevTools console/Network,
 exakt kommando, skärmdump av faktiskt resultat) och bekräfta innan en fix
 föreslås. Vid osäkerhet om vilket ärende/vilken fil/vilken URL som avses,
 fråga explicit istället för att anta.
+
+## 🧠 Tekniska Insikter & Analyser
+
+### 🚚 Returfrakt och "Fri frakt"-problematiken (tillagd 07/07/2026)
+**Problem:** För varukorgar över 4000 kr aktiveras "Fri frakt" på Bauhaus.se. Vi behövde hitta ett sätt att skrapa fram den *ursprungliga* fraktkostnaden för returärenden.
+**Undersökning:** Vi finkammade kassans variabler (`totalsData.shipping_amount`, `total_segments`) och alla asynkrona nätverksanrop (`estimate-shipping-methods`). 
+**Slutsats:** Magento raderar originalpriset helt och hållet på servernivå när regeln triggas. Det skickas ut som `0` överallt och maskeras inte ens som en rabatt. Spåret att skrapa priset från kassan är därmed **stängt**.
+**Lösning framåt:** Kommer i framtiden att kräva en egen backend (t.ex. Supabase) där vi bygger upp Bauhaus frakttabell (vikt + postnummerzon) och låter appen räkna ut returfrakten helt oberoende av webbshopens rabattregler.

@@ -219,6 +219,32 @@ efter att IT blockerade extensions.
 
 ## 📋 Backlog (Prioriteringsordning)
 
+### Prioriterad lista (tillagd 2026-07-07)
+
+**PRIO A (risk för fel data):**
+- [ ] Diagnostisera `app.js` ~rad 475: `String(p.articleNumber).replace(/\D/g,"").slice(0,7)`
+      — kan `p.articleNumber` innehålla EAN? Diagnos FÖRE fix.
+- [ ] Skärp `matchArticlesByName`: ordgräns-match, val vid flera träffar.
+
+**PRIO B (robusthet):**
+- [ ] Verifiera DHL-kort live (holding=0/1, Rensa, baslinjeärende) — Adam på jobbet.
+- [ ] Kontrollera UI-indikation vid Gemini-fel/fallback.
+- [ ] Testfall postnummer-extraktion i test.html.
+
+**PRIO C (finish):**
+- [ ] Läs vikt (weight/row_weight/freightcat) från `checkoutConfig.quoteItemData`
+      i varukorgsflödet → Fas 5.6 utan SAP.
+- [ ] DHL-returmejl med ifylld kunddata (format finns i chatthistorik/minne).
+- [ ] Testfall för `checkDHLUrlParams` i test.html.
+- [ ] README.md: vad appen gör, flödesskiss, bookmarklet-installation.
+- [ ] DATAFLOW.md: ärlig karta över vilken data som går till Vercel/Gemini
+      och vad som stannar lokalt — underlag för intern förankring.
+- [ ] Enhetlig felmeddelande-stil i UI.
+
+**PARKERAT:** SAP (väntar intern bekräftelse), AI-chattruta (beror på SAP),
+fraktpris >4000kr (estimate-shipping-methods otestad), PII-maskering
+(byggs om IT kräver det).
+
 ### Fas 1: Slutföra Design V2
 - [x] Bygga test.html som webbläsarbaserad testsvit (klart 2026-06-30)
 - [x] Merge `Design-V2` → `main` (klart, live i produktion)

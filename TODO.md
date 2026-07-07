@@ -495,20 +495,22 @@ fråga explicit istället för att anta.
 ### 🛡️ Säkerhet & GDPR (Högsta prioritet)
 * **Problem:** Appen hanterar idag råa kundmejl. Om användare klistrar in PII (Personally Identifiable Information som namn, adress, e-post, telefon) skickas detta till Vercel och Gemini API, vilket är en GDPR- och IT-policy-risk.
 * **Lösning (Tvättfilter):** Bygg en JavaScript-funktion (`anonymizeText`) som körs *lokalt* i webbläsaren. Filtret ska använda Regex för att identifiera och byta ut känslig data mot placeholders (t.ex. `[KUND_EMAIL]`, `[TELEFONNUMMER]`) **innan** texten skickas iväg till backend.
-* **Mål:** Göra appen 100% GDPR-säker som "Proof of Concept" så att den lagligt kan visas upp för och godkännas av IT/Ledning.
+* **Mål:** Minskar mängden PII som lämnar webbläsaren; slutlig bedömning av GDPR/IT-policy görs av Bauhaus IT/DPO.
 
 * **Viktig insikt för Arbetsflödet (Extraction & Re-injection):** För att appen inte ska förlora sitt syfte (automatisk ifyllnad av DHL-kort och makron) får vi inte bara radera datan. Vi måste bygga en logik som:
   1. Extraherar och sparar PII (namn, ordernummer, adress) i lokala JavaScript-variabler i webbläsaren.
   2. Ersätter PII med placeholders i texten som skickas till Gemini.
   3. Tar emot AI:ns svar och injicerar tillbaka de sparade lokala variablerna in i gränssnittet (t.ex. DHL-kortet). 
-  På så sätt är vi GDPR-säkra men behåller 100% av automatiseringens värde.
+  Minskar mängden PII som lämnar webbläsaren; slutlig bedömning av GDPR/IT-policy görs av Bauhaus IT/DPO.
 
-* **Transparens & Bevis (Säkerhetsdokumentation):** * Bygg in ett "Debug-läge" i UI:t (eller tydliga `console.log`-utskrifter i klienten) som visuellt visar exakt vilken sträng som skickas iväg till Vercel/Gemini. 
+* **Transparens (Säkerhetsdokumentation):** * Bygg in ett "Debug-läge" i UI:t (eller tydliga `console.log`-utskrifter i klienten) som visuellt visar exakt vilken sträng som skickas iväg till Vercel/Gemini. 
   * Syftet är att IT-avdelningen eller chefer med egna ögon ska kunna trycka på en knapp, inspektera nätverksanropet (Payload), och se att strängen som lämnar webbläsaren faktiskt är maskerad (t.ex. "Kunden [KUNDNAMN] vill returnera..."). 
-  * Detta fungerar som ett tekniskt bevis på att ingen PII läcker utanför Bauhaus nätverk.
+  * Minskar mängden PII som lämnar webbläsaren; slutlig bedömning av GDPR/IT-policy görs av Bauhaus IT/DPO.
+
+* **Verifiera att `api/gemini.js` inte loggar payload-innehåll till Vercel-loggar** (t.ex. `console.log` av request body eller Gemini-svar med kundtext) — kontrollera Vercel-loggarna för ett testanrop och ta bort eventuell loggning av rådata.
 
  * **Alternativ till Tvättfilter (För framtida IT-förhandling):**
-  Om företaget i framtiden vill undvika ett lokalt tvättfilter (för att kunna skicka omaskerad data till AI:n), finns det bara två godkända vägar:
+  Om företaget i framtiden vill undvika ett lokalt tvättfilter (för att kunna skicka omaskerad data till AI:n), finns det bl.a. två tekniska alternativ:
   1. **Enterprise-avtal (DPA):** Bauhaus tecknar officiella Personuppgiftsbiträdesavtal med Vercel och Google Cloud. Detta kräver Enterprise-licenser och juridiskt arbete.
   2. **In-house Hosting (On-Premise):** Appen flyttas från Vercel till Bauhaus egna interna servrar, och vi byter ut Gemini mot en lokal AI-modell (t.ex. Llama 3) som körs helt utan internetuppkoppling. 
-  *Slutsats:* Tills något av ovanstående sker, är det lokala Tvättfiltret den enda snabba, kostnadsfria och lagliga vägen framåt för denna Prototyp.
+  Minskar mängden PII som lämnar webbläsaren; slutlig bedömning av GDPR/IT-policy görs av Bauhaus IT/DPO.

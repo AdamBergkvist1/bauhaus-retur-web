@@ -239,59 +239,57 @@ function showDHLCard() {
 
   const card = document.createElement('div');
   card.id = 'dhlReturnCard';
-  card.className = 'card';
-  card.style.marginTop = '20px';
+  card.style.cssText = 'margin-top:20px;padding-top:20px;border-top:1px solid var(--grey-200);';
 
-  const statusColor = isDHLHolding ? 'var(--warn-text)' : 'var(--green)';
-  const statusBg    = isDHLHolding ? 'var(--warn-bg)' : 'var(--green-bg)';
-  const rekommendation = isDHLHolding
-    ? '⚠️ DHL har troligtvis kvar sändningen — överväg att kontakta DHL för retur.'
-    : '✓ Sändningen verkar vara levererad till kund. Kontakta inte DHL för retur.';
+  if (!isDHLHolding) {
+    // Sändningen är levererad — endast en kort grön notis, inget mejlformulär.
+    card.innerHTML = `
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--green);font-weight:600;">
+        ✓ Sändningen är levererad till kund. Kontakta inte DHL för retur.
+      </div>`;
+  } else {
+    // Bygg artikelrader för mejlet
+    const articleLines = resolvedArticles
+      .filter(a => a.ean)
+      .map(a => `${a.quantity}x ${a.ean} (${a.articleNumber})`)
+      .join('\n');
 
-  // Bygg artikelrader för mejlet
-  const articleLines = resolvedArticles
-    .filter(a => a.ean)
-    .map(a => `${a.quantity}x ${a.ean} (${a.articleNumber})`)
-    .join('\n');
+    const productLinks = resolvedArticles
+      .filter(a => a.articleNumber)
+      .map(a => `https://www.bauhaus.se/search?q=${a.articleNumber}`)
+      .join('\n');
 
-  const productLinks = resolvedArticles
-    .filter(a => a.articleNumber)
-    .map(a => `https://www.bauhaus.se/search?q=${a.articleNumber}`)
-    .join('\n');
+    const dhlEmail = `Hej,\n\nKund på sändning ${shipmentNumber} vill inte ta emot sin order och önskar returnera.\n\nSändningen innehåller:\n${articleLines}\n\nFör mer info om produkterna, se:\n${productLinks}\n\nTroligtvis har emballaget Bauhaus tejp/logga.\n\nHa en fortsatt trevlig dag!\n\nMed vänliga hälsningar,\n${userName}\nBAUHAUS Webshop\nwww.bauhaus.se\n010 - 180 18 00`;
 
-  const dhlEmail = `Hej,\n\nKund på sändning ${shipmentNumber} vill inte ta emot sin order och önskar returnera.\n\nSändningen innehåller:\n${articleLines}\n\nFör mer info om produkterna, se:\n${productLinks}\n\nTroligtvis har emballaget Bauhaus tejp/logga.\n\nHa en fortsatt trevlig dag!\n\nMed vänliga hälsningar,\n${userName}\nBAUHAUS Webshop\nwww.bauhaus.se\n010 - 180 18 00`;
-
-  card.innerHTML = `
-    <div class="section-title"><span>📧 DHL Retur-mejl</span></div>
-    <div style="background:${statusBg};border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:${statusColor};font-weight:600;">
-      ${rekommendation}
-    </div>
-    <div style="font-size:12px;color:var(--grey-500);margin-bottom:14px;">
-      Senaste status: <b style="color:var(--grey-900);">${esc(latestStatus)}</b> (${esc(latestDate)})
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <div class="form-group">
+    card.innerHTML = `
+      <div class="section-title"><span>📧 DHL Retur-mejl</span></div>
+      <div style="background:var(--warn-bg);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--warn-text);font-weight:600;">
+        ⚠️ DHL har troligtvis kvar sändningen — överväg att kontakta DHL för retur.
+      </div>
+      <div style="font-size:12px;color:var(--grey-500);margin-bottom:14px;">
+        Senaste status: <b style="color:var(--grey-900);">${esc(latestStatus)}</b> (${esc(latestDate)})
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
         <label>Till</label>
         <input type="text" id="dhlEmailTo" value="dhlfreightkad.dom.se@dhl.com" style="font-size:11px;">
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:12px;">
         <label>Ämne</label>
         <input type="text" id="dhlEmailSubject" value="Retur av sändning ${esc(shipmentNumber)} - BAUHAUS">
       </div>
-    </div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label>Sändningsnummer (redigerbart)</label>
-      <input type="text" id="dhlShipmentNumber" value="${esc(shipmentNumber)}" style="font-family:monospace;">
-    </div>
-    <div class="output-box" id="dhlEmailBody" contenteditable="true" style="min-height:160px;white-space:pre-wrap;font-size:12px;">${dhlEmail}</div>
-    <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
-      <button class="btn btn-primary" onclick="copyDHLEmail()">📋 Kopiera mejl</button>
-      <span id="dhlCopyFeedback" class="copy-feedback"></span>
-    </div>`;
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Sändningsnummer (redigerbart)</label>
+        <input type="text" id="dhlShipmentNumber" value="${esc(shipmentNumber)}" style="font-family:monospace;">
+      </div>
+      <div class="output-box" id="dhlEmailBody" contenteditable="true" style="min-height:160px;white-space:pre-wrap;font-size:12px;">${dhlEmail}</div>
+      <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-primary" onclick="copyDHLEmail()">📋 Kopiera mejl</button>
+        <span id="dhlCopyFeedback" class="copy-feedback"></span>
+      </div>`;
+  }
 
-  // Lägg till kortet efter manuell inmatning-kortet
-  const manualCard = document.getElementById('manualCard');
-  manualCard.insertAdjacentElement('afterend', card);
+  // Lägg till kortet i höger sidopanel, under Ärende-assistent — döljer aldrig ärendeinfo i huvudkolumnen.
+  document.querySelector('.assistant-body').appendChild(card);
 }
 
 function copyDHLEmail() {

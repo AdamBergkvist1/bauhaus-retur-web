@@ -407,6 +407,7 @@ textarea::placeholder { color: var(--grey-500); }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
 .error-msg {
   color: var(--red);

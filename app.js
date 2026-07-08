@@ -231,6 +231,13 @@ function checkUrlRefresh() {
 }
 checkUrlRefresh();
 
+function forceDHLEmailCard() {
+  // Handläggaren har manuellt kontrollerat och vill ändå öppna returmejlet, trots osäker status.
+  if (!dhlTrackingData) return;
+  dhlTrackingData = { ...dhlTrackingData, isDHLHolding: true };
+  showDHLCard();
+}
+
 function showDHLCard() {
   if (!dhlTrackingData) return;
   const { shipmentNumber, latestStatus, latestDate, isDHLHolding, isDHLDelivered } = dhlTrackingData;
@@ -253,6 +260,9 @@ function showDHLCard() {
     card.innerHTML = `
       <div style="background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--warn-text);font-weight:600;">
         ℹ️ Status: "${latestStatus || 'okänd'}" — ej bekräftat levererad. Kontrollera manuellt om DHL bör kontaktas.
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn btn-primary" onclick="forceDHLEmailCard()">✉️ Öppna returmejl ändå</button>
       </div>`;
   } else {
     // Bygg artikelrader för mejlet

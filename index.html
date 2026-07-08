@@ -96,11 +96,12 @@
 
       <div class="divider"></div>
 
-      <!-- Frakt — dold i UI eftersom funktionen kräver en aktiv inloggad
-           bauhaus.se-session (gick bara via Chrome-extension förut), men
-           koden/elementen behålls i DOM ifall vi hittar en annan lösning
-           senare. -->
-      <div style="display:none;">
+      <!-- Frakt — live-uppslagning via gäst-varukorg (api/shipping.js).
+           Verifierat 2026-07-08: fungerar UTAN aktiv bauhaus.se-session/cookies,
+           tidigare antagande om att det krävde inloggad session var felaktigt.
+           Postnummerraden hålls dold med avsikt (fylls automatiskt via
+           Magento-bokmärket, uppslagning triggas automatiskt i app.js). -->
+      <div>
         <div class="section-title"><span>🚚 Frakt &amp; kostnad</span></div>
         <div class="postcode-row" style="display:none;">
           <input type="text" id="inputPostcode" placeholder="Postnummer" maxlength="6">

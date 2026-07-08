@@ -312,6 +312,13 @@ textarea::placeholder { color: var(--grey-500); }
   color: var(--grey-500);
   padding: 8px 0;
 }
+.status-row--warn {
+  color: var(--warn-text);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
 
 /* ── Result list ──────────────────────────── */
 .result-list { display: flex; flex-direction: column; gap: 7px; }

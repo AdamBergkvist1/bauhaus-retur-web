@@ -874,12 +874,8 @@ async function doFetchShipping(autoSelect = false) {
     showShippingError("Inga giltiga artiklar för fraktberäkning.");
     return;
   }
-  // Fallback-prislista (frakt-API kräver Vercel-deploy med cookies)
-  if (true) {
-    const totalWeight = resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0);
-    renderShippingOptions(getFallbackShipping(totalWeight), autoSelect);
-    return;
-  }
+  const totalWeight = resolvedArticles.reduce((s, a) => s + (a.weight ?? 0) * a.quantity, 0);
+
   document.getElementById("shippingStatus").classList.remove("hidden");
   document.getElementById("shippingError").classList.add("hidden");
   document.getElementById("shippingOptions").classList.add("hidden");
@@ -892,9 +888,18 @@ async function doFetchShipping(autoSelect = false) {
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
+
+    const allZero = data.options.length > 0 && data.options.every(o => o.price === 0);
+    if (allZero) {
+      // Troligen fri fraktkampanj (>4000 kr) — priset är maskerat av Bauhaus, gissa inte.
+      showShippingError("⚠️ Fraktpris kunde inte fastställas automatiskt (troligen fri fraktkampanj över 4000 kr). Ange manuellt.");
+      return;
+    }
     renderShippingOptions(data.options, autoSelect);
   } catch (err) {
-    showShippingError(`Kunde inte hämta frakt: ${err.message}`);
+    // Live-uppslagning misslyckades (t.ex. produkt utan stöd för gäst-varukorg) — uppskatta istället.
+    renderShippingOptions(getFallbackShipping(totalWeight), autoSelect);
+    showShippingError(`⚠️ Automatisk fraktuppslagning misslyckades (${err.message}) — visar uppskattat pris, ej live-verifierat.`);
   } finally {
     document.getElementById("shippingStatus").classList.add("hidden");
     document.getElementById("fetchShippingBtn").disabled = false;
@@ -932,7 +937,8 @@ function renderShippingOptions(options, autoSelect) {
 
 function selectShipping(opt) {
   selectedShipping = opt;
-  document.getElementById("shippingSelectedText").textContent = `✓ ${opt.label} – ${opt.price} kr`;
+  const priceText = opt.price === 0 ? "Varierar" : `${opt.price} kr`;
+  document.getElementById("shippingSelectedText").textContent = `✓ ${opt.label} – ${priceText}`;
   document.getElementById("shippingSelected").classList.remove("hidden");
   document.getElementById("shippingOptions").classList.add("hidden");
   updateOutput();

@@ -417,33 +417,39 @@ document.getElementById("copyShippingContentsBtn").addEventListener("click", () 
 
 // Matcha name-only artiklar (Gemini gav name men inget artikelnummer) mot
 // Magento-produkter från bokmärkets products=-parameter.
+const MATCH_STOPWORDS = new Set(['till','för','av','med','och','en','ett','på','i','den','det','som','har','är']);
+
+function tokenizeProductName(str) {
+  return (str.toLowerCase().match(/[a-zåäö0-9]+/g) || []).filter(w => w.length > 1 && !MATCH_STOPWORDS.has(w));
+}
+
 function matchArticlesByName(nameOnly, magentoProducts) {
   const matchedFromName = [];
   for (const a of nameOnly) {
-    const searchName = a.name.toLowerCase();
-    const matches = magentoProducts.filter(p =>
-      p.name.toLowerCase().includes(searchName) ||
-      searchName.includes(p.name.toLowerCase().split(' ')[0]) // första ordet matchar
-    );
-    if (matches.length === 1) {
-      // Exakt en träff — använd den direkt
+    const searchTokens = tokenizeProductName(a.name);
+    if (searchTokens.length === 0) continue;
+
+    // Räkna hur många hela ord (ej substrängar) från sökningen som finns i varje produktnamn.
+    const scored = [];
+    for (const p of magentoProducts) {
+      const productTokens = new Set(tokenizeProductName(p.name));
+      const overlap = searchTokens.filter(t => productTokens.has(t)).length;
+      if (overlap > 0) scored.push({ product: p, overlap });
+    }
+    if (scored.length === 0) continue; // ingen träff — faller till Magento-fallback
+
+    const topScore = Math.max(...scored.map(s => s.overlap));
+    const topCandidates = scored.filter(s => s.overlap === topScore);
+
+    if (topCandidates.length === 1) {
+      // Exakt en bästa träff — använd den
       matchedFromName.push({
-        articleNumber: matches[0].articleNumber,
+        articleNumber: topCandidates[0].product.articleNumber,
         quantity: a.quantity,
       });
-    } else if (matches.length > 1) {
-      // Flera träffar — försök mer exakt matchning
-      const exactMatch = matches.find(p =>
-        p.name.toLowerCase().includes(searchName.toLowerCase())
-      );
-      if (exactMatch) {
-        matchedFromName.push({
-          articleNumber: exactMatch.articleNumber,
-          quantity: a.quantity,
-        });
-      }
-      // Om fortfarande oklart — hoppa över (visas inte, faller till Magento-fallback nedan)
     }
+    // Annars (0 eller flera lika goda kandidater): genuint tvetydigt — hoppa över.
+    // Hellre inget än fel artikel (samma princip som Algolia-fallbacken).
   }
   return matchedFromName;
 }

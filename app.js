@@ -1171,8 +1171,10 @@ function setStatus(msg, loading) {
   if (msg) {
     msgEl.textContent = msg;
     el.classList.remove("hidden");
+    el.classList.toggle("status-row--warn", msg.startsWith("⚠️"));
     if (spinnerEl) spinnerEl.style.display = loading ? "" : "none";
   } else {
     el.classList.add("hidden");
+    el.classList.remove("status-row--warn");
   }
 }

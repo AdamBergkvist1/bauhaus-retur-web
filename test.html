@@ -349,6 +349,18 @@ function defineTests() {
     test("Postnummer i Norrtälje-ärendet (76194)", () => {
       return expectEqual(extractPostcode("Gräsviken 13, 761 94 Norrtälje"), "76194");
     });
+
+    test("Ordernummer + riktigt postnummer i samma text (realistiskt fall)", () => {
+      return expectEqual(extractPostcode("Ordernummer: 113254411. Jag bor på Kungsgatan 5, 412 63 Göteborg tack."), "41263");
+    });
+
+    test("Telefonnummer med bindestreck/mellanslag ska inte tolkas som postnummer", () => {
+      return expectEqual(extractPostcode("Ring mig på 070-455 95 49 om något är oklart."), null);
+    });
+
+    test("Nummer som börjar på 0 är aldrig ett svenskt postnummer", () => {
+      return expectEqual(extractPostcode("Postnummer 012 34, tack för hjälpen"), null);
+    });
   });
 
   describe("matchArticlesByName (Fas 5.5-förberedelse)", () => {

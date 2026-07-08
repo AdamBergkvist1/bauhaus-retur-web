@@ -493,11 +493,52 @@ fråga explicit istället för att anta.
 
 ## 🧠 Tekniska Insikter & Analyser
 
-### 🚚 Returfrakt och "Fri frakt"-problematiken (tillagd 07/07/2026)
-**Problem:** För varukorgar över 4000 kr aktiveras "Fri frakt" på Bauhaus.se. Vi behövde hitta ett sätt att skrapa fram den *ursprungliga* fraktkostnaden för returärenden.
-**Undersökning:** Vi finkammade kassans variabler (`totalsData.shipping_amount`, `total_segments`) och alla asynkrona nätverksanrop (`estimate-shipping-methods`). 
-**Slutsats:** Magento raderar originalpriset helt och hållet på servernivå när regeln triggas. Det skickas ut som `0` överallt och maskeras inte ens som en rabatt. Spåret att skrapa priset från kassan är därmed **stängt**.
-**Lösning framåt:** Kommer i framtiden att kräva en egen backend (t.ex. Supabase) där vi bygger upp Bauhaus frakttabell (vikt + postnummerzon) och låter appen räkna ut returfrakten helt oberoende av webbshopens rabattregler.
+### 🚚 Returfrakt — LÖST OCH LIVE 2026-07-08 (uppdaterar felaktig slutsats från 07/07/2026)
+**Tidigare (föråldrad) slutsats:** vi trodde att fri-frakt-regeln (>4000 kr) nollställde
+priset *överallt*, och att spåret att hämta riktig frakt därmed var stängt utan egen
+databas/frakttabell. **Den slutsatsen visade sig vara fel** — den byggde på tester i
+den vanliga inloggade kundvagns-sessionen i webbläsaren, inte via en fristående gäst-
+varukorg (guest cart) skapad direkt via Magentos REST-API.
+
+**Vad vi upptäckte 2026-07-08:** `api/shipping.js` innehöll redan en fullt fungerande
+guest-cart-implementation (`action=shipping`: skapar varukorg → lägger artiklar →
+`estimate-shipping-methods` → läser `totals`), byggd tidigare men aldrig aktiverad —
+`app.js` hade en hårdkodad `if (true)`-genväg som alltid tvingade fram en fast,
+vikt-baserad prislista istället, med kommentaren "frakt-API kräver Vercel-deploy
+med cookies". Live-testning (direkt `fetch()` mot `/api/shipping?action=shipping`
+från DevTools-konsolen, utan några cookies alls) visade att antagandet var felaktigt:
+Magentos guest-cart-API fungerar helt anonymt, ingen inloggad session krävs.
+
+**Bekräftat via fyra separata live-anrop (postnr 13249):**
+- Grensax (sku 1619255, under 4000 kr) → riktiga priser: DHL Servicepoint 69 kr,
+  PostNord Postombud 69 kr, PostNord Hemleverans 129 kr.
+- Gräsklippare (sku 1429515) normalt antal → 199 kr (fungerar även för skrymmande gods).
+- Gräsklippare × 20 och Klinker × 20 (båda garanterat över 4000 kr) → `success:true`
+  men pris **0 kr** — bekräftar att fri-frakt-regeln ger en *mjuk* nollning
+  (giltigt svar, bara pris 0), INTE ett hårt fel.
+- Gasolgrill (sku 1616880) → hårt fel "Inga fraktalternativ", oberoende av pris —
+  visade sig vara en produktspecifik begränsning (troligen egen fraktkategori/
+  pall-gods som guest-cart-flödet inte hanterar), INTE relaterat till 4000-kr-gränsen.
+
+**Lösning, implementerad och live-verifierad:** tre lägen i `doFetchShipping()`
+(`app.js`):
+1. Riktigt pris (>0 kr) → används direkt.
+2. Alla alternativ ger 0 kr → gul varning "Fraktpris kunde inte fastställas
+   automatiskt (troligen fri fraktkampanj över 4000 kr). Ange manuellt." — ingen
+   siffra visas som om den vore pålitlig.
+3. Anropet felar (t.ex. produkt utan guest-cart-stöd) → faller tillbaka till den
+   gamla vikt-baserade uppskattningen, tydligt märkt "ej live-verifierat".
+
+Även `selectShipping()` uppdaterad för att aldrig visa "0 kr" som ett bekräftat
+pris (visar "Varierar" istället, konsekvent med `renderShippingOptions`).
+`index.html`: den yttre `display:none` som dolde hela "Frakt & kostnad"-sektionen
+är borttagen (den byggde på det felaktiga cookie-antagandet). Postnummerraden
+(manuellt fält + knapp) förblir medvetet dold — postnumret fylls fortfarande
+automatiskt via Magento-bokmärket och uppslagningen triggas automatiskt.
+
+Alla tre lägen verifierade live i produktionsappen 2026-07-08 (skärmdumpar,
+korrekta priser/varningar i samtliga fall). **Ingen egen frakttabell/databas
+behövs längre för detta.**
 
 ### 🛡️ Säkerhet & GDPR (Högsta prioritet)
 * **Problem:** Appen hanterar idag råa kundmejl. Om användare klistrar in PII (Personally Identifiable Information som namn, adress, e-post, telefon) skickas detta till Vercel och Gemini API, vilket är en GDPR- och IT-policy-risk.

@@ -212,6 +212,7 @@ function checkDHLUrlParams() {
     latestStatus: p.get('dhl_status') || '',
     latestDate: p.get('dhl_date') || '',
     isDHLHolding: p.get('dhl_holding') === '1',
+    isDHLDelivered: p.get('dhl_delivered') === '1',
     timestamp: Date.now()
   };
   showDHLCard();
@@ -232,7 +233,7 @@ checkUrlRefresh();
 
 function showDHLCard() {
   if (!dhlTrackingData) return;
-  const { shipmentNumber, latestStatus, latestDate, isDHLHolding } = dhlTrackingData;
+  const { shipmentNumber, latestStatus, latestDate, isDHLHolding, isDHLDelivered } = dhlTrackingData;
 
   // Ta bort eventuellt befintligt DHL-kort
   document.getElementById('dhlReturnCard')?.remove();
@@ -241,11 +242,17 @@ function showDHLCard() {
   card.id = 'dhlReturnCard';
   card.style.cssText = 'margin-top:20px;padding-top:20px;border-top:1px solid var(--grey-200);';
 
-  if (!isDHLHolding) {
-    // Sändningen är levererad — endast en kort grön notis, inget mejlformulär.
+  if (isDHLDelivered && !isDHLHolding) {
+    // Sändningen är BEKRÄFTAT levererad ("Sändning levererad till mottagare") — kort grön notis.
     card.innerHTML = `
       <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--green);font-weight:600;">
-        ✓ Sändningen är levererad till kund. Kontakta inte DHL för retur.
+        ✓ Sändningen är levererad till mottagaren. Kontakta inte DHL för retur.
+      </div>`;
+  } else if (!isDHLHolding && !isDHLDelivered) {
+    // Status varken holding eller bekräftat levererad (t.ex. "Ankommit till terminal") — osäkert, kontrollera manuellt.
+    card.innerHTML = `
+      <div style="background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--warn-text);font-weight:600;">
+        ℹ️ Status: "${latestStatus || 'okänd'}" — ej bekräftat levererad. Kontrollera manuellt om DHL bör kontaktas.
       </div>`;
   } else {
     // Bygg artikelrader för mejlet

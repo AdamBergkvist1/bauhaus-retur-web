@@ -416,6 +416,7 @@ textarea::placeholder { color: var(--grey-500); }
   border-radius: var(--radius-sm);
   padding: 8px 11px;
   margin-top: 6px;
+  margin-bottom: 8px;
 }
 
 /* ── Output box ───────────────────────────── */

@@ -565,7 +565,7 @@ async function runAnalysis() {
       }
     }
     if (articles.length === 0) {
-      setStatus("Inga artikelnummer hittades i texten.", false);
+      setStatus("⚠️ Inga artikelnummer hittades i texten.", false);
       return;
     }
   }

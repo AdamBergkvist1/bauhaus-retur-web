@@ -551,7 +551,7 @@ async function runAnalysis() {
     // Fallback: använd artiklar från Magento-bokmärket om sådana finns
     if (magentoProducts.length > 0) {
       articles = magentoProducts.map(p => ({
-        articleNumber: String(p.articleNumber).replace(/\D/g, "").slice(0, 7),
+        articleNumber: (d => d.length === 7 ? d : "")(String(p.articleNumber ?? "").replace(/\D/g, "")),
         quantity: Number.isFinite(p.quantity) && p.quantity > 0 ? p.quantity : 1,
       })).filter(a => /^\d{7}$/.test(a.articleNumber));
       if (articles.length > 0) {

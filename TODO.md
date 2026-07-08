@@ -231,22 +231,22 @@ efter att IT blockerade extensions.
       den når app.js; ingen EAN eller längre nummer kan nå raden. Kodrad
       städad till samma säkra mönster som rad 486 (kräver exakt 7 siffror,
       annars tom sträng) för robusthet mot framtida ändringar — ej en bugfix.
-- [ ] Skärp `matchArticlesByName`: ordgräns-match, val vid flera träffar.
+- [x] Skärp `matchArticlesByName`: ordgräns-match, val vid flera träffar.
 
 **PRIO B (robusthet):**
-- [ ] Verifiera DHL-kort live (holding=0/1, Rensa, baslinjeärende) — Adam på jobbet.
-- [ ] Kontrollera UI-indikation vid Gemini-fel/fallback.
-- [ ] Testfall postnummer-extraktion i test.html.
+- [x] Verifiera DHL-kort live (holding=0/1, Rensa, baslinjeärende) — Adam på jobbet.
+- [x] Kontrollera UI-indikation vid Gemini-fel/fallback.
+- [x] Testfall postnummer-extraktion i test.html.
 
 **PRIO C (finish):**
 - [ ] Läs vikt (weight/row_weight/freightcat) från `checkoutConfig.quoteItemData`
       i varukorgsflödet → Fas 5.6 utan SAP.
 - [ ] DHL-returmejl med ifylld kunddata (format finns i chatthistorik/minne).
 - [ ] Testfall för `checkDHLUrlParams` i test.html.
-- [ ] README.md: vad appen gör, flödesskiss, bookmarklet-installation.
-- [ ] DATAFLOW.md: ärlig karta över vilken data som går till Vercel/Gemini
+- [x] README.md: vad appen gör, flödesskiss, bookmarklet-installation.
+- [x] DATAFLOW.md: ärlig karta över vilken data som går till Vercel/Gemini
       och vad som stannar lokalt — underlag för intern förankring.
-- [ ] Enhetlig felmeddelande-stil i UI.
+- [x] Enhetlig felmeddelande-stil i UI.
 
 **PARKERAT:** SAP (väntar intern bekräftelse), AI-chattruta (beror på SAP),
 fraktpris >4000kr (estimate-shipping-methods otestad), PII-maskering

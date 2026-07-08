@@ -371,27 +371,24 @@ function defineTests() {
       return expectEqual(r, [{ articleNumber: "1111111", quantity: 3 }]);
     });
 
-    test("KÄND SVAGHET (dokumenterande): substring ger semantiskt fel träff", () => {
+test("FIXAT: 'såg' matchar INTE längre SÅGBOCK (helordsmatchning)", () => {
       const p2 = [{ articleNumber: "2222222", name: "SÅGBOCK TRÄ 2-PACK" }];
       const r = matchArticlesByName([{ articleNumber: "", name: "såg", quantity: 1 }], p2);
-      // 'såg' matchar SÅGBOCK via includes — fel produkt. Dokumenterar nuläget.
-      return "Nuvarande utfall: " + JSON.stringify(r) + " (sågbock är inte en såg — skärps i 5.5)";
+      return expectEqual(r, []);
     });
 
-    test("KÄND SVAGHET (dokumenterande): två gräsklippare → godtycklig första väljs", () => {
+    test("FIXAT: två gräsklippare → hoppar över vid tvetydighet (ej längre godtycklig)", () => {
       const p3 = [
         { articleNumber: "3333333", name: "GRÄSKLIPPARE SCHEPPACH BC-MP320-X 20V" },
         { articleNumber: "4444444", name: "GRÄSKLIPPARE BOSCH ROTAK 32" },
       ];
       const r = matchArticlesByName([{ articleNumber: "", name: "gräsklippare", quantity: 1 }], p3);
-      // Önskat beteende i 5.5: hoppa över vid tvetydighet. Idag väljs första.
-      return "Nuvarande utfall: " + JSON.stringify(r) + " (tvetydig träff borde hoppa över — skärps i 5.5)";
+      return expectEqual(r, []);
     });
 
-    test("KÄND SVAGHET (dokumenterande): 'batteri till gräsklippare' → hoppas över helt", () => {
+    test("KÄND BEGRÄNSNING (accepterad, ej bugg): 'batteri till gräsklippare' hoppas över — inget enskilt produktnamn innehåller båda orden, kan ej avgöras säkert från namn", () => {
       const r = matchArticlesByName([{ articleNumber: "", name: "batteri till gräsklippare", quantity: 1 }], products);
-      // Första-ordet-regeln ger 2 träffar (batteri + gräsklippare), exakt-steget löser inte → tom
-      return "Nuvarande utfall: " + JSON.stringify(r) + " (kund som beskriver tillbehör tappas)";
+      return expectEqual(r, []);
     });
   });
 }

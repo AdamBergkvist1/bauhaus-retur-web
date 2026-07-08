@@ -222,8 +222,15 @@ efter att IT blockerade extensions.
 ### Prioriterad lista (tillagd 2026-07-07)
 
 **PRIO A (risk för fel data):**
-- [ ] Diagnostisera `app.js` ~rad 475: `String(p.articleNumber).replace(/\D/g,"").slice(0,7)`
-      — kan `p.articleNumber` innehålla EAN? Diagnos FÖRE fix.
+- [x] Diagnostisera `app.js` rad 544: `String(p.articleNumber).replace(/\D/g,"").slice(0,7)`
+      — DIAGNOS KLAR 2026-07-08, ej bugg: `magentoProducts` fylls endast från
+      `bauhaus-magento-webb-shortcut.js` (URL-param `products`), och den
+      bookmarkleten extraherar redan `articleNumber` via strikt regex
+      `skuText.match(/\d{7}/)?.[0]` — produkten skippas helt om ingen exakt
+      7-siffrig match finns. Datan är alltså redan garanterat 7 siffror innan
+      den når app.js; ingen EAN eller längre nummer kan nå raden. Kodrad
+      städad till samma säkra mönster som rad 486 (kräver exakt 7 siffror,
+      annars tom sträng) för robusthet mot framtida ändringar — ej en bugfix.
 - [ ] Skärp `matchArticlesByName`: ordgräns-match, val vid flera träffar.
 
 **PRIO B (robusthet):**

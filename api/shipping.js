@@ -29,10 +29,15 @@ export default async function handler(req, res) {
 
   // TILLFÄLLIG DIAGNOSTIK — ta bort efter att vikt-frågan är utredd (PRIO C)
   if (action === "debug-weight") {
-    const { articleNumber } = req.body ?? {};
+    const { sku, quantity } = req.body ?? {};
     try {
-      const data = await bauhausFetch("GET", `/products/${articleNumber}`, null, "");
-      res.status(200).json({ success: true, data });
+      const cartToken = await bauhausFetch("POST", "/guest-carts", null, "");
+      await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
+        cartItem: { quote_id: cartToken, sku: String(sku), qty: quantity ?? 1 },
+      }, "");
+      const items = await bauhausFetch("GET", `/guest-carts/${cartToken}/items`, null, "");
+      const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null, "");
+      res.status(200).json({ success: true, items, totals });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

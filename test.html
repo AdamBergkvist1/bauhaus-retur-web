@@ -363,6 +363,32 @@ function defineTests() {
     });
   });
 
+  describe("parseDHLUrlParams", () => {
+    test("Inget dhl_shipment → null", () => {
+      return expectEqual(parseDHLUrlParams("?foo=bar"), null);
+    });
+
+    test("Holding-fall, alla fält", () => {
+      const r = parseDHLUrlParams("?dhl_shipment=123&dhl_status=Nekar&dhl_date=08.07.2026&dhl_holding=1&dhl_delivered=0");
+      return expectEqual(r, { shipmentNumber: "123", latestStatus: "Nekar", latestDate: "08.07.2026", isDHLHolding: true, isDHLDelivered: false });
+    });
+
+    test("Levererat-fall", () => {
+      const r = parseDHLUrlParams("?dhl_shipment=456&dhl_status=Sändning+levererad+till+mottagare&dhl_date=24.06.2026&dhl_holding=0&dhl_delivered=1");
+      return expectEqual(r, { shipmentNumber: "456", latestStatus: "Sändning levererad till mottagare", latestDate: "24.06.2026", isDHLHolding: false, isDHLDelivered: true });
+    });
+
+    test("Osäkert-fall (varken holding eller delivered)", () => {
+      const r = parseDHLUrlParams("?dhl_shipment=789&dhl_status=Ankommit+till+terminal&dhl_holding=0&dhl_delivered=0");
+      return expectEqual(r, { shipmentNumber: "789", latestStatus: "Ankommit till terminal", latestDate: "", isDHLHolding: false, isDHLDelivered: false });
+    });
+
+    test("Saknade fält (status/datum) defaultar till tom sträng", () => {
+      const r = parseDHLUrlParams("?dhl_shipment=999");
+      return expectEqual(r, { shipmentNumber: "999", latestStatus: "", latestDate: "", isDHLHolding: false, isDHLDelivered: false });
+    });
+  });
+ 
   describe("matchArticlesByName (Fas 5.5-förberedelse)", () => {
     const products = [
       { articleNumber: "1428733", name: "GRÄSKLIPPARE SCHEPPACH BC-MP320-X 20V" },

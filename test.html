@@ -166,6 +166,19 @@ function extractPostcode(text) {
   return null;
 }
 
+function parseDHLUrlParams(search) {
+  const p = new URLSearchParams(search);
+  const shipmentNumber = p.get('dhl_shipment');
+  if (!shipmentNumber) return null;
+  return {
+    shipmentNumber,
+    latestStatus: p.get('dhl_status') || '',
+    latestDate: p.get('dhl_date') || '',
+    isDHLHolding: p.get('dhl_holding') === '1',
+    isDHLDelivered: p.get('dhl_delivered') === '1',
+  };
+}
+
 const MATCH_STOPWORDS = new Set(['till','för','av','med','och','en','ett','på','i','den','det','som','har','är']);
 
 function tokenizeProductName(str) {

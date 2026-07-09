@@ -48,10 +48,20 @@ i en prompt till Google Generative Language API
 som lägger till API-nyckeln (`GEMINI_API_KEY`, aldrig exponerad i
 klientkod).
 
-**Det betyder:** om kundmejlet innehåller namn, adress, telefonnummer
-eller ordernummer skickas det, idag omaskerat, till Google via Vercel.
-Ingen maskering är implementerad i nuläget (se `TODO.md` för
-`anonymizeText()`-planen som backlogpost).
+**Det betyder:** sedan 2026-07-09 maskeras kundens namn, adress, e-post
+och telefonnummer lokalt i webbläsaren INNAN texten skickas (`anonymizeText()`
+i `app.js`) — riktiga värden ersätts med platshållare som `[KUNDNAMN]`,
+`[EPOST]`, `[TELEFON]`, `[ADRESS]`, och återinjiceras i UI:t efter svaret.
+
+**Ordernumret maskeras medvetet INTE** — Gemini-prompten (`api/gemini.js`)
+ber uttryckligen om att extrahera ett 9-siffrigt ordernummer ur texten för
+att auto-fylla ärendet; att maskera det skulle bryta den funktionen. Namn
+maskeras endast om det matchar exakt mot redan känd kunddata (satt av
+Magento-bokmärket) — ingen generell regex-gissning på fritext, för att
+undvika att av misstag maskera produktnamn eller annan text.
+
+Kvarstående extern datapunkt: ordernummer (om det finns i mejlet) skickas
+fortfarande i klartext till Gemini.
 
 **Loggning:** `api/gemini.js` loggar endast HTTP-statuskoder och
 felmeddelanden (`console.error`/`console.log`) — själva prompten

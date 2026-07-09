@@ -82,20 +82,36 @@ Algolias publika API-nyckel via en generisk sökning på bauhaus.se
 (sökordet är hårdkodat, t.ex. "hammer" — inte kopplat till något
 ärende).
 
-## 4. Vad som INTE är byggt än (backlog)
+## 4. Lokal maskering — KLAR 2026-07-09
+`anonymizeText()` i `app.js` ersätter kundens namn, adress, e-post och
+telefonnummer med platshållare (`[KUNDNAMN]`, `[ADRESS]`, `[EPOST]`,
+`[TELEFON]`) innan mejltexten skickas till Gemini, och återinjicerar
+originalvärdena i UI:t efter svaret. Namn/adress maskeras endast vid
+exakt matchning mot redan känd kunddata (från Magento-bokmärket), ingen
+regex-gissning på fritext. **Ordernumret maskeras medvetet inte** —
+Gemini-prompten behöver det för att extrahera ärendets ordernummer
+automatiskt; att maskera det skulle bryta den funktionen.
 
-- **Lokal maskering (`anonymizeText()`):** skulle ersätta namn,
-  e-post, telefon och ordernummer med placeholders innan text
-  skickas till Gemini, och återinjicera originalvärdena i UI:t efter
-  svaret. Minskar mängden PII som lämnar webbläsaren — men ändrar
-  inte att en nätverksförfrågan fortfarande går till Vercel/Gemini.
-  Se `TODO.md`.
+Detta minskar mängden PII i själva mejltextens nätverksanrop, men ändrar
+inte att en förfrågan fortfarande går till Vercel/Gemini, och löser inte
+punkt 5 nedan (ett separat, allvarligare läckage).
 
-## 5. Öppna frågor för Bauhaus IT/DPO
+## 5. Känt, ej åtgärdat gap — kunddata i URL
+Magento-bokmärket skickar idag kundens namn, adress, gata, stad, telefon
+och e-post som URL-query-parametrar till appen (`?name=...&address=...`),
+på VARJE ärende där bokmärket används — oavsett vad som står i mejltexten.
+Detta är separat från och sannolikt allvarligare än punkt 4, eftersom
+URL:er (inkl. query-strängar) normalt loggas av hosting-plattformar som
+standarddrift och sparas i webbläsarhistorik. Upptäckt 2026-07-09, åtgärd
+planerad (se `TODO.md`, PRIO E) men ej påbörjad.
 
-- Är dagens flöde (omaskerad mejltext → Vercel → Gemini) godkänt,
-  eller krävs maskering (punkt 4) innan verktyget kan användas i
+## 6. Öppna frågor för Bauhaus IT/DPO
+- Är dagens flöde (maskerad mejltext → Vercel → Gemini, se punkt 4) godkänt,
+  eller krävs ytterligare åtgärder innan verktyget kan användas i
   ordinarie drift?
+- Är URL-PII-läckaget (punkt 5) tillräckligt allvarligt för att blockera
+  användning tills det är åtgärdat, eller kan verktyget användas under
+  tiden det löses?
 - Krävs formellt personuppgiftsbiträdesavtal med Vercel/Google för
   den här typen av användning?
 - Finns policy för att läsa interna system (Puzzel/Magento/DHL) via

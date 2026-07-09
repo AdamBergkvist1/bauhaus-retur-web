@@ -203,18 +203,23 @@ setInterval(checkDHLTracking, 2000);
 checkDHLTracking();
 
 // ── URL-parametrar: DHL-spårningsdata skickad direkt från bokmärket (Fas 3.6) ──
-function checkDHLUrlParams() {
-  const p = new URLSearchParams(location.search);
+function parseDHLUrlParams(search) {
+  const p = new URLSearchParams(search);
   const shipmentNumber = p.get('dhl_shipment');
-  if (!shipmentNumber) return;
-  dhlTrackingData = {
+  if (!shipmentNumber) return null;
+  return {
     shipmentNumber,
     latestStatus: p.get('dhl_status') || '',
     latestDate: p.get('dhl_date') || '',
     isDHLHolding: p.get('dhl_holding') === '1',
     isDHLDelivered: p.get('dhl_delivered') === '1',
-    timestamp: Date.now()
   };
+}
+
+function checkDHLUrlParams() {
+  const parsed = parseDHLUrlParams(location.search);
+  if (!parsed) return;
+  dhlTrackingData = { ...parsed, timestamp: Date.now() };
   showDHLCard();
 }
 checkDHLUrlParams();

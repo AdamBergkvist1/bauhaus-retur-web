@@ -249,11 +249,74 @@ efter att IT blockerade extensions.
 - [x] Enhetlig felmeddelande-stil i UI.
 
 **PRIO D (maskering — högst prioritet innan intern förankring):**
-- [ ] Bygg `anonymizeText()`: maskera namn/e-post/telefon/adress innan text
+- [x] Bygg `anonymizeText()`: maskera namn/e-post/telefon/adress innan text
       skickas till Gemini, spara original lokalt, återinjicera i UI efter svar.
-      Design redan specad (se tidigare chatthistorik/minne). Detta är den
-      enskilt viktigaste åtgärden för att göra dataflödet försvarbart inför
-      Legal/dataskydd.
+      KLAR 2026-07-09, live-verifierad. Ordernummer maskeras medvetet inte
+      (Gemini behöver det för `order`-fältet). Namn/adress maskeras endast
+      via exakt strängmatchning mot redan känd kunddata, ingen regex-gissning.
+
+**PRIO E (arkitekturfix — kunddata i URL, upptäckt 2026-07-09):**
+- [ ] Byt bort URL-query-parametrar för PII (namn/adress/telefon/e-post/
+      företag) mellan Magento-bokmärket och appen, till en säkrare
+      handoff-mekanism.
+
+      **Problem:** `bookmarklets/bauhaus-magento-webb-shortcut.js` bygger
+      idag `openAppUrl` med `?name=...&address=...&street=...&company=...
+      &city=...&phone=...&email=...` (två näst identiska ställen i filen,
+      båda måste åtgärdas). Detta sker på VARJE ärende där bokmärket körs,
+      oavsett om mejltexten innehåller PII eller ej. URL:er (inkl.
+      query-strängar) loggas normalt av hosting-plattformar (Vercel) som
+      standarddrift, och sparas i webbläsarhistorik — helt separat från och
+      allvarligare än Gemini-textmaskeringen (PRIO D, redan löst).
+
+      **Varför det inte är en enkel fix:** Magento (bookmarklet-origin) och
+      Vercel-appen (bauhaus-retur-web.vercel.app) är OLIKA origins — de delar
+      INTE `localStorage`. Det postMessage-lyssnarmönster som redan finns i
+      app.js (`bauhausCookies`, rad ~76) användes för ett ANNAT syfte
+      (guest-cart-cookies) och skickas aldrig av någon bookmarklet i
+      praktiken — det är alltså inte ett fungerande mönster att kopiera rakt
+      av. Även DHL-flödets `localStorage.setItem('bauhaus_dhl_tracking',...)`
+      sker på DHL:s egen origin och är sannolikt dött/overksamt för
+      cross-origin-överföring; DHL-data når faktiskt appen via URL-parametrar
+      (dhl_status/dhl_holding/dhl_delivered), samma mönster som ska bytas ut.
+
+      **Föreslagen lösning — postMessage-handskakning:**
+      1. Bokmärket öppnar fliken som idag: `const newWin = window.open(appUrl, 'bauhaus_retur')`,
+         men `appUrl` innehåller EJ längre PII — bara icke-känsliga fält
+         (postnummer, ordernummer om det anses okej, tracking-referens).
+      2. Appen (`app.js`) signalerar vid sidladdning till `window.opener`
+         (om det finns) att den är redo: `window.opener?.postMessage('BAUHAUS_APP_READY', TARGET_ORIGIN)`.
+      3. Bokmärket lyssnar på det svaret och postar då PII-fälten
+         (namn/adress/gata/företag/stad/telefon/e-post) via
+         `newWin.postMessage({...}, TARGET_ORIGIN)`.
+      4. `app.js` tar emot och validerar `event.origin` strikt (Magentos
+         faktiska domän, inte `*`) innan datan används — annars kan vilken
+         sida som helst posta falsk kunddata in i appen.
+
+      **Kända komplikationer att testa noga, inte anta:**
+      - Bokmärket återanvänder samma namngivna flik (`'bauhaus_retur'`)
+        mellan ärenden — vid omnavigering till en redan öppen flik måste
+        "redo"-signalen fortfarande trigga korrekt vid varje sidladdning,
+        inte bara första gången.
+      - Popup-blockering: om `window.open` returnerar `null` (blockerad)
+        finns inget fönster att posta till — behöver tydlig hantering, inte
+        tyst datatapp.
+      - Timing-risk: appen måste hinna sätta upp sin `message`-lyssnare
+        innan bokmärket postar — annars tappas datan. Kräver
+        handskaknings-mönstret ovan (inte bara ett enkelrikta postMessage
+        direkt vid `window.open`).
+      - TVÅ näst identiska kodblock i bookmarkleten bygger `openAppUrl`
+        (ett för `bauhaus_auto_collect`-flödet, ett för direktflödet) —
+        båda måste uppdateras identiskt, annars fixas bara hälften av
+        fallen.
+      - Verifiera samtliga fyra bookmarklets efteråt, inte bara Magento-filen
+        (kolla ingen annan skickar liknande data på samma sätt).
+
+      **Rekommendation:** kör denna med en kapabel modell (Fable 5) pga.
+      cross-origin async-komplexiteten och risken för svårfelsökta
+      timing-buggar — diagnostisera/verifiera varje steg live innan nästa,
+      exakt som med fraktlösningen tidigare. Använder sannolikt mycket
+      usage; unviket att göra i en kort session.
 
 ---
 

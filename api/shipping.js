@@ -27,23 +27,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // TILLFÄLLIG DIAGNOSTIK — ta bort efter att vikt-frågan är utredd (PRIO C)
-  if (action === "debug-weight") {
-    const { sku, quantity } = req.body ?? {};
-    try {
-      const cartToken = await bauhausFetch("POST", "/guest-carts", null, "");
-      await bauhausFetch("POST", `/guest-carts/${cartToken}/items`, {
-        cartItem: { quote_id: cartToken, sku: String(sku), qty: quantity ?? 1 },
-      }, "");
-      const items = await bauhausFetch("GET", `/guest-carts/${cartToken}/items`, null, "");
-      const totals = await bauhausFetch("GET", `/guest-carts/${cartToken}/totals`, null, "");
-      res.status(200).json({ success: true, items, totals });
-    } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-    return;
-  }
-
   if (action === "product") {
     const { articleNumber } = req.body ?? {};
     try {
@@ -268,7 +251,10 @@ export default async function handler(req, res) {
         if (!seen.has(k) && o.label) { seen.add(k); options.push(o); }
       }
       options.sort((a, b) => a.price - b.price || a.sortOrder - b.sortOrder);
-      res.status(200).json({ success: true, options });
+      // additional_info[1] = verifierad totalvikt (kg) för hela fraktgruppen,
+      // bekräftad 2026-07-09 (skalar korrekt med antal, t.ex. 3x1,3kg → 3,9).
+      const verifiedWeight = groups.reduce((sum, g) => sum + (Number(g.additional_info?.[1]) || 0), 0);
+      res.status(200).json({ success: true, options, verifiedWeight: verifiedWeight || null });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

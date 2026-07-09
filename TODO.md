@@ -239,8 +239,18 @@ efter att IT blockerade extensions.
 - [x] Testfall postnummer-extraktion i test.html.
 
 **PRIO C (finish):**
-- [ ] Läs vikt (weight/row_weight/freightcat) från `checkoutConfig.quoteItemData`
-      i varukorgsflödet → Fas 5.6 utan SAP.
+- [x] Läs vikt från gäst-varukorgens `totals.extension_attributes.shipping_groups[].additional_info[1]`
+      (INTE `checkoutConfig.quoteItemData` som ursprungligen planerat — det kräver
+      inloggad kundvagns-session i webbläsaren, medan `additional_info[1]` finns i
+      samma REST-svar som frakt-uppslagningen redan gör, helt anonymt). KLAR
+      2026-07-09, verifierat live: skalar korrekt med antal (3×1,3kg → 3,9kg,
+      bekräftat). `api/shipping.js` returnerar nu `verifiedWeight`, `app.js`
+      använder den för den visade "Totalvikt"-raden när tillgänglig (påverkar
+      INTE kollislags-beslutet (Paket/HD/Pall) — det är en separat, större
+      ändring pga timing (kollislag beräknas synkront innan frakt-anropet
+      hunnit svara), medvetet ej byggd nu. Bekräftat att befintliga korrekta
+      fall (grensax) fortfarande visar rätt vikt efter ändringen. Ej ännu
+      bekräftat i verkligt "vikt saknas"-fall (väntar på naturligt ärende).
 - [ ] DHL-returmejl med ifylld kunddata (format finns i chatthistorik/minne).
 - [ ] Testfall för `checkDHLUrlParams` i test.html.
 - [x] README.md: vad appen gör, flödesskiss, bookmarklet-installation.
@@ -674,3 +684,24 @@ behövs längre för detta.**
   1. **Enterprise-avtal (DPA):** Bauhaus tecknar officiella Personuppgiftsbiträdesavtal med Vercel och Google Cloud. Detta kräver Enterprise-licenser och juridiskt arbete.
   2. **In-house Hosting (On-Premise):** Appen flyttas från Vercel till Bauhaus egna interna servrar, och vi byter ut Gemini mot en lokal AI-modell (t.ex. Llama 3) som körs helt utan internetuppkoppling. 
   Minskar mängden PII som lämnar webbläsaren; slutlig bedömning av GDPR/IT-policy görs av Bauhaus IT/DPO.
+
+---
+
+### 🎯 Fokusskifte 2026-07-09: regelefterlevnad först
+
+All PRIO A–D är nu klar (se ovan). PRIO E (URL-PII) är planerad men ej byggd.
+Från och med nu prioriteras INTE nya funktioner — fokus är att göra appen så
+väl förberedd som möjligt inför kontakt med chef/Legal/dataskydd, enligt
+planen ovan. Konkret innebär det:
+
+1. **PRIO E (URL-PII-fixen)** flyttas upp i praktiken till högsta prioritet,
+   eftersom det är den enda kända, oåtgärdade dataskyddsrisken kvar. Körs med
+   Fable 5 pga komplexiteten (se detaljerad plan ovan).
+2. Inga nya funktioner läggs till utöver det som redan är planerat, om det
+   inte direkt stödjer regelefterlevnad eller dokumentation.
+3. `README.md`/`DATAFLOW.md` hålls uppdaterade löpande — om kod ändras som
+   påverkar dataflödet, uppdatera dokumentationen i samma commit, inte efteråt.
+4. Innan kontakt med chef (från 2026-08-10): läs igenom `DATAFLOW.md` och
+   `TODO.md` en sista gång som om man vore en utomstående granskare — leta
+   efter fler potentiella dataläckor liknande URL-PII-fyndet, som kan ha
+   missats under den snabba utvecklingstakten.

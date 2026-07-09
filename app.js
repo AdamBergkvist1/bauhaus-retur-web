@@ -463,6 +463,49 @@ function matchArticlesByName(nameOnly, magentoProducts) {
   return matchedFromName;
 }
 
+function anonymizeText(text) {
+  let result = text;
+  const restoreMap = [];
+
+  // Kända kundfält (namn/adress) — exakt strängmatchning mot redan
+  // extraherad data (satt av Magento-bokmärket), INTE regex-gissning.
+  // OBS: ordernummer maskeras medvetet INTE — Gemini-prompten kräver att
+  // se det för att kunna extrahera "order"-fältet automatiskt.
+  const knownFields = [
+    { key: "bauhaus_customer_name",    placeholder: "[KUNDNAMN]" },
+    { key: "bauhaus_customer_address", placeholder: "[ADRESS]" },
+  ];
+  for (const { key, placeholder } of knownFields) {
+    const value = (localStorage.getItem(key) || "").trim();
+    if (value.length > 2 && result.includes(value)) {
+      restoreMap.push({ placeholder, value });
+      result = result.split(value).join(placeholder);
+    }
+  }
+
+  // E-postadresser
+  result = result.replace(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g, (m) => {
+    restoreMap.push({ placeholder: "[EPOST]", value: m });
+    return "[EPOST]";
+  });
+
+  // Telefonnummer (svenska format: +46 / 0, valfria mellanslag/bindestreck)
+  result = result.replace(/(?:\+46|0)[\s-]?7[\s-]?\d(?:[\s-]?\d){7}/g, (m) => {
+    restoreMap.push({ placeholder: "[TELEFON]", value: m });
+    return "[TELEFON]";
+  });
+
+  return { maskedText: result, restoreMap };
+}
+
+function restoreText(text, restoreMap) {
+  let result = text;
+  for (const { placeholder, value } of restoreMap) {
+    result = result.split(placeholder).join(value);
+  }
+  return result;
+}
+
 // ── HUVUDFLÖDE ────────────────────────────────────────────────────────
 async function runAnalysis() {
   const myGeneration = ++analysisGeneration;
@@ -471,17 +514,20 @@ async function runAnalysis() {
   localStorage.setItem("bauhaus_last_email", text);
   hasRisk = detectRiskKeywords(text);
 
+  const { maskedText, restoreMap } = anonymizeText(text);
+
   let geminiResult = null;
   try {
     const geminiRes = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text: maskedText })
     });
     if (geminiRes.ok) geminiResult = await geminiRes.json();
   } catch (e) {
     console.log('Gemini ej tillgänglig, använder regex-parser');
   }
+  if (geminiResult?.summary) geminiResult.summary = restoreText(geminiResult.summary, restoreMap);
 
   if (geminiResult?.requested_time) localStorage.setItem("bauhaus_requested_time", geminiResult.requested_time);
   if (geminiResult?.delivery_date)  localStorage.setItem("bauhaus_delivery_date",  geminiResult.delivery_date);

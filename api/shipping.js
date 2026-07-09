@@ -27,6 +27,18 @@ export default async function handler(req, res) {
     return;
   }
 
+  // TILLFÄLLIG DIAGNOSTIK — ta bort efter att vikt-frågan är utredd (PRIO C)
+  if (action === "debug-weight") {
+    const { articleNumber } = req.body ?? {};
+    try {
+      const data = await bauhausFetch("GET", `/products/${articleNumber}`, null, "");
+      res.status(200).json({ success: true, data });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+    return;
+  }
+
   if (action === "product") {
     const { articleNumber } = req.body ?? {};
     try {

@@ -281,8 +281,15 @@ function showDHLCard() {
       .map(a => `https://www.bauhaus.se/search?q=${a.articleNumber}`)
       .join('\n');
 
-    const dhlEmail = `Hej,\n\nKund på sändning ${shipmentNumber} vill inte ta emot sin order och önskar returnera.\n\nSändningen innehåller:\n${articleLines}\n\nFör mer info om produkterna, se:\n${productLinks}\n\nTroligtvis har emballaget Bauhaus tejp/logga.\n\nHa en fortsatt trevlig dag!\n\nMed vänliga hälsningar,\n${userName}\nBAUHAUS Webshop\nwww.bauhaus.se\n010 - 180 18 00`;
+    const custName    = localStorage.getItem("bauhaus_customer_name") || "";
+        const custAddress = localStorage.getItem("bauhaus_customer_address") || "";
+        const custPhone   = localStorage.getItem("bauhaus_customer_phone") || "";
+        const custLine = (custName || custAddress || custPhone)
+          ? `\n\nGäller kund: ${[custName, custAddress, custPhone].filter(Boolean).join(" / ")}`
+          : "";
 
+    const dhlEmail = `Hej,\n\nKund på sändning ${shipmentNumber} vill inte ta emot sin order och önskar returnera.\n\nSändningen innehåller:\n${articleLines}\n\nFör mer info om produkterna, se:\n${productLinks}\n\nTroligtvis har emballaget Bauhaus tejp/logga.${custLine}\n\nHa en fortsatt trevlig dag!\n\nMed vänliga hälsningar,\n${userName}\nBAUHAUS Webshop\nwww.bauhaus.se\n010 - 180 18 00`;    
+    
     card.innerHTML = `
       <div class="section-title"><span>📧 DHL Retur-mejl</span></div>
       <div style="background:var(--warn-bg);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--warn-text);font-weight:600;">

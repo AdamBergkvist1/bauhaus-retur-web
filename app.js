@@ -273,7 +273,7 @@ function showDHLCard() {
     // Bygg artikelrader för mejlet
     const articleLines = resolvedArticles
       .filter(a => a.ean)
-      .map(a => `${a.quantity}x ${a.ean} (${a.articleNumber})`)
+      .map(a => `${a.quantity}x ${a.shortName || a.articleNumber} (EAN: ${a.ean})`)
       .join('\n');
 
     const productLinks = resolvedArticles
@@ -285,7 +285,7 @@ function showDHLCard() {
         const custAddress = localStorage.getItem("bauhaus_customer_address") || "";
         const custPhone   = localStorage.getItem("bauhaus_customer_phone") || "";
         const custLine = (custName || custAddress || custPhone)
-          ? `\n\nGäller kund: ${[custName, custAddress, custPhone].filter(Boolean).join(" / ")}`
+          ? `\n\nGäller kund:\n${[custName, custAddress, custPhone].filter(Boolean).join("\n")}`
           : "";
 
     const dhlEmail = `Hej,\n\nKund på sändning ${shipmentNumber} vill inte ta emot sin order och önskar returnera.\n\nSändningen innehåller:\n${articleLines}\n\nFör mer info om produkterna, se:\n${productLinks}\n\nTroligtvis har emballaget Bauhaus tejp/logga.${custLine}\n\nHa en fortsatt trevlig dag!\n\nMed vänliga hälsningar,\n${userName}\nBAUHAUS Webshop\nwww.bauhaus.se\n010 - 180 18 00`;    
@@ -322,11 +322,8 @@ function showDHLCard() {
 }
 
 function copyDHLEmail() {
-  const to      = document.getElementById('dhlEmailTo')?.value || '';
-  const subject = document.getElementById('dhlEmailSubject')?.value || '';
   const body    = document.getElementById('dhlEmailBody')?.innerText || '';
-  const full    = `Till: ${to}\nÄmne: ${subject}\n\n${body}`;
-  navigator.clipboard.writeText(full).then(() => {
+  navigator.clipboard.writeText(body).then(() => {
     const fb = document.getElementById('dhlCopyFeedback');
     fb.textContent = '✓ Kopierat!';
     fb.classList.add('show');

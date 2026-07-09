@@ -8,6 +8,7 @@ const SHIPPING_API     = "https://bauhaus-retur-web.vercel.app";
 
 // ── State ────────────────────────────────────────────────────────────
 let resolvedArticles   = [];
+let verifiedTotalWeight = null; // sätts av doFetchShipping vid lyckat live-anrop (mer pålitlig än summerad skrapad vikt)
 let analysisGeneration = 0;
 let selectedShipping   = null;
 let hasRisk            = false;
@@ -370,6 +371,7 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("caseContent").classList.add("hidden");
   document.getElementById("casePlaceholder").classList.remove("hidden");
   resolvedArticles  = [];
+  verifiedTotalWeight = null;
   selectedShipping  = null;
   shippingContents  = [];
   hasRisk           = false;
@@ -777,7 +779,8 @@ function updateOutput() {
   }
   if (lines.length > 0) {
     lines.push("");
-    lines.push(`Totalvikt: ${fmtW(totalWeight)} kg`);
+    const displayWeight = verifiedTotalWeight ?? totalWeight;
+    lines.push(`Totalvikt: ${fmtW(displayWeight)} kg`);
   }
   if (hasRisk) {
     lines.push("");
@@ -950,6 +953,10 @@ async function doFetchShipping(autoSelect = false) {
       // Troligen fri fraktkampanj (>4000 kr) — priset är maskerat av Bauhaus, gissa inte.
       showShippingError("⚠️ Fraktpris kunde inte fastställas automatiskt (troligen fri fraktkampanj över 4000 kr). Ange manuellt.");
       return;
+    }
+    if (data.verifiedWeight) {
+      verifiedTotalWeight = data.verifiedWeight;
+      updateOutput(); // uppdatera "Totalvikt"-raden med den mer pålitliga siffran
     }
     renderShippingOptions(data.options, autoSelect);
   } catch (err) {

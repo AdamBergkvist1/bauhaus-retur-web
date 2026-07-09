@@ -248,6 +248,55 @@ efter att IT blockerade extensions.
       och vad som stannar lokalt — underlag för intern förankring.
 - [x] Enhetlig felmeddelande-stil i UI.
 
+**PRIO D (maskering — högst prioritet innan intern förankring):**
+- [ ] Bygg `anonymizeText()`: maskera namn/e-post/telefon/adress innan text
+      skickas till Gemini, spara original lokalt, återinjicera i UI efter svar.
+      Design redan specad (se tidigare chatthistorik/minne). Detta är den
+      enskilt viktigaste åtgärden för att göra dataflödet försvarbart inför
+      Legal/dataskydd.
+
+---
+
+### 🗓️ Plan: intern förankring innan Adam slutar (2026-08-14)
+
+**Bakgrund:** Adam slutar på Bauhaus 2026-08-14. Målet är INTE nödvändigtvis
+att hinna få formellt godkännande (PUB-avtal etc. tar sannolikt veckor–
+månader, och Bauhaus har IT-frysperiod 26/6–3/8) — målet är att ha
+**disclosat, dokumenterat och överlämnat** projektet så tidigt som möjligt,
+så chansen att verktyget lever vidare efter Adam maximeras. Att vänta till
+sista veckan med att informera någon är en sämre strategi rent praktiskt
+(mindre tid för feedback/beslut), inte bara en efterlevnadsfråga.
+
+**Begränsning:** Adams chef är på semester till 2026-08-10 — första kontakt
+kan tidigast ske då.
+
+**Ordning:**
+1. Bygg klart PRIO C + PRIO D (maskering) — visa ett moget, avslutat projekt.
+2. Skriv en kort, icke-teknisk 1-sidig sammanfattning för chef/Legal: vad
+   appen gör, tidsvinst, vilka system/data den berör, vad som redan är byggt
+   för säkerhet (maskering, ingen loggning, etc.).
+3. Kontaktordning (viktigt att hålla ordningen):
+   a. Adams chef, först (från 2026-08-10) — innan Legal/dataskydd hör av sig
+      om ett projekt chefen inte kände till.
+   b. Legal (generella legala bedömningar + PUB-avtal, se Intranet-SE-Juridik)
+      — skicka `DATAFLOW.md`, fråga specifikt om Vercel/Gemini-flödet är
+      görbart eller kräver avtal.
+   c. dataskyddet@bauhaus.se (Internrevision) — parallellt eller efter Legal.
+   d. Henrik Engqvist, SAP Business Expert – Sales (separat, lägre prio) —
+      om SAP-idén (dimensioner/vikt/PO-nummer) specifikt. Kontaktväg för
+      SAP-idéer generellt: respektive Business Process Owner, se
+      "IT - Ownership by Process Area"-tabellen på intranätet (senast
+      uppdaterad 2026-02-24, kontakt för korrigeringar: Britt Frimand,
+      bfr@bauhaus.dk). Ingen SAP-integration är byggd i nuläget.
+4. Justera efter ev. feedback.
+5. Sista veckan: överlämning — allt dokumenterat i repot, kontakter redan
+   tagna, tydligt vem som kan ta över (README.md + DATAFLOW.md fungerar
+   som underlag för detta).
+
+**Viktigt:** Adam är inte jurist och detta är inte juridisk rådgivning.
+Frågan om ev. konsekvenser av att fortsätta utveckla innan formellt
+godkännande är en fråga för chef/HR/facket, inte något som kan avgöras här.
+
 **PARKERAT:** SAP (väntar intern bekräftelse), AI-chattruta (beror på SAP),
 fraktpris >4000kr (estimate-shipping-methods otestad), PII-maskering
 (byggs om IT kräver det).

@@ -658,7 +658,8 @@ async function runAnalysis() {
     renderCaseAnalysis(analysis);
   }
   updateShippingContents();
-  if (postcode && resolvedArticles.some(a => a.sku && a.ean)) {
+  const currentPostcode = document.getElementById("inputPostcode").value.trim();
+  if (currentPostcode && resolvedArticles.some(a => a.sku && a.ean)) {
     await doFetchShipping(true);
   }
 }

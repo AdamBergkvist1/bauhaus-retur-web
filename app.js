@@ -1159,8 +1159,12 @@ function renderCaseAnalysis(analysis) {
       <span class="macro-title">${esc(macro.title)}</span>
       <span class="macro-desc">${esc(macro.description)}</span>`;
     btn.addEventListener("click", () => {
+      // Pris 0 betyder INTE gratis frakt — det betyder att Bauhaus fri-frakt-kampanj
+      // maskerat det verkliga priset (se doFetchShipping). Låt "XXX kr" stå kvar så
+      // handläggaren tvingas fylla i manuellt, istället för att lova kunden 0 kr.
+      const hasRealPrice = selectedShipping && selectedShipping.price > 0;
       const text = macro.text
-        .replace(/XXX kr/g, selectedShipping ? `${selectedShipping.price} kr` : "XXX kr")
+        .replace(/XXX kr/g, hasRealPrice ? `${selectedShipping.price} kr` : "XXX kr")
         .replace(/\bAdam\b/g, userName);
       navigator.clipboard.writeText(text).then(() => {
         btn.classList.add("macro-btn--copied");

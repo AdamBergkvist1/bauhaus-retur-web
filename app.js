@@ -568,6 +568,10 @@ async function runAnalysis() {
       body: JSON.stringify({ text: maskedText })
     });
     if (geminiRes.ok) geminiResult = await geminiRes.json();
+    // Servern svarar 200 även när Gemini gav ogiltig JSON (se api/gemini.js).
+    // Behandla det som ett misslyckande, annars visas ingen varning till
+    // handläggaren om att reservanalysen (regex) används istället för AI.
+    if (geminiResult?.error) geminiResult = null;
   } catch (e) {
     console.log('Gemini ej tillgänglig, använder regex-parser');
   }

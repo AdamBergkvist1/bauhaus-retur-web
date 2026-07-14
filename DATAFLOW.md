@@ -6,7 +6,7 @@ ett samtal med Bauhaus IT/DPO om appens status — det är IT/DPO som
 avgör om flödet är godkänt enligt GDPR och intern policy, inte det
 här dokumentet.
 
-Senast verifierad mot faktisk kod: 2026-07-08.
+Senast verifierad mot faktisk kod: 2026-07-14.
 
 ---
 
@@ -128,9 +128,9 @@ att skicka data till en tredjepart utan avtal.
 - Är dagens flöde (maskerad mejltext → Vercel → Gemini, se punkt 4) godkänt,
   eller krävs ytterligare åtgärder innan verktyget kan användas i
   ordinarie drift?
-- Är URL-PII-läckaget (punkt 5) tillräckligt allvarligt för att blockera
-  användning tills det är åtgärdat, eller kan verktyget användas under
-  tiden det löses?
+- URL-PII-läckaget (punkt 5) är åtgärdat 2026-07-14, men kunddata nådde
+  Vercels infrastruktur under perioden dessförinnan. Är det något som
+  behöver rapporteras eller utredas separat?
 - Krävs formellt personuppgiftsbiträdesavtal med Vercel/Google för
   den här typen av användning?
 - Finns policy för att läsa interna system (Puzzel/Magento/DHL) via

@@ -701,6 +701,8 @@ async function runAnalysis() {
     renderCaseAnalysis(analysis);
   }
   updateShippingContents();
+  updateDHLLink(); // måste köras EFTER updateShippingContents — annars är kollislaget
+                   // (Paket/Pall/HD) inte beräknat än och DHL får alltid fel mall.
   const currentPostcode = document.getElementById("inputPostcode").value.trim();
   if (currentPostcode && resolvedArticles.some(a => a.sku && a.ean)) {
     await doFetchShipping(true);
@@ -958,6 +960,28 @@ function updateShippingContents() {
   } else {
     missingEl.classList.add("hidden");
   }
+}
+
+// Uppdaterar DHL-knappens länk med rätt mall (SP vs HD) baserat på beräknat kollislag.
+// MÅSTE anropas efter updateShippingContents(), som skapar kollislagSelect-elementet.
+function updateDHLLink() {
+  const dhlBtn = document.getElementById("dhlBtn");
+  if (!dhlBtn || dhlBtn.classList.contains("hidden")) return;
+  const kollislag = document.getElementById("kollislagSelect")?.value || "Paket";
+  const isHD = kollislag.toLowerCase().includes("pall") ||
+    document.getElementById("shippingKollislag")?.textContent?.includes("Hemleverans");
+  const dhlTemplate = isHD ? "DHL HD Retursedel" : "DHL SP Retursedel";
+  const weight = document.getElementById("outputBox").textContent.match(/Totalvikt: ([\d,]+)/)?.[1] || "";
+  dhlBtn.href = `https://www.mydhlfreight.com/se-sv/portal-order/route?` +
+    `template=${encodeURIComponent(dhlTemplate)}&` +
+    `name=${encodeURIComponent(localStorage.getItem("bauhaus_customer_name") || "")}` +
+    `&street=${encodeURIComponent(localStorage.getItem("bauhaus_customer_street") || "")}` +
+    `&postcode=${encodeURIComponent(localStorage.getItem("bauhaus_customer_postcode") || "")}` +
+    `&city=${encodeURIComponent(localStorage.getItem("bauhaus_customer_city") || "")}` +
+    `&phone=${encodeURIComponent(localStorage.getItem("bauhaus_customer_phone") || "")}` +
+    `&email=${encodeURIComponent(localStorage.getItem("bauhaus_customer_email") || "")}` +
+    `&order=${encodeURIComponent(localStorage.getItem("bauhaus_customer_order") || "")}` +
+    `&weight=${encodeURIComponent(weight)}`;
 }
 
 // ── Frakt ─────────────────────────────────────────────────────────────

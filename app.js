@@ -105,7 +105,10 @@ inputName.addEventListener("change", () => {
   if (n) { userName = n; localStorage.setItem("bauhaus_username", n); }
 });
 
-const urlParams   = new URLSearchParams(window.location.search);
+// PII skickas via URL-fragment (#) istället för query (?) — allt efter # skickas
+// ALDRIG till servern av webbläsaren, så kunddata hamnar inte i Vercels loggar.
+// Query-strängen läses fortfarande som fallback (bakåtkompatibilitet med äldre bokmärken).
+const urlParams   = new URLSearchParams(window.location.hash.slice(1) || window.location.search);
 const urlPostcode = urlParams.get("postcode");
 const urlName     = urlParams.get("name");
 const urlAddress  = urlParams.get("address");
@@ -126,6 +129,12 @@ if (urlOrder) localStorage.setItem("bauhaus_customer_order", urlOrder);
 if (urlOrder) document.getElementById("manualOrderInput").value = urlOrder;
 
 // Magento alltid synlig och aktiv — men dimmed tills ordernummer finns
+// Rensa PII ur adressfältet så snart datan lästs in i minnet/localStorage —
+// den ska inte ligga kvar synlig i adressfältet eller i webbläsarhistoriken.
+if (window.location.hash || window.location.search) {
+  history.replaceState(null, "", window.location.pathname);
+}
+
 const magentoBtn = document.getElementById("magentoBtn");
 magentoBtn.style.opacity = "0.4";
 
@@ -218,7 +227,7 @@ function parseDHLUrlParams(search) {
 }
 
 function checkDHLUrlParams() {
-  const parsed = parseDHLUrlParams(location.search);
+  const parsed = parseDHLUrlParams(location.hash.slice(1) || location.search);
   if (!parsed) return;
   dhlTrackingData = { ...parsed, timestamp: Date.now() };
   showDHLCard();

@@ -370,14 +370,19 @@ function setupLogisticsBtn() {
       localStorage.getItem("bauhaus_time_from") || "",
       localStorage.getItem("bauhaus_time_to") || ""
     ].join("|");
-    navigator.clipboard.writeText(blData).catch(() => {
-      logisticsBtn.textContent = "⚠️ Kunde inte kopiera";
+    // Vänta in kopieringen INNAN vi visar "Kopierat" och öppnar Logistics —
+    // annars kan handläggaren tro att data ligger i urklipp när den inte gör det,
+    // och råka klistra in gammal data i Logistics-systemet.
+    navigator.clipboard.writeText(blData).then(() => {
+      logisticsBtn.textContent = "✅ Kopierat!";
+      setTimeout(() => {
+        logisticsBtn.textContent = "🏭 Öppna i Logistics";
+        window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`);
+      }, 800);
+    }).catch(() => {
+      logisticsBtn.textContent = "⚠️ Kunde inte kopiera — försök igen";
+      setTimeout(() => { logisticsBtn.textContent = "🏭 Öppna i Logistics"; }, 2500);
     });
-    logisticsBtn.textContent = "✅ Kopierat!";
-    setTimeout(() => {
-      logisticsBtn.textContent = "🏭 Öppna i Logistics";
-      window.open(`https://www-admin.bauhaus.se/bauhausadmin/sales/order/index/?increment_id=${magentoOrderNumber}`);
-    }, 800);
   };
   logisticsBtn.href = "#";
 }

@@ -124,18 +124,67 @@ till DHL för att utföra returen, DHL är Bauhaus etablerade fraktleverantör,
 och åtgärden initieras manuellt av handläggaren. Det är en annan riskklass än
 att skicka data till en tredjepart utan avtal.
 
-## 6. Öppna frågor för Bauhaus IT/DPO
-- Är dagens flöde (maskerad mejltext → Vercel → Gemini, se punkt 4) godkänt,
-  eller krävs ytterligare åtgärder innan verktyget kan användas i
-  ordinarie drift?
-- URL-PII-läckaget (punkt 5) är åtgärdat 2026-07-14, men kunddata nådde
-  Vercels infrastruktur under perioden dessförinnan. Är det något som
-  behöver rapporteras eller utredas separat?
-- Krävs formellt personuppgiftsbiträdesavtal med Vercel/Google för
-  den här typen av användning?
-- Finns policy för att läsa interna system (Puzzel/Magento/DHL) via
-  egna bookmarklets, givet att det endast är läsrättigheter och
-  ingen skrivning sker?
+## 6. Leverantörsvillkor — research 2026-07-14
 
-Det här dokumentet ersätter inget juridiskt beslut — det är
-underlaget för att fråga rätt personer rätt frågor.
+Undersökning av vad Vercel och Google faktiskt förbinder sig till, som
+underlag för Legals bedömning. **Detta är inte en juridisk bedömning** —
+det är en sammanställning av leverantörernas publicerade villkor.
+
+### 6.1 Vercel — PUB-avtal finns redan förskrivet
+
+Vercel har ett publicerat Data Processing Addendum (DPA) — motsvarigheten
+till svenskt PUB-avtal — på https://vercel.com/legal/dpa
+
+- Avtalet är förskrivet och anses undertecknat när man ingår avtal med
+  Vercel. Det inkluderar EU:s standardavtalsklausuler (SCC) för
+  dataöverföring till USA.
+- Vercel agerar personuppgiftsbiträde (processor); kunden är
+  personuppgiftsansvarig (controller).
+- Vercels infrastruktur körs på AWS, Azure och Google Cloud.
+- Vid uppsägning kan data hämtas eller raderas inom 90 dagar.
+
+**Fråga för Legal:** räcker det förskrivna DPA:t, eller krävs formell
+signering/granskning från Bauhaus sida innan personuppgifter behandlas
+på plattformen?
+
+### 6.2 Gemini API — VIKTIGT: gratistiern har andra villkor än betald
+
+Appen använder Gemini Developer API (`generativelanguage.googleapis.com`,
+modell `gemini-3.1-flash-lite`) på **gratistiern**. Googles villkor
+(https://ai.google.dev/gemini-api/terms) skiljer skarpt mellan tiers:
+
+**Gratistier ("Unpaid Services") — generella villkor:**
+- Google använder inskickat innehåll och genererade svar för att
+  utveckla Googles produkter och maskininlärningsteknik.
+- Mänskliga granskare kan läsa och annotera API-input och output.
+- Loggar sparas upp till 55 dagar.
+
+**Betald tier ("Paid Services"):**
+- Google använder INTE prompts eller svar för att förbättra sina produkter.
+- Prompts loggas endast för missbruksövervakning, begränsad tid.
+
+**EU-undantaget (gäller Bauhaus):**
+Googles villkor anger att för den som befinner sig inom EES, Schweiz
+eller Storbritannien gäller villkoren under "Paid Services" för ALLA
+tjänster — inklusive gratiskvoten — även om de erbjuds kostnadsfritt.
+
+**Tolkning:** eftersom Bauhaus är i Sverige (EES) gäller sannolikt de
+betalda villkoren automatiskt för vår data, vilket skulle innebära att
+**ingen modellträning sker på kunddata** trots gratistiern.
+
+**MEN — en klausul pekar åt andra hållet:**
+Samma villkor anger att man endast får använda Paid Services när man
+gör API-klienter tillgängliga för användare inom EES/Schweiz/UK.
+Appen kör idag på gratistiern.
+
+**Konkret rekommendation (teknisk, inte juridisk):**
+Aktivera fakturering (billing) på Gemini-projektet. Då gäller de betalda
+villkoren entydigt, användarvillkoren följs, och tolkningsfrågan
+försvinner. Med appens volym (några hundra ärenden/månad, Flash-Lite)
+blir kostnaden försumbar — sannolikt några kronor per månad.
+
+**Fråga för Legal:** hur ska dessa två klausuler tolkas tillsammans, och
+är övergång till betald tier tillräckligt för att flödet ska vara
+regelrätt?
+
+## 7. Öppna frågor för Bauhaus IT/DPO

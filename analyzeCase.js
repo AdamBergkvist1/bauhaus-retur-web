@@ -47,8 +47,15 @@ const CASE_RULES = [
     message: "⚠️ Öppnad/använd vara – öppet köp kan nekas, värdeminskningsavdrag möjligt.",
     test: (text) => {
       const cleaned = text.toLowerCase()
-        .replace(/oöppna[dt]/g, "").replace(/oanvänd[ts]?/g, "");
-      return /öppna[dt]|använd[ts]?|monterad[t]?|trasig[t]?/.test(cleaned);
+        // Prefix-negationer: "oöppnad", "oanvänd", "oanvänt"
+        .replace(/oöppna[dt]/g, "").replace(/oanvän[dt][ats]?/g, "")
+        // Fristående negationer: "inte öppnat", "ej använd", "aldrig monterad".
+        // Negationen måste stå nära verbet (max 2 ord emellan) för att inte
+        // råka avfärda äkta risk längre fram i meningen.
+        .replace(/\b(inte|ej|aldrig)\s+(?:\w+\s+){0,2}?(öppna[dt]?|använ[dt][ats]?|monterad?[t]?)\b/g, "");
+      // OBS: "använ[dt]" (inte "använd") — annars missas "använt", vilket är
+      // det vanligaste sättet kunder uttrycker det på.
+      return /öppna[dt]|använ[dt][ats]?|monterad[t]?|trasig[t]?/.test(cleaned);
     },
   },
 

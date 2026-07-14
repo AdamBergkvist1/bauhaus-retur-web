@@ -188,3 +188,22 @@ blir kostnaden försumbar — sannolikt några kronor per månad.
 regelrätt?
 
 ## 7. Öppna frågor för Bauhaus IT/DPO
+
+- Räcker Vercels förskrivna DPA (se 6.1), eller krävs formell signering
+  från Bauhaus innan personuppgifter behandlas på plattformen?
+- Hur ska Googles två klausuler tolkas tillsammans (se 6.2), och är
+  övergång till betald Gemini-tier tillräckligt för att flödet ska vara
+  regelrätt?
+- Ordernumret skickas i klartext till Gemini (medvetet — se punkt 4).
+  Är det acceptabelt, eller måste även det maskeras?
+- Kunddata nådde Vercels infrastruktur via URL-parametrar fram till
+  2026-07-14 (åtgärdat, se punkt 5). Behöver det rapporteras eller
+  utredas separat?
+- Finns policy för att läsa interna system (Puzzel/Magento/DHL) via egna
+  bookmarklets, givet att det endast är läsrättigheter och ingen
+  skrivning sker?
+- Verktyget kan åtkomstskyddas, men det kräver Vercel Pro (~$20/mån) —
+  eller att Bauhaus hostar det internt. Vilket är rätt väg?
+
+Det här dokumentet ersätter inget juridiskt beslut — det är underlaget
+för att fråga rätt personer rätt frågor.

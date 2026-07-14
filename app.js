@@ -876,6 +876,12 @@ function updateShippingContents() {
     }
   }
 
+  // Artiklar utan viktdata räknas som 0 kg ovan — totalvikten kan därför
+  // UNDERSKATTAS och kollislaget (Paket/Pall/HD) bli fel. Flagga tydligt.
+  const missingWeightArts = resolvedArticles
+    .filter(a => a.ean && (a.weight === null || a.weight === undefined))
+    .map(a => a.articleNumber);
+
   let isPallet = false, isHeavyPackage = false;
   if      (totalWeight >= LIMIT_PALL_WEIGHT || maxL >= LIMIT_PALL_LENGTH) isPallet = true;
   else if (totalWeight >= LIMIT_HD_WEIGHT   || maxL >= LIMIT_HD_LENGTH)   isHeavyPackage = true;
@@ -926,6 +932,10 @@ function updateShippingContents() {
     </select>
     ${extraInfo}
     <span style="margin-left:12px;font-weight:normal;color:var(--grey-500);">| Totalvikt: <b>${totalWeight.toFixed(2)} kg</b></span>`;
+
+  if (missingWeightArts.length > 0) {
+    warningHtml += `<div class="warn-box" style="margin-top:6px;font-size:11px;">⚠️ <b>Vikt saknas för:</b> ${esc(missingWeightArts.join(", "))} — totalvikten är därför för låg och kollislaget kan vara fel. Kontrollera manuellt innan bokning.</div>`;
+  }
 
   const artText = artLines.length > 0 ? artLines.join("\n") : "Mått ej tillgängliga";
   document.getElementById("shippingDimensions").innerHTML = `

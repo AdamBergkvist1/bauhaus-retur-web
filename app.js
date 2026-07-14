@@ -1084,7 +1084,9 @@ function saveManual() {
   if (idx !== -1) {
     const sku = /^\d{7,8}$/.test(manualTarget) ? manualTarget : (resolvedArticles[idx].sku || "");
     resolvedArticles[idx] = { ...resolvedArticles[idx], sku, ean, weight, error: null };
-    articleCache[manualTarget] = { sku, ean, weight };
+    // Manuellt angivna värden cachas INTE: om ett felskrivet EAN hamnade i cachen
+    // skulle det propagera tyst till alla efterföljande ärenden med samma artikel,
+    // utan att synas i UI:t. Hellre skriva in igen än att skicka fel EAN till DHL.
   }
   document.getElementById("manualCard").classList.add("hidden");
   consolidate();

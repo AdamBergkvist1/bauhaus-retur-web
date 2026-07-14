@@ -108,6 +108,12 @@ inputName.addEventListener("change", () => {
 // PII skickas via URL-fragment (#) istället för query (?) — allt efter # skickas
 // ALDRIG till servern av webbläsaren, så kunddata hamnar inte i Vercels loggar.
 // Query-strängen läses fortfarande som fallback (bakåtkompatibilitet med äldre bokmärken).
+// Om bokmärket öppnar ett nytt ärende i en flik som redan är öppen, ser
+// webbläsaren det som navigering inom samma sida (bara fragmentet ändras)
+// och laddar INTE om — så koden nedan körs aldrig och appen uppdateras inte.
+// Ladda om sidan så det nya ärendet läses in korrekt.
+window.addEventListener("hashchange", () => location.reload());
+
 // Rensa kunddata från föregående session innan ny data läses in — kunddata
 // ska aldrig ligga kvar längre än det pågående ärendet (dataminimering).
 // clearCustomerData() definieras längre ned, hoistas av function-deklaration.

@@ -96,14 +96,33 @@ Detta minskar mängden PII i själva mejltextens nätverksanrop, men ändrar
 inte att en förfrågan fortfarande går till Vercel/Gemini, och löser inte
 punkt 5 nedan (ett separat, allvarligare läckage).
 
-## 5. Känt, ej åtgärdat gap — kunddata i URL
-Magento-bokmärket skickar idag kundens namn, adress, gata, stad, telefon
-och e-post som URL-query-parametrar till appen (`?name=...&address=...`),
-på VARJE ärende där bokmärket används — oavsett vad som står i mejltexten.
-Detta är separat från och sannolikt allvarligare än punkt 4, eftersom
-URL:er (inkl. query-strängar) normalt loggas av hosting-plattformar som
-standarddrift och sparas i webbläsarhistorik. Upptäckt 2026-07-09, åtgärd
-planerad (se `TODO.md`, PRIO E) men ej påbörjad.
+## 5. Kunddata i URL — ÅTGÄRDAT 2026-07-14
+
+**Tidigare problem:** Magento-bokmärket skickade kundens namn, adress, gata,
+stad, telefon och e-post som URL-query-parametrar (`?name=...&address=...`),
+och Puzzel-bokmärket skickade hela kundmejlets text (`?puzzel=...`). Eftersom
+query-strängar skickas till servern och normalt loggas av hosting-plattformar
+som standarddrift, innebar detta att kunddata nådde Vercels infrastruktur på
+varje ärende.
+
+**Åtgärd:** båda bokmärkena skickar nu datan i URL:ens **fragment** (`#`)
+istället för query (`?`). Allt efter `#` skickas per webbstandard **aldrig
+till servern** — webbläsaren behåller det lokalt. Kunddata når därmed aldrig
+Vercels loggar. Appen (`app.js`) läser från `location.hash` med query som
+fallback (bakåtkompatibilitet), och rensar dessutom adressfältet direkt efter
+inläsning (`history.replaceState`) så datan inte ligger kvar synlig eller i
+webbläsarhistoriken.
+
+**Verifierat live 2026-07-14** med både Magento- och Puzzel-bokmärket: URL:en
+i adressfältet är ren (`bauhaus-retur-web.vercel.app/`), och all data kommer
+ändå fram korrekt till appen.
+
+**Kvarstående, medveten avvägning:** kunddata skickas fortfarande som
+query-parametrar till **DHL:s eget bokningsverktyg** (`mydhlfreight.com`) när
+handläggaren klickar "Öppna i DHL". Detta är avsiktligt — det är data som ska
+till DHL för att utföra returen, DHL är Bauhaus etablerade fraktleverantör,
+och åtgärden initieras manuellt av handläggaren. Det är en annan riskklass än
+att skicka data till en tredjepart utan avtal.
 
 ## 6. Öppna frågor för Bauhaus IT/DPO
 - Är dagens flöde (maskerad mejltext → Vercel → Gemini, se punkt 4) godkänt,

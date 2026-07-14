@@ -274,7 +274,7 @@ function showDHLCard() {
     // Bygg artikelrader för mejlet
     const articleLines = resolvedArticles
       .filter(a => a.ean)
-      .map(a => `${a.quantity}x ${a.shortName || a.articleNumber} (EAN: ${a.ean})`)
+      .map(a => `${a.quantity}x ${esc(a.shortName || a.articleNumber)} (EAN: ${esc(a.ean)})`)
       .join('\n');
 
     const productLinks = resolvedArticles
@@ -282,9 +282,9 @@ function showDHLCard() {
       .map(a => `https://www.bauhaus.se/search?q=${a.articleNumber}`)
       .join('\n');
 
-    const custName    = localStorage.getItem("bauhaus_customer_name") || "";
-        const custAddress = localStorage.getItem("bauhaus_customer_address") || "";
-        const custPhone   = localStorage.getItem("bauhaus_customer_phone") || "";
+    const custName    = esc(localStorage.getItem("bauhaus_customer_name") || "");
+    const custAddress = esc(localStorage.getItem("bauhaus_customer_address") || "");
+    const custPhone   = esc(localStorage.getItem("bauhaus_customer_phone") || "");
         const custLine = (custName || custAddress || custPhone)
           ? `\n\nGäller kund:\n${[custName, custAddress, custPhone].filter(Boolean).join("\n")}`
           : "";
@@ -824,12 +824,12 @@ function updateShippingContents() {
         const uncertain = art.dimensionsConfidence === "partial" ||
           (art.dimensions && art.dimensions.width === art.dimensions.height) ||
           (art.dimensions && art.dimensions.height < 200) ? " ⚠️" : "";
-        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm${uncertain}`);
+        artLines.push(`${art.quantity}x ${esc(art.shortName || art.articleNumber)} – ${Math.round(l)}×${Math.round(b)}×${Math.round(h)} cm${uncertain}`);
       } else {
-        artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
+        artLines.push(`${art.quantity}x ${esc(art.shortName || art.articleNumber)} – mått saknas`);
       }
     } else {
-      artLines.push(`${art.quantity}x ${art.shortName || art.articleNumber} – mått saknas`);
+      artLines.push(`${art.quantity}x ${esc(art.shortName || art.articleNumber)} – mått saknas`);
     }
   }
 

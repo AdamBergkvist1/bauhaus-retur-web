@@ -187,23 +187,73 @@ blir kostnaden försumbar — sannolikt några kronor per månad.
 är övergång till betald tier tillräckligt för att flödet ska vara
 regelrätt?
 
-## 7. Öppna frågor för Bauhaus IT/DPO
+## 7. Vad bookmarklets är och gör
 
-- Räcker Vercels förskrivna DPA (se 6.1), eller krävs formell signering
-  från Bauhaus innan personuppgifter behandlas på plattformen?
-- Hur ska Googles två klausuler tolkas tillsammans (se 6.2), och är
-  övergång till betald Gemini-tier tillräckligt för att flödet ska vara
+En "bookmarklet" är ett vanligt webbläsarbokmärke som innehåller ett litet
+JavaScript-program istället för en webbadress. När handläggaren klickar på
+det körs koden på den sida som redan är öppen.
+
+**Konkret:** handläggaren är inloggad i Magento och tittar på en order.
+Klick på bokmärket → koden läser det som redan står på skärmen (kundnamn,
+adress, artiklar) och öppnar returverktyget med den datan ifylld. Ingenting
+skrivs tillbaka till Magento, ingen ny inloggning sker, inga behörigheter
+kringgås. Det är samma data handläggaren redan ser, bara automatiskt
+överförd istället för manuellt avskriven.
+
+Fyra bookmarklets används:
+- **Magento** — läser kunduppgifter, artiklar och postnummer från ordersidan
+- **Puzzel** — läser kundmejlets text från ärendet
+- **DHL** — läser sändningsstatus från DHL Active Tracing
+- **Bauhaus Logistics** — stöd för intern upphämtningsbokning
+
+Samtliga är **endast läsande**. Koden är versionshanterad i repots
+`bookmarklets/`-mapp och kan granskas i sin helhet.
+
+## 8. Vad som kan användas med full säkerhet idag
+
+Följande delar behandlar **ingen** kunddata externt och är oproblematiska
+oavsett hur Legal bedömer AI-delen:
+
+- **Artikeluppslagning** (EAN, vikt, mått) — endast artikelnummer skickas
+- **Fraktprisuppslagning** — endast postnummer + artikelnummer
+- **Kollislags-förslag** (Paket/Pall/HD) — beräknas lokalt
+- **Volym- och måttberäkning** — lokalt
+- **Returkommentar och fraktsedel** — genereras lokalt, hamnar i urklipp
+- **Makroförslag** — lokala textmallar
+- **DHL-statuskontroll** — lokal logik på data från DHL:s egen sida
+- **Regex-baserad ärendeanalys** (`analyzeCase.js`) — körs lokalt, ingen AI
+
+Den **enda** delen som skickar kundtext externt är AI-analysen (Gemini).
+Om den skulle behöva stängas av fungerar allt ovanstående oförändrat —
+appen faller automatiskt tillbaka på den lokala regex-analysen.
+
+## 9. Handläggarens ansvar
+
+Verktyget ersätter inte handläggarens omdöme. Det föreslår — handläggaren
+granskar och beslutar. Kundmejlets fulltext klistras in manuellt av
+handläggaren, som därmed ser exakt vad som skickas till analys, på samma
+sätt som i allt annat arbete med kunduppgifter. Samma sekretess- och
+omdömeskrav gäller som vid vanlig ärendehantering.
+
+## 10. Öppna frågor för Bauhaus IT/DPO
+
+- **Vercel:** personuppgifter (ordernummer, samt eventuell fritext kunden
+  själv skrivit) **passerar** Vercels serverless-funktion i transit på väg
+  till Google, men **lagras inte** av vår kod — den loggar endast
+  statuskoder, aldrig innehåll. Vercel kan dock logga anropsmetadata som
+  del av normal plattformsdrift. Räcker Vercels förskrivna DPA (se 6.1)
+  för detta, eller krävs formell signering från Bauhaus?
+- **Gemini:** hur ska Googles två klausuler tolkas tillsammans (se 6.2),
+  och är övergång till betald tier tillräckligt för att flödet ska vara
   regelrätt?
 - Ordernumret skickas i klartext till Gemini (medvetet — se punkt 4).
-  Är det acceptabelt, eller måste även det maskeras?
+  Acceptabelt, eller måste även det maskeras?
 - Kunddata nådde Vercels infrastruktur via URL-parametrar fram till
-  2026-07-14 (åtgärdat, se punkt 5). Behöver det rapporteras eller
-  utredas separat?
-- Finns policy för att läsa interna system (Puzzel/Magento/DHL) via egna
-  bookmarklets, givet att det endast är läsrättigheter och ingen
-  skrivning sker?
-- Verktyget kan åtkomstskyddas, men det kräver Vercel Pro (~$20/mån) —
-  eller att Bauhaus hostar det internt. Vilket är rätt väg?
+  2026-07-14 (åtgärdat, se punkt 5). Behöver det rapporteras separat?
+- Finns policy för bookmarklets (se punkt 7), givet att de endast läser
+  data handläggaren redan ser och inte skriver något?
+- Verktyget kan åtkomstskyddas, men det kräver Vercel Pro (~$20/mån) eller
+  intern hosting. Vilket är rätt väg?
 
 Det här dokumentet ersätter inget juridiskt beslut — det är underlaget
 för att fråga rätt personer rätt frågor.

@@ -30,7 +30,15 @@ const CASE_RULES = [
   {
     id: "foretag",
     message: "ℹ️ Företagskund – köplagen gäller, 30 dagars öppet köp.",
-    test: (text) => /\b(?:ab|kb|hb|ab\b|aktiebolag|handelsbolag|org\.?\s*nr|momsreg|företag(?:et|skund)?)\b/i.test(text),
+    test: (text) => {
+      // Bolagsform (AB/KB/HB) kräver ett versalt företagsnamn FÖRE — annars
+      // matchade "\bab\b" vanliga ord ("ab och till") och namn ("Ab-dullah"),
+      // vilket felaktigt klassade privatpersoner som företag och halverade
+      // deras öppet köp från 60 till 30 dagar.
+      const bolagsform = /[A-ZÅÄÖ][\wåäöÅÄÖ&-]*\s+(?:AB|KB|HB)\b/.test(text);
+      const ovrigt = /\baktiebolag\b|\bhandelsbolag\b|org\.?\s*nr|momsreg|\bföretag(?:et|skund)?\b/i.test(text);
+      return bolagsform || ovrigt;
+    },
   },
   {
     id: "premium",

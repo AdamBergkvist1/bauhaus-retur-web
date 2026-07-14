@@ -373,7 +373,24 @@ function setupLogisticsBtn() {
 
 // ── Knappar ──────────────────────────────────────────────────────────
 document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
+// Rensa all kunddata ur localStorage — dataminimering (kunddata ska inte
+// ligga kvar efter att ärendet är avslutat). Handläggarens eget namn
+// (bauhaus_username) behålls medvetet, det är ingen kunduppgift.
+function clearCustomerData() {
+  const keys = [
+    "bauhaus_customer_name", "bauhaus_customer_address", "bauhaus_customer_street",
+    "bauhaus_customer_city", "bauhaus_customer_postcode", "bauhaus_customer_phone",
+    "bauhaus_customer_email", "bauhaus_customer_order", "bauhaus_customer_partner",
+    "bauhaus_tracking_number", "bauhaus_last_email", "bauhaus_summary",
+    "bauhaus_risk_reason", "bauhaus_case_type", "bauhaus_macro_suggestion",
+    "bauhaus_requested_time", "bauhaus_delivery_date", "bauhaus_time_from",
+    "bauhaus_time_to", "bauhaus_dhl_tracking",
+  ];
+  for (const k of keys) localStorage.removeItem(k);
+}
+
 document.getElementById("clearBtn").addEventListener("click", () => {
+  clearCustomerData();
   document.getElementById("emailInput").value = "";
   document.getElementById("resultCard").classList.add("hidden");
   document.getElementById("manualCard").classList.add("hidden");

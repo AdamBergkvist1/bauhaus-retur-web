@@ -566,6 +566,10 @@ async function runAnalysis() {
   } catch (e) {
     console.log('Gemini ej tillgänglig, använder regex-parser');
   }
+  // Om ett nytt ärende startats medan Gemini-anropet pågick är det här svaret
+  // föråldrat — skriv INTE över det nya ärendets data (fel ordernummer i DHL-mejl).
+  if (myGeneration !== analysisGeneration) return;
+
   if (geminiResult?.summary) geminiResult.summary = restoreText(geminiResult.summary, restoreMap);
 
   if (geminiResult?.requested_time) localStorage.setItem("bauhaus_requested_time", geminiResult.requested_time);

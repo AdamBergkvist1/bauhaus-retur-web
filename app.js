@@ -962,6 +962,9 @@ function updateShippingContents() {
 
 // ── Frakt ─────────────────────────────────────────────────────────────
 async function doFetchShipping(autoSelect = false) {
+  // Fånga vilket ärende detta anrop tillhör — om ett nytt ärende startas medan
+  // frakt-anropet pågår får det gamla svaret INTE skriva över det nya (fel pris).
+  const myGeneration = analysisGeneration;
   const postcode = document.getElementById("inputPostcode").value.trim().replace(/\s/g, "");
   if (!/^\d{5}$/.test(postcode)) {
     showShippingError("Ange ett giltigt 5-siffrigt postnummer.");
@@ -987,6 +990,7 @@ async function doFetchShipping(autoSelect = false) {
       body: JSON.stringify({ postcode, articles, cookies: bauhausCookies }),
     });
     const data = await res.json();
+    if (myGeneration !== analysisGeneration) return; // föråldrat svar — nytt ärende pågår
     if (!data.success) throw new Error(data.error);
 
     const allZero = data.options.length > 0 && data.options.every(o => o.price === 0);
@@ -1001,6 +1005,7 @@ async function doFetchShipping(autoSelect = false) {
     }
     renderShippingOptions(data.options, autoSelect);
   } catch (err) {
+    if (myGeneration !== analysisGeneration) return; // föråldrat — nytt ärende pågår
     // Live-uppslagning misslyckades (t.ex. produkt utan stöd för gäst-varukorg) — uppskatta istället.
     renderShippingOptions(getFallbackShipping(totalWeight), autoSelect);
     showShippingError(`⚠️ Automatisk fraktuppslagning misslyckades (${err.message}) — visar uppskattat pris, ej live-verifierat.`);

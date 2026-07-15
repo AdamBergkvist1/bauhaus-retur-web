@@ -194,7 +194,9 @@ if (urlProducts) {
 
 const savedEmail = localStorage.getItem("bauhaus_last_email");
 if (savedEmail) document.getElementById("emailInput").value = savedEmail;
-if (urlPostcode && savedEmail) setTimeout(runAnalysis, 100);
+// Kör analys om det finns sparad mejltext ELLER om Magento-bokmärket levererat
+// artiklar (då fylls orderinfo, frakt, volym m.m. i även utan mejltext).
+if ((urlPostcode && savedEmail) || magentoProducts.length > 0) setTimeout(runAnalysis, 100);
 
 setStep(1);
 
@@ -554,8 +556,10 @@ function restoreText(text, restoreMap) {
 async function runAnalysis() {
   const myGeneration = ++analysisGeneration;
   const text = document.getElementById("emailInput").value.trim();
-  if (!text) return;
-  localStorage.setItem("bauhaus_last_email", text);
+  // Tillåt analys utan mejltext om Magento-bokmärket levererat artiklar
+  // (magentoProducts) — annars visas ingen orderinfo efter Magento-bokmärket.
+  if (!text && magentoProducts.length === 0) return;
+  if (text) localStorage.setItem("bauhaus_last_email", text);
   hasRisk = detectRiskKeywords(text);
 
   const { maskedText, restoreMap } = anonymizeText(text);

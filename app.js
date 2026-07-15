@@ -124,7 +124,8 @@ window.addEventListener("hashchange", () => {
 // Rensa kunddata från föregående session innan ny data läses in — kunddata
 // ska aldrig ligga kvar längre än det pågående ärendet (dataminimering).
 // clearCustomerData() definieras längre ned, hoistas av function-deklaration.
-clearCustomerData();
+// false = behåll mejltext/analys över sidladdning (pågående ärende).
+clearCustomerData(false);
 
 // Läs data från: (1) hash i URL:en, (2) sessionStorage om en hashchange-reload
 // nyss skedde (då är hashen redan rensad ur adressfältet), (3) query-fallback.
@@ -407,16 +408,20 @@ document.getElementById("analyzeBtn").addEventListener("click", runAnalysis);
 // Rensa all kunddata ur localStorage — dataminimering (kunddata ska inte
 // ligga kvar efter att ärendet är avslutat). Handläggarens eget namn
 // (bauhaus_username) behålls medvetet, det är ingen kunduppgift.
-function clearCustomerData() {
+function clearCustomerData(full = true) {
   const keys = [
     "bauhaus_customer_name", "bauhaus_customer_address", "bauhaus_customer_street",
     "bauhaus_customer_city", "bauhaus_customer_postcode", "bauhaus_customer_phone",
     "bauhaus_customer_email", "bauhaus_customer_order", "bauhaus_customer_partner",
-    "bauhaus_tracking_number", "bauhaus_last_email", "bauhaus_summary",
-    "bauhaus_risk_reason", "bauhaus_case_type", "bauhaus_macro_suggestion",
-    "bauhaus_requested_time", "bauhaus_delivery_date", "bauhaus_time_from",
-    "bauhaus_time_to", "bauhaus_dhl_tracking",
+    "bauhaus_tracking_number", "bauhaus_risk_reason", "bauhaus_case_type",
+    "bauhaus_macro_suggestion", "bauhaus_requested_time", "bauhaus_delivery_date",
+    "bauhaus_time_from", "bauhaus_time_to", "bauhaus_dhl_tracking",
   ];
+  // full=true (Rensa-knappen): rensa ALLT inkl. mejltext och analys.
+  // full=false (sidladdning): behåll mejltext/analys, så ett pågående ärende
+  // (t.ex. Puzzel→Magento på samma order) inte tappar sina mejlartiklar och
+  // felaktigt tar ALLA artiklar från Magento-ordern som fallback.
+  if (full) keys.push("bauhaus_last_email", "bauhaus_summary");
   for (const k of keys) localStorage.removeItem(k);
 }
 

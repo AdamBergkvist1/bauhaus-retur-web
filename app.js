@@ -111,15 +111,28 @@ inputName.addEventListener("change", () => {
 // Om bokmärket öppnar ett nytt ärende i en flik som redan är öppen, ser
 // webbläsaren det som navigering inom samma sida (bara fragmentet ändras)
 // och laddar INTE om — så koden nedan körs aldrig och appen uppdateras inte.
-// Ladda om sidan så det nya ärendet läses in korrekt.
-window.addEventListener("hashchange", () => location.reload());
+// Ladda om sidan så det nya ärendet läses in korrekt. Vi sparar först
+// hash-datan i sessionStorage så den överlever omladdningen — annars tappas
+// den, eftersom history.replaceState (nedan) rensar hashen ur adressfältet.
+window.addEventListener("hashchange", () => {
+  if (window.location.hash.length > 1) {
+    sessionStorage.setItem("bauhaus_pending_hash", window.location.hash.slice(1));
+    window.location.reload();
+  }
+});
 
 // Rensa kunddata från föregående session innan ny data läses in — kunddata
 // ska aldrig ligga kvar längre än det pågående ärendet (dataminimering).
 // clearCustomerData() definieras längre ned, hoistas av function-deklaration.
 clearCustomerData();
 
-const urlParams   = new URLSearchParams(window.location.hash.slice(1) || window.location.search);
+// Läs data från: (1) hash i URL:en, (2) sessionStorage om en hashchange-reload
+// nyss skedde (då är hashen redan rensad ur adressfältet), (3) query-fallback.
+const pendingHash = sessionStorage.getItem("bauhaus_pending_hash");
+if (pendingHash) sessionStorage.removeItem("bauhaus_pending_hash");
+const urlParams   = new URLSearchParams(
+  window.location.hash.slice(1) || pendingHash || window.location.search
+);
 const urlPostcode = urlParams.get("postcode");
 const urlName     = urlParams.get("name");
 const urlAddress  = urlParams.get("address");

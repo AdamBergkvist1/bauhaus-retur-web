@@ -10,6 +10,37 @@ Senast verifierad mot faktisk kod: 2026-07-14.
 
 ---
 
+## Sammanfattning av vidtagna åtgärder (2026-07)
+
+Verktyget har genomgått en systematisk dataskydds- och säkerhetsgenomgång.
+Följande har åtgärdats och verifierats:
+
+- **Kunddata skickas inte längre till hosting-plattformens (Vercel) loggar.**
+  Tidigare skickade bookmarklets kundnamn, adress, telefon och hela
+  mejltexter som URL-parametrar, vilket loggades av plattformen på varje
+  ärende. Nu används URL-fragment som per webbstandard aldrig når servern.
+- **Kunddata lagras inte kvar** i webbläsaren mellan ärenden/sessioner.
+- **Namn, adress, e-post och telefon maskeras lokalt** innan mejltext
+  skickas till AI-analys.
+- **Serverfunktionerna loggar inte** innehållet i anropen (endast statuskoder).
+- **Frakt-, artikel-, volym- och prisuppslagning skickar ingen kunddata** —
+  endast artikelnummer och postnummer (se punkt 8).
+- Övrig härdning: XSS-skydd, åtstramad CORS, robots.txt, avstängd
+  modellträning hos plattformsleverantören, samt ett antal korrigerade
+  fel som kunde ge felaktig information till kund eller DHL.
+
+**Vad som återstår — en fråga för IT/Legal, inte en teknisk brist:**
+Den enda kvarvarande externa överföringen av personuppgift är att
+**maskerad mejltext + ordernummer** skickas till Google Gemini (via
+Vercel) vid AI-analys. Detta är kärnfunktionen och kan inte kodas bort.
+Frågan om denna överföring är tillåten — givet leverantörsavtal och
+val av Gemini-tier (se punkt 6) — kan endast Bauhaus IT/Legal/DPO avgöra.
+
+Handläggaren ser och ansvarar för den text som klistras in för analys,
+på samma sätt som vid all annan hantering av kunduppgifter (se punkt 9).
+
+---
+
 ## Sammanfattning
 
 | Data | Stannar i webbläsaren | Skickas externt |

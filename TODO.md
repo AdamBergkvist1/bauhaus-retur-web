@@ -219,6 +219,32 @@ efter att IT blockerade extensions.
 
 ## 📋 Backlog (Prioriteringsordning)
 
+### 💡 Möjlig framtida funktion: egen frakttabell (upptäckt 2026-07-15)
+
+Adam hittade två interna resurser som *skulle kunna* ge appen förmågan att
+räkna ut frakt helt lokalt, oberoende av Magentos guest-cart (som döljer
+priset vid fri-frakt-kampanj >4000 kr):
+
+1. **PDF "FRAKTPRIS – PRIS TILL KUND INKL. MOMS" (daterad 2026-07-06):**
+   fullständig tabell med distans (0-29/30-69/70-100 km), kollislag
+   (Paket max 30kg, Pall 0-400kg, Pall 401-10000kg, Kranbil), och
+   bokning före/efter 13:00. Plus tilläggstjänster (inbärning, tidsfönster).
+
+2. **Mejl om nya SAP-fraktkoder (2026-07-03):** tre nya fraktkoder för att
+   fakturera frakt till kund (B2B/B2C), t.ex. 0200000347376 (100kr-enhet).
+   Klassade som förbrukningsvara i SAP, syns ej i produktsök.
+
+**⚠️ KRITISK OLÖST FRÅGA — bygg INTE in detta innan den är besvarad:**
+Prislistan är märkt "PRIS TILL KUND" och gäller sannolikt UTLEVERANSER,
+inte RETURER. Priserna (börjar på 275 kr) matchar inte alls de returpriser
+appen redan hämtar via guest-cart (69/129/199 kr). Tabellerna verkar mäta
+OLIKA saker. Att bygga in fel prislista skulle skicka fel fraktpris till
+kund, skriftligt — samma riskkategori som den fixade "0 kr"-buggen.
+
+**Nästa steg om detta tas upp:** bekräfta INTERNT (fråga logistik/den som
+skickade mejlet) om prislistan gäller returfrakt eller endast utleverans,
+INNAN någon kod byggs. Diagnos före bygge, som alltid.
+
 ### Prioriterad lista (tillagd 2026-07-07)
 
 **PRIO A (risk för fel data):**
